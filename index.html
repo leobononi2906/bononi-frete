@@ -2,406 +2,292 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Frete — Bononi Acessórios</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>Frete — Bononi</title>
 <style>
-  :root {
-    --bg:        #0f1117;
-    --surface:   #181c25;
-    --surface2:  #1e2330;
-    --border:    #2a2f3f;
-    --accent:    #f59e0b;
-    --accent2:   #10b981;
-    --danger:    #ef4444;
-    --warn:      #f97316;
-    --text:      #e8eaf0;
-    --muted:     #6b7280;
-    --blue:      #3b82f6;
-    --font:      'Inter', system-ui, sans-serif;
-    --mono:      'JetBrains Mono', 'Fira Code', monospace;
-  }
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  html, body { height: 100%; }
-  body {
-    font-family: var(--font);
-    background: var(--bg);
-    color: var(--text);
-    display: flex;
-    height: 100vh;
-    overflow: hidden;
-  }
+:root {
+  --bg:       #0f1117;
+  --surface:  #181c25;
+  --surface2: #1e2330;
+  --border:   #2a2f3f;
+  --accent:   #f59e0b;
+  --green:    #10b981;
+  --danger:   #ef4444;
+  --warn:     #f97316;
+  --text:     #e8eaf0;
+  --muted:    #6b7280;
+  --blue:     #3b82f6;
+  --sidebar-w: 220px;
+  --topbar-h:  56px;
+  --bottomnav-h: 60px;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;overflow:hidden}
+body{font-family:system-ui,-apple-system,'Segoe UI',sans-serif;background:var(--bg);color:var(--text)}
 
-  /* SIDEBAR */
-  #sidebar {
-    width: 220px;
-    min-width: 220px;
-    background: var(--surface);
-    border-right: 1px solid var(--border);
-    display: flex;
-    flex-direction: column;
-    padding: 0;
-  }
-  .sidebar-logo {
-    padding: 20px 18px 16px;
-    border-bottom: 1px solid var(--border);
-  }
-  .sidebar-logo .brand {
-    font-size: 11px;
-    text-transform: uppercase;
-    letter-spacing: 2px;
-    color: var(--muted);
-    display: block;
-    margin-bottom: 4px;
-  }
-  .sidebar-logo .title {
-    font-size: 17px;
-    font-weight: 700;
-    color: var(--accent);
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-  .sidebar-logo .title span { font-size: 20px; }
-  nav { flex: 1; padding: 12px 8px; }
-  .nav-item {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 10px 12px;
-    border-radius: 8px;
-    cursor: pointer;
-    font-size: 13.5px;
-    color: var(--muted);
-    margin-bottom: 2px;
-    transition: all .15s;
-    border: 1px solid transparent;
-  }
-  .nav-item:hover { background: var(--surface2); color: var(--text); }
-  .nav-item.active {
-    background: rgba(245,158,11,.12);
-    color: var(--accent);
-    border-color: rgba(245,158,11,.25);
-  }
-  .nav-item .icon { font-size: 16px; width: 20px; text-align: center; }
-  .sidebar-footer {
-    padding: 12px 18px;
-    border-top: 1px solid var(--border);
-    font-size: 11px;
-    color: var(--muted);
-  }
+/* ── LAYOUT ── */
+#app{display:flex;height:100vh;overflow:hidden}
 
-  /* MAIN */
-  #main {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-  }
-  .topbar {
-    background: var(--surface);
-    border-bottom: 1px solid var(--border);
-    padding: 14px 24px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    min-height: 56px;
-  }
-  .topbar h1 { font-size: 16px; font-weight: 600; }
-  .topbar .subtitle { font-size: 12px; color: var(--muted); margin-top: 1px; }
-  .page-content {
-    flex: 1;
-    overflow-y: auto;
-    padding: 24px;
-  }
+/* ── SIDEBAR desktop ── */
+#sidebar{
+  width:var(--sidebar-w);min-width:var(--sidebar-w);
+  background:var(--surface);border-right:1px solid var(--border);
+  display:flex;flex-direction:column;transition:transform .25s;z-index:50;
+}
+.sidebar-logo{padding:20px 18px 14px;border-bottom:1px solid var(--border)}
+.sidebar-logo .brand{font-size:10px;text-transform:uppercase;letter-spacing:2px;color:var(--muted);display:block;margin-bottom:3px}
+.sidebar-logo .title{font-size:16px;font-weight:700;color:var(--accent);display:flex;align-items:center;gap:7px}
+nav{flex:1;padding:10px 8px;overflow-y:auto}
+.nav-item{
+  display:flex;align-items:center;gap:10px;padding:11px 12px;
+  border-radius:9px;cursor:pointer;font-size:13.5px;color:var(--muted);
+  margin-bottom:3px;transition:all .15s;border:1px solid transparent;
+  user-select:none;
+}
+.nav-item:active{opacity:.7}
+.nav-item.active{background:rgba(245,158,11,.12);color:var(--accent);border-color:rgba(245,158,11,.25)}
+.nav-item .icon{font-size:17px;width:22px;text-align:center;flex-shrink:0}
+.sidebar-footer{padding:12px 16px;border-top:1px solid var(--border);font-size:12px}
+#sidebar-user{font-weight:600;color:var(--text);margin-bottom:5px;font-size:13px}
+.btn-sair{color:var(--muted);cursor:pointer;font-size:12px}
+.btn-sair:active{opacity:.6}
 
-  /* AUTH */
-  #auth-screen {
-    position: fixed; inset: 0;
-    background: var(--bg);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 100;
-  }
-  .auth-card {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 16px;
-    padding: 36px;
-    width: 360px;
-    text-align: center;
-  }
-  .auth-card .logo { font-size: 36px; margin-bottom: 8px; }
-  .auth-card h2 { font-size: 20px; font-weight: 700; margin-bottom: 4px; color: var(--accent); }
-  .auth-card p { font-size: 13px; color: var(--muted); margin-bottom: 28px; }
-  .auth-card input {
-    width: 100%;
-    background: var(--surface2);
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    padding: 11px 14px;
-    font-size: 14px;
-    color: var(--text);
-    margin-bottom: 12px;
-    outline: none;
-  }
-  .auth-card input:focus { border-color: var(--accent); }
-  .auth-error { color: var(--danger); font-size: 13px; margin-bottom: 10px; min-height: 20px; }
-  .btn {
-    display: inline-flex; align-items: center; gap: 6px;
-    padding: 10px 20px; border-radius: 8px; font-size: 13.5px;
-    font-weight: 600; cursor: pointer; border: none; transition: all .15s;
-  }
-  .btn-primary { background: var(--accent); color: #000; }
-  .btn-primary:hover { background: #fbbf24; }
-  .btn-full { width: 100%; justify-content: center; }
-  .btn-sm { padding: 7px 14px; font-size: 12.5px; }
-  .btn-ghost {
-    background: transparent; color: var(--muted);
-    border: 1px solid var(--border);
-  }
-  .btn-ghost:hover { background: var(--surface2); color: var(--text); }
-  .btn-danger { background: rgba(239,68,68,.15); color: var(--danger); border: 1px solid rgba(239,68,68,.3); }
-  .btn-danger:hover { background: rgba(239,68,68,.25); }
-  .btn-success { background: rgba(16,185,129,.15); color: var(--accent2); border: 1px solid rgba(16,185,129,.3); }
+/* ── MAIN ── */
+#main{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0}
+.topbar{
+  background:var(--surface);border-bottom:1px solid var(--border);
+  padding:0 16px;display:flex;align-items:center;justify-content:space-between;
+  min-height:var(--topbar-h);flex-shrink:0;
+}
+.topbar-left{display:flex;align-items:center;gap:10px;min-width:0}
+#menu-toggle{
+  display:none;background:none;border:none;color:var(--text);
+  font-size:22px;cursor:pointer;padding:6px;border-radius:6px;flex-shrink:0;
+}
+.topbar h1{font-size:15px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.topbar .subtitle{font-size:11px;color:var(--muted);margin-top:1px;white-space:nowrap}
+.page-content{flex:1;overflow-y:auto;padding:16px;-webkit-overflow-scrolling:touch}
 
-  /* CARDS GRID */
-  .stats-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-    gap: 16px;
-    margin-bottom: 24px;
-  }
-  .stat-card {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    padding: 18px;
-  }
-  .stat-card .label { font-size: 11.5px; color: var(--muted); text-transform: uppercase; letter-spacing: .8px; margin-bottom: 8px; }
-  .stat-card .value { font-size: 26px; font-weight: 700; }
-  .stat-card .sub { font-size: 12px; color: var(--muted); margin-top: 4px; }
-  .stat-card.warn .value { color: var(--warn); }
-  .stat-card.ok .value { color: var(--accent2); }
-  .stat-card.info .value { color: var(--blue); }
+/* ── OVERLAY mobile ── */
+#overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:49;backdrop-filter:blur(2px)}
 
-  /* FORM */
-  .card {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    padding: 22px;
-    margin-bottom: 20px;
-  }
-  .card-title {
-    font-size: 13px; font-weight: 700;
-    text-transform: uppercase; letter-spacing: .8px;
-    color: var(--muted); margin-bottom: 18px;
-    display: flex; align-items: center; gap: 8px;
-  }
-  .form-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-    gap: 14px;
-    margin-bottom: 16px;
-  }
-  .field { display: flex; flex-direction: column; gap: 5px; }
-  .field label { font-size: 12px; color: var(--muted); }
-  .field input, .field select {
-    background: var(--surface2);
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    padding: 9px 12px;
-    font-size: 14px;
-    color: var(--text);
-    outline: none;
-  }
-  .field input:focus, .field select:focus { border-color: var(--accent); }
-  .field select option { background: var(--surface2); }
+/* ── AUTH ── */
+#auth-screen{
+  position:fixed;inset:0;background:var(--bg);
+  display:flex;align-items:center;justify-content:center;z-index:100;padding:16px;
+}
+.auth-card{
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:18px;padding:32px 28px;width:100%;max-width:360px;text-align:center;
+}
+.auth-logo{font-size:40px;margin-bottom:6px}
+.auth-card h2{font-size:20px;font-weight:700;margin-bottom:3px;color:var(--accent)}
+.auth-card p{font-size:13px;color:var(--muted);margin-bottom:24px}
+.auth-input{
+  width:100%;background:var(--surface2);border:1px solid var(--border);
+  border-radius:10px;padding:13px 14px;font-size:16px;color:var(--text);
+  margin-bottom:12px;outline:none;-webkit-appearance:none;
+}
+.auth-input:focus{border-color:var(--accent)}
+.auth-error{color:var(--danger);font-size:13px;margin-bottom:10px;min-height:18px}
 
-  /* RESULTADOS COTAÇÃO */
-  .result-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-    gap: 14px;
-    margin-top: 16px;
-  }
-  .result-card {
-    background: var(--surface2);
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 16px;
-    position: relative;
-  }
-  .result-card.winner {
-    border-color: var(--accent2);
-    background: rgba(16,185,129,.06);
-  }
-  .result-card .badge-winner {
-    position: absolute; top: -8px; right: 12px;
-    background: var(--accent2); color: #000;
-    font-size: 10px; font-weight: 700;
-    padding: 2px 8px; border-radius: 20px;
-  }
-  .result-card .transp { font-size: 13px; font-weight: 700; margin-bottom: 4px; }
-  .result-card .prazo { font-size: 12px; color: var(--muted); margin-bottom: 10px; }
-  .result-card .preco { font-size: 22px; font-weight: 800; }
-  .result-card.winner .preco { color: var(--accent2); }
-  .result-card .detalhe { font-size: 11px; color: var(--muted); margin-top: 6px; }
-  .result-card.error-card { border-color: rgba(239,68,68,.3); }
-  .result-card.error-card .preco { color: var(--danger); font-size: 14px; }
+/* ── BOTÕES ── */
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:6px;
+  padding:11px 20px;border-radius:9px;font-size:14px;font-weight:600;
+  cursor:pointer;border:none;transition:all .15s;user-select:none;
+}
+.btn:active{opacity:.75;transform:scale(.98)}
+.btn-primary{background:var(--accent);color:#000}
+.btn-full{width:100%}
+.btn-sm{padding:8px 14px;font-size:12.5px}
+.btn-ghost{background:transparent;color:var(--muted);border:1px solid var(--border)}
+.btn-danger{background:rgba(239,68,68,.15);color:var(--danger);border:1px solid rgba(239,68,68,.3)}
+.btn-success{background:rgba(16,185,129,.15);color:var(--green);border:1px solid rgba(16,185,129,.3)}
 
-  /* TABLE */
-  .table-wrap { overflow-x: auto; }
-  table {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: 13px;
-  }
-  thead th {
-    text-align: left;
-    padding: 10px 12px;
-    background: var(--surface2);
-    color: var(--muted);
-    font-size: 11.5px;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: .6px;
-    border-bottom: 1px solid var(--border);
-  }
-  tbody tr { border-bottom: 1px solid var(--border); transition: background .1s; }
-  tbody tr:hover { background: var(--surface2); }
-  tbody td { padding: 10px 12px; }
-  .badge {
-    display: inline-block;
-    padding: 2px 9px;
-    border-radius: 20px;
-    font-size: 11px;
-    font-weight: 600;
-  }
-  .badge-ok { background: rgba(16,185,129,.15); color: var(--accent2); }
-  .badge-warn { background: rgba(249,115,22,.15); color: var(--warn); }
-  .badge-danger { background: rgba(239,68,68,.15); color: var(--danger); }
-  .badge-gray { background: rgba(107,114,128,.15); color: var(--muted); }
-  .badge-blue { background: rgba(59,130,246,.15); color: var(--blue); }
+/* ── CARDS ── */
+.stats-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-bottom:16px}
+.stat-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px 16px}
+.stat-card .label{font-size:10.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;margin-bottom:6px}
+.stat-card .value{font-size:24px;font-weight:700}
+.stat-card.warn .value{color:var(--warn)}
+.stat-card.ok .value{color:var(--green)}
+.stat-card.info .value{color:var(--blue)}
+.stat-card.danger .value{color:var(--danger)}
 
-  /* LOGS */
-  .log-item {
-    background: var(--surface2);
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    padding: 12px 16px;
-    margin-bottom: 8px;
-    display: flex;
-    align-items: flex-start;
-    gap: 12px;
-    cursor: pointer;
-    transition: border-color .15s;
-  }
-  .log-item:hover { border-color: var(--accent); }
-  .log-item.log-erro { border-left: 3px solid var(--danger); }
-  .log-item.log-acao { border-left: 3px solid var(--accent2); }
-  .log-item.log-aviso { border-left: 3px solid var(--warn); }
-  .log-icon { font-size: 18px; margin-top: 1px; }
-  .log-body { flex: 1; }
-  .log-desc { font-size: 13.5px; margin-bottom: 4px; }
-  .log-meta { font-size: 11.5px; color: var(--muted); display: flex; gap: 14px; flex-wrap: wrap; }
-  .log-detail {
-    margin-top: 10px;
-    background: var(--bg);
-    border: 1px solid var(--border);
-    border-radius: 6px;
-    padding: 10px 14px;
-    font-family: var(--mono);
-    font-size: 11.5px;
-    color: #a5b4fc;
-    white-space: pre-wrap;
-    display: none;
-    max-height: 200px;
-    overflow-y: auto;
-  }
-  .log-detail.open { display: block; }
+.card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:16px}
+.card-title{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);margin-bottom:14px;display:flex;align-items:center;gap:7px}
 
-  /* FILTERS */
-  .filters {
-    display: flex;
-    gap: 10px;
-    margin-bottom: 16px;
-    flex-wrap: wrap;
-    align-items: center;
-  }
-  .filters select, .filters input {
-    background: var(--surface2);
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    padding: 8px 12px;
-    font-size: 13px;
-    color: var(--text);
-    outline: none;
-  }
-  .filters select:focus, .filters input:focus { border-color: var(--accent); }
+/* ── FORM ── */
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px}
+.field{display:flex;flex-direction:column;gap:5px}
+.field label{font-size:11.5px;color:var(--muted);font-weight:500}
+.field input,.field select{
+  background:var(--surface2);border:1px solid var(--border);
+  border-radius:9px;padding:11px 12px;font-size:16px;color:var(--text);
+  outline:none;-webkit-appearance:none;width:100%;
+}
+.field input:focus,.field select:focus{border-color:var(--accent)}
+.field.full{grid-column:1/-1}
 
-  /* LOADER */
-  .spinner {
-    display: inline-block;
-    width: 20px; height: 20px;
-    border: 2px solid var(--border);
-    border-top-color: var(--accent);
-    border-radius: 50%;
-    animation: spin .7s linear infinite;
-  }
-  @keyframes spin { to { transform: rotate(360deg); } }
-  .loading-area {
-    display: flex; align-items: center; gap: 12px;
-    padding: 20px; color: var(--muted); font-size: 13px;
-  }
+.vol-box{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:10px}
+.vol-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+.vol-label{font-size:11.5px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.6px}
 
-  /* TOAST */
-  #toast-container {
-    position: fixed; bottom: 24px; right: 24px;
-    display: flex; flex-direction: column; gap: 8px;
-    z-index: 999;
-  }
-  .toast {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 12px 18px;
-    font-size: 13px;
-    display: flex; align-items: center; gap: 10px;
-    box-shadow: 0 4px 20px rgba(0,0,0,.4);
-    animation: slideIn .2s ease;
-    min-width: 260px;
-  }
-  .toast.success { border-left: 3px solid var(--accent2); }
-  .toast.error { border-left: 3px solid var(--danger); }
-  .toast.info { border-left: 3px solid var(--blue); }
-  @keyframes slideIn { from { opacity:0; transform: translateX(20px); } to { opacity:1; transform: translateX(0); } }
+/* ── RESULTADOS COTAÇÃO ── */
+.result-grid{display:grid;grid-template-columns:1fr;gap:12px;margin-top:14px}
+.result-card{background:var(--surface2);border:1px solid var(--border);border-radius:11px;padding:16px;position:relative}
+.result-card.winner{border-color:var(--green);background:rgba(16,185,129,.06)}
+.badge-winner{
+  position:absolute;top:-9px;right:12px;
+  background:var(--green);color:#000;font-size:10px;font-weight:700;
+  padding:2px 9px;border-radius:20px;
+}
+.rc-transp{font-size:14px;font-weight:700;margin-bottom:3px}
+.rc-prazo{font-size:12px;color:var(--muted);margin-bottom:10px}
+.rc-preco{font-size:26px;font-weight:800}
+.result-card.winner .rc-preco{color:var(--green)}
+.rc-detalhe{font-size:11.5px;color:var(--muted);margin-top:5px}
+.rc-error{border-color:rgba(239,68,68,.3)}
+.rc-error .rc-preco{color:var(--danger);font-size:14px}
 
-  /* MISC */
-  .text-muted { color: var(--muted); }
-  .text-accent { color: var(--accent); }
-  .text-green { color: var(--accent2); }
-  .text-red { color: var(--danger); }
-  .divider { border: none; border-top: 1px solid var(--border); margin: 18px 0; }
-  .hidden { display: none !important; }
-  .flex { display: flex; }
-  .gap-2 { gap: 8px; }
-  .gap-3 { gap: 12px; }
-  .items-center { align-items: center; }
-  .justify-between { justify-content: space-between; }
-  .mb-2 { margin-bottom: 8px; }
-  .mb-3 { margin-bottom: 12px; }
-  .mb-4 { margin-bottom: 16px; }
-  .empty-state {
-    text-align: center;
-    padding: 48px 24px;
-    color: var(--muted);
+/* ── CARDS DE AUDITORIA (mobile-first) ── */
+.cte-card{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:10px}
+.cte-card-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;gap:8px}
+.cte-num{font-size:14px;font-weight:700}
+.cte-transp{font-size:12px;color:var(--muted);margin-top:2px}
+.cte-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;font-size:13px}
+.cte-row-label{color:var(--muted);font-size:11.5px}
+.cte-div-pos{color:var(--danger);font-weight:700}
+.cte-div-neg{color:var(--green);font-weight:700}
+.cte-select{
+  width:100%;background:var(--surface);border:1px solid var(--border);
+  border-radius:8px;padding:9px 12px;font-size:14px;color:var(--text);
+  margin-top:8px;-webkit-appearance:none;outline:none;
+}
+
+/* ── CARDS DE HISTÓRICO (mobile) ── */
+.hist-card{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:10px}
+.hist-card-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:5px;font-size:13px}
+.hist-label{color:var(--muted);font-size:11.5px}
+
+/* ── TABLE (desktop only) ── */
+.table-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:13px}
+thead th{text-align:left;padding:10px 12px;background:var(--surface2);color:var(--muted);font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.6px;border-bottom:1px solid var(--border)}
+tbody tr{border-bottom:1px solid var(--border);transition:background .1s}
+tbody tr:hover{background:var(--surface2)}
+tbody td{padding:10px 12px}
+
+/* ── BADGE ── */
+.badge{display:inline-block;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:600;white-space:nowrap}
+.badge-ok{background:rgba(16,185,129,.15);color:var(--green)}
+.badge-warn{background:rgba(249,115,22,.15);color:var(--warn)}
+.badge-danger{background:rgba(239,68,68,.15);color:var(--danger)}
+.badge-gray{background:rgba(107,114,128,.15);color:var(--muted)}
+.badge-blue{background:rgba(59,130,246,.15);color:var(--blue)}
+.tag{display:inline-block;padding:2px 8px;border-radius:5px;font-size:11px;background:var(--surface2);border:1px solid var(--border);color:var(--muted);margin:2px}
+
+/* ── LOGS ── */
+.log-item{
+  background:var(--surface2);border:1px solid var(--border);
+  border-radius:9px;padding:12px 14px;margin-bottom:8px;
+  display:flex;align-items:flex-start;gap:10px;cursor:pointer;
+}
+.log-item.log-erro{border-left:3px solid var(--danger)}
+.log-item.log-acao{border-left:3px solid var(--green)}
+.log-item.log-aviso{border-left:3px solid var(--warn)}
+.log-icon{font-size:17px;flex-shrink:0;margin-top:1px}
+.log-body{flex:1;min-width:0}
+.log-desc{font-size:13.5px;margin-bottom:4px;word-break:break-word}
+.log-meta{font-size:11.5px;color:var(--muted);display:flex;gap:10px;flex-wrap:wrap}
+.log-detail{
+  margin-top:10px;background:var(--bg);border:1px solid var(--border);
+  border-radius:6px;padding:10px;font-family:monospace;font-size:11px;
+  color:#a5b4fc;white-space:pre-wrap;display:none;max-height:180px;overflow-y:auto;
+}
+.log-detail.open{display:block}
+
+/* ── FILTERS ── */
+.filters{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;align-items:center}
+.filter-input{
+  background:var(--surface2);border:1px solid var(--border);
+  border-radius:8px;padding:9px 12px;font-size:14px;color:var(--text);
+  outline:none;-webkit-appearance:none;flex:1;min-width:120px;
+}
+.filter-input:focus{border-color:var(--accent)}
+
+/* ── SPINNER ── */
+.spinner{display:inline-block;width:20px;height:20px;border:2px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.loading-area{display:flex;align-items:center;gap:12px;padding:24px;color:var(--muted);font-size:13px}
+
+/* ── TOAST ── */
+#toast-container{position:fixed;bottom:80px;right:12px;display:flex;flex-direction:column;gap:8px;z-index:200;max-width:calc(100vw - 24px)}
+.toast{
+  background:var(--surface);border:1px solid var(--border);border-radius:10px;
+  padding:11px 16px;font-size:13px;display:flex;align-items:center;gap:9px;
+  box-shadow:0 4px 20px rgba(0,0,0,.5);animation:slideIn .2s ease;
+}
+.toast.success{border-left:3px solid var(--green)}
+.toast.error{border-left:3px solid var(--danger)}
+.toast.info{border-left:3px solid var(--blue)}
+@keyframes slideIn{from{opacity:0;transform:translateX(20px)}to{opacity:1;transform:translateX(0)}}
+
+/* ── MISC ── */
+.text-muted{color:var(--muted)}
+.text-accent{color:var(--accent)}
+.text-green{color:var(--green)}
+.text-red{color:var(--danger)}
+.hidden{display:none!important}
+.flex{display:flex}.gap-2{gap:8px}.items-center{align-items:center}.justify-between{justify-content:space-between}
+.mb-3{margin-bottom:12px}.mb-4{margin-bottom:16px}
+hr.section{border:none;border-top:1px solid var(--border);margin:16px 0}
+.empty-state{text-align:center;padding:40px 20px;color:var(--muted)}
+.empty-state .icon{font-size:40px;margin-bottom:10px}
+.empty-state p{font-size:14px}
+.divider-label{
+  font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;
+  font-weight:600;margin:14px 0 10px;padding-left:2px;
+}
+
+/* ── RESPONSIVE ── */
+@media(max-width:768px){
+  #sidebar{
+    position:fixed;top:0;left:0;bottom:0;
+    transform:translateX(-100%);
   }
-  .empty-state .icon { font-size: 42px; margin-bottom: 12px; }
-  .empty-state p { font-size: 14px; }
-  .tag { display: inline-block; padding: 1px 7px; border-radius: 4px; font-size: 11px; background: var(--surface2); border: 1px solid var(--border); color: var(--muted); margin-right: 4px; }
-  hr.section { border: none; border-top: 1px solid var(--border); margin: 20px 0; }
+  #sidebar.open{transform:translateX(0)}
+  #overlay.open{display:block}
+  #menu-toggle{display:block}
+  #toast-container{bottom:72px}
+  .page-content{padding:12px;padding-bottom:20px}
+  .form-grid{grid-template-columns:1fr}
+  .field.half{grid-column:auto}
+  .stats-grid{grid-template-columns:1fr 1fr}
+  .result-grid{grid-template-columns:1fr}
+}
+@media(min-width:769px){
+  .result-grid{grid-template-columns:repeat(auto-fill,minmax(220px,1fr))}
+  .stats-grid{grid-template-columns:repeat(4,1fr)}
+  .form-grid{grid-template-columns:repeat(auto-fill,minmax(160px,1fr))}
+  .cte-mobile{display:none}
+  .cte-desktop{display:block}
+  #toast-container{bottom:24px;right:24px}
+}
+@media(max-width:768px){
+  .cte-desktop{display:none}
+  .cte-mobile{display:block}
+  .hist-desktop{display:none}
+  .hist-mobile{display:block}
+}
+@media(min-width:769px){
+  .hist-mobile{display:none}
+  .hist-desktop{display:block}
+}
 </style>
 </head>
 <body>
@@ -409,60 +295,61 @@
 <!-- AUTH -->
 <div id="auth-screen">
   <div class="auth-card">
-    <div class="logo">🚚</div>
+    <div class="auth-logo">🚚</div>
     <h2>App de Frete</h2>
     <p>Grupo Bononi Acessórios</p>
-    <input type="email" id="auth-email" placeholder="E-mail" />
-    <input type="password" id="auth-pass" placeholder="Senha" />
+    <input class="auth-input" type="email" id="auth-email" placeholder="E-mail" autocomplete="email" />
+    <input class="auth-input" type="password" id="auth-pass" placeholder="Senha" autocomplete="current-password" />
     <div class="auth-error" id="auth-error"></div>
     <button class="btn btn-primary btn-full" onclick="fazerLogin()">Entrar</button>
   </div>
 </div>
 
-<!-- SIDEBAR -->
-<div id="sidebar">
-  <div class="sidebar-logo">
-    <span class="brand">Bononi Acessórios</span>
-    <div class="title"><span>🚚</span> Frete</div>
+<!-- OVERLAY mobile -->
+<div id="overlay" onclick="fecharSidebar()"></div>
+
+<div id="app">
+  <!-- SIDEBAR -->
+  <div id="sidebar">
+    <div class="sidebar-logo">
+      <span class="brand">Bononi Acessórios</span>
+      <div class="title">🚚 Frete</div>
+    </div>
+    <nav>
+      <div class="nav-item active" onclick="goto('cotacao')" id="nav-cotacao">
+        <span class="icon">💰</span> Cotar Frete
+      </div>
+      <div class="nav-item" onclick="goto('auditoria')" id="nav-auditoria">
+        <span class="icon">🧾</span> Auditoria CTe
+      </div>
+      <div class="nav-item" onclick="goto('cotacoes')" id="nav-cotacoes">
+        <span class="icon">📋</span> Histórico
+      </div>
+      <div class="nav-item" onclick="goto('logs')" id="nav-logs">
+        <span class="icon">🔍</span> Logs
+      </div>
+    </nav>
+    <div class="sidebar-footer">
+      <div id="sidebar-user"></div>
+      <div class="btn-sair" onclick="sair()">Sair →</div>
+    </div>
   </div>
-  <nav>
-    <div class="nav-item active" onclick="goto('cotacao')" id="nav-cotacao">
-      <span class="icon">💰</span> Cotar Frete
+
+  <!-- MAIN -->
+  <div id="main">
+    <div class="topbar">
+      <div class="topbar-left">
+        <button id="menu-toggle" onclick="toggleSidebar()">☰</button>
+        <div>
+          <h1 id="page-title">Cotar Frete</h1>
+          <div class="subtitle" id="page-sub">Comparativo entre transportadoras</div>
+        </div>
+      </div>
     </div>
-    <div class="nav-item" onclick="goto('auditoria')" id="nav-auditoria">
-      <span class="icon">🧾</span> Auditoria CTe
-    </div>
-    <div class="nav-item" onclick="goto('cotacoes')" id="nav-cotacoes">
-      <span class="icon">📋</span> Histórico
-    </div>
-    <div class="nav-item" onclick="goto('logs')" id="nav-logs">
-      <span class="icon">🔍</span> Logs do Sistema
-    </div>
-  </nav>
-  <div class="sidebar-footer">
-    <div id="sidebar-user" style="margin-bottom:6px;font-weight:600;color:var(--text)"></div>
-    <div style="cursor:pointer;color:var(--muted)" onclick="sair()">Sair →</div>
+    <div class="page-content" id="page-content"></div>
   </div>
 </div>
 
-<!-- MAIN -->
-<div id="main">
-  <div class="topbar">
-    <div>
-      <h1 id="page-title">Cotar Frete</h1>
-      <div class="subtitle" id="page-sub">Comparativo em tempo real entre transportadoras</div>
-    </div>
-    <div class="flex gap-2 items-center">
-      <div id="topbar-badge"></div>
-    </div>
-  </div>
-
-  <div class="page-content" id="page-content">
-    <!-- Renderizado via JS -->
-  </div>
-</div>
-
-<!-- TOAST -->
 <div id="toast-container"></div>
 
 <script>
@@ -472,694 +359,646 @@ const EDGE_URL = 'https://vishxwdxqiygbxmtpfoy.supabase.co/functions/v1';
 
 let session = null;
 let userName = '';
-let currentPage = 'cotacao';
+let locaisCache = [];
+let volumeCount = 0;
 
-// ──────────────────────────────────────────────────
-// HELPERS
-// ──────────────────────────────────────────────────
-function headers(token) {
-  const h = {
+// ── HELPERS ──
+function hdrs(token) {
+  return {
     'apikey': SUPA_KEY,
+    'Authorization': `Bearer ${token || SUPA_KEY}`,
     'Content-Type': 'application/json'
   };
-  if (token) h['Authorization'] = `Bearer ${token}`;
-  else h['Authorization'] = `Bearer ${SUPA_KEY}`;
-  return h;
 }
 
 async function supa(path, opts = {}) {
-  const sep = path.includes('?') ? '&' : '?';
-  const url = `${SUPA_URL}/rest/v1/${path}${sep}limit=9999`;
-  const res = await fetch(url, { headers: headers(session?.access_token), ...opts });
+  // monta URL sem duplicar limit
+  const hasQ = path.includes('?');
+  const url = `${SUPA_URL}/rest/v1/${path}${hasQ ? '&' : '?'}limit=9999`;
+  const res = await fetch(url, { headers: hdrs(session?.access_token), ...opts });
   if (!res.ok) {
     const err = await res.text();
-    throw new Error(`Supabase ${res.status}: ${err}`);
+    throw new Error(`[${res.status}] ${err.slice(0,200)}`);
   }
-  return res.json();
+  const ct = res.headers.get('content-type') || '';
+  return ct.includes('json') ? res.json() : [];
 }
 
-function fmt(v) {
-  if (v == null) return '—';
-  return Number(v).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
-}
-function fmtNum(v) {
-  if (v == null) return '—';
-  return Number(v).toLocaleString('pt-BR', { minimumFractionDigits: 2 });
-}
-function fmtDate(d) {
-  if (!d) return '—';
-  return new Date(d).toLocaleDateString('pt-BR');
-}
-function fmtDatetime(d) {
-  if (!d) return '—';
-  return new Date(d).toLocaleString('pt-BR');
-}
+const fmt    = v => v == null ? '—' : Number(v).toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
+const fmtN   = v => v == null ? '—' : Number(v).toLocaleString('pt-BR',{minimumFractionDigits:2});
+const fmtD   = d => d ? new Date(d).toLocaleDateString('pt-BR') : '—';
+const fmtDT  = d => d ? new Date(d).toLocaleString('pt-BR') : '—';
 
-function toast(msg, type = 'info') {
-  const icons = { success: '✅', error: '❌', info: 'ℹ️' };
+function toast(msg, type='info') {
+  const icons = {success:'✅',error:'❌',info:'ℹ️'};
   const el = document.createElement('div');
   el.className = `toast ${type}`;
-  el.innerHTML = `<span>${icons[type]}</span> ${msg}`;
+  el.innerHTML = `<span>${icons[type]||'ℹ️'}</span>${msg}`;
   document.getElementById('toast-container').appendChild(el);
-  setTimeout(() => el.remove(), 4000);
+  setTimeout(()=>el.remove(), 4000);
 }
 
-// ──────────────────────────────────────────────────
-// SISTEMA DE LOGS
-// ──────────────────────────────────────────────────
-async function appLog(tipo, descricao, detalhe = {}) {
+// ── LOG ──
+async function appLog(tipo, descricao, extra={}) {
   try {
     await fetch(`${SUPA_URL}/rest/v1/frt_logs`, {
-      method: 'POST',
-      headers: { ...headers(session?.access_token), 'Prefer': 'return=minimal' },
-      body: JSON.stringify({
-        tipo,
-        descricao,
-        detalhe,
-        usuario: userName || 'desconhecido',
-        criado_em: new Date().toISOString()
-      })
+      method:'POST',
+      headers:{...hdrs(session?.access_token),'Prefer':'return=minimal'},
+      body:JSON.stringify({tipo, descricao, categoria: extra.categoria||null, detalhe: extra.detalhe||null, usuario: userName||'—'})
     });
-  } catch (e) {
-    // silencioso — log não pode quebrar o fluxo
-    console.warn('Log falhou:', e.message);
-  }
+  } catch(e){ console.warn('log falhou:', e.message); }
 }
 
-// ──────────────────────────────────────────────────
-// AUTH
-// ──────────────────────────────────────────────────
+// ── AUTH ──
 async function fazerLogin() {
   const email = document.getElementById('auth-email').value.trim();
   const pass  = document.getElementById('auth-pass').value;
-  document.getElementById('auth-error').textContent = '';
+  const errEl = document.getElementById('auth-error');
+  errEl.textContent = '';
+
+  if (!email || !pass) { errEl.textContent = 'Preencha e-mail e senha'; return; }
 
   try {
     const res = await fetch(`${SUPA_URL}/auth/v1/token?grant_type=password`, {
-      method: 'POST',
-      headers: { 'apikey': SUPA_KEY, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, password: pass })
+      method:'POST',
+      headers:{'apikey':SUPA_KEY,'Content-Type':'application/json'},
+      body:JSON.stringify({email, password:pass})
     });
     const data = await res.json();
     if (!res.ok) throw new Error(data.error_description || data.message || 'Erro no login');
 
-    session = data;
     const meta = data.user?.user_metadata || {};
-    const isAdmin = meta.admin === true;
+    const isAdmin = meta.admin === true || meta.admin === 'true';
     const modulos = meta.modulos || [];
-    if (!isAdmin && !modulos.includes('frete')) throw new Error('Sem acesso ao módulo de Frete');
+    if (!isAdmin && !modulos.includes('frete'))
+      throw new Error('Você não tem acesso ao módulo de Frete');
 
+    session  = data;
     userName = meta.nome || email.split('@')[0];
     document.getElementById('sidebar-user').textContent = userName;
     document.getElementById('auth-screen').classList.add('hidden');
-    await appLog('acao', 'Login realizado', { categoria: 'sistema', email });
+
+    await appLog('acao','Login realizado',{categoria:'sistema'});
     goto('cotacao');
   } catch(e) {
-    document.getElementById('auth-error').textContent = e.message;
+    errEl.textContent = e.message;
+    await appLog('erro','Falha no login',{categoria:'sistema', detalhe:{email, erro: e.message}});
   }
 }
 
 function sair() {
-  session = null;
+  session = null; userName = '';
   document.getElementById('auth-screen').classList.remove('hidden');
   document.getElementById('auth-pass').value = '';
+  fecharSidebar();
 }
 
-// ──────────────────────────────────────────────────
-// NAVEGAÇÃO
-// ──────────────────────────────────────────────────
+// ── SIDEBAR mobile ──
+function toggleSidebar() {
+  document.getElementById('sidebar').classList.toggle('open');
+  document.getElementById('overlay').classList.toggle('open');
+}
+function fecharSidebar() {
+  document.getElementById('sidebar').classList.remove('open');
+  document.getElementById('overlay').classList.remove('open');
+}
+
+// ── NAVEGAÇÃO ──
 const PAGES = {
-  cotacao:   { title: 'Cotar Frete',        sub: 'Comparativo em tempo real entre transportadoras',  fn: renderCotacao },
-  auditoria: { title: 'Auditoria de CTes',  sub: 'Conferência de conhecimentos de transporte',        fn: renderAuditoria },
-  cotacoes:  { title: 'Histórico de Cotações', sub: 'Todas as cotações realizadas no sistema',        fn: renderHistorico },
-  logs:      { title: 'Logs do Sistema',    sub: 'Rastreamento de ações e erros em tempo real',       fn: renderLogs },
+  cotacao:   {title:'Cotar Frete',        sub:'Comparativo entre transportadoras',   fn:renderCotacao},
+  auditoria: {title:'Auditoria CTe',      sub:'Conferência de conhecimentos de transporte', fn:renderAuditoria},
+  cotacoes:  {title:'Histórico',          sub:'Cotações realizadas',                  fn:renderHistorico},
+  logs:      {title:'Logs do Sistema',    sub:'Ações e erros em tempo real',          fn:renderLogs},
 };
 
 function goto(page) {
-  currentPage = page;
-  document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
-  document.getElementById(`nav-${page}`)?.classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(el=>el.classList.remove('active'));
+  const navEl = document.getElementById(`nav-${page}`);
+  if (navEl) navEl.classList.add('active');
   const p = PAGES[page];
   document.getElementById('page-title').textContent = p.title;
-  document.getElementById('page-sub').textContent = p.sub;
+  document.getElementById('page-sub').textContent   = p.sub;
+  fecharSidebar();
   p.fn();
 }
 
-// ──────────────────────────────────────────────────
-// PAGE: COTAÇÃO
-// ──────────────────────────────────────────────────
+// ── PAGE: COTAÇÃO ──
 async function renderCotacao() {
   const c = document.getElementById('page-content');
   c.innerHTML = `<div class="loading-area"><div class="spinner"></div> Carregando locais...</div>`;
-
-  let locais = [];
   try {
-    locais = await supa('frt_locais_expedicao?select=*&ativo=eq.true&order=nome');
+    locaisCache = await supa('frt_locais_expedicao?select=id,nome,cidade,uf&ativo=eq.true&order=nome');
   } catch(e) {
-    await appLog('erro', 'Falha ao carregar locais de expedição', { categoria: 'cotacao', detalhe: e.message });
+    await appLog('erro','Falha ao carregar locais',{categoria:'cotacao',detalhe:{erro:e.message}});
     c.innerHTML = `<div class="empty-state"><div class="icon">⚠️</div><p>${e.message}</p></div>`;
     return;
   }
 
+  volumeCount = 0;
   c.innerHTML = `
     <div class="card">
       <div class="card-title">📦 Dados do Embarque</div>
       <div class="form-grid">
-        <div class="field">
+        <div class="field full">
           <label>Local de Expedição</label>
           <select id="id_local">
-            ${locais.map(l => `<option value="${l.id}">${l.nome} — ${l.cidade}/${l.uf}</option>`).join('')}
+            ${locaisCache.map(l=>`<option value="${l.id}">${l.nome} — ${l.cidade}/${l.uf}</option>`).join('')}
           </select>
         </div>
         <div class="field">
           <label>CEP Destino</label>
-          <input type="text" id="cep_destino" placeholder="00000-000" maxlength="9" oninput="formatCEP(this)" />
-        </div>
-        <div class="field">
-          <label>CNPJ Destinatário</label>
-          <input type="text" id="cnpj_dest" placeholder="00.000.000/0000-00" maxlength="18" oninput="formatCNPJ(this)" />
+          <input type="tel" id="cep_destino" placeholder="00000-000" maxlength="9" oninput="maskCEP(this)" inputmode="numeric"/>
         </div>
         <div class="field">
           <label>Valor da NF (R$)</label>
-          <input type="number" id="valor_nf" placeholder="0,00" step="0.01" min="0" />
+          <input type="number" id="valor_nf" placeholder="0,00" step="0.01" min="0" inputmode="decimal"/>
+        </div>
+        <div class="field full">
+          <label>CNPJ Destinatário (opcional)</label>
+          <input type="tel" id="cnpj_dest" placeholder="00.000.000/0000-00" maxlength="18" oninput="maskCNPJ(this)" inputmode="numeric"/>
         </div>
       </div>
-      <hr class="section">
-      <div class="card-title">📐 Volumes / Peso</div>
-      <div id="volumes-list"></div>
-      <button class="btn btn-ghost btn-sm" style="margin-top:4px" onclick="addVolume()">+ Adicionar Volume</button>
-      <hr class="section">
-      <button class="btn btn-primary" onclick="cotar()">🔍 Cotar Frete</button>
     </div>
+    <div class="card">
+      <div class="card-title">📐 Volumes</div>
+      <div id="volumes-list"></div>
+      <button class="btn btn-ghost btn-sm" style="margin-top:2px;width:100%" onclick="addVolume()">+ Adicionar Volume</button>
+    </div>
+    <button class="btn btn-primary btn-full" style="margin-bottom:16px" onclick="cotar()">🔍 Cotar Frete</button>
     <div id="resultado-cotacao"></div>
   `;
-
   addVolume();
 }
 
-let volumeIdx = 0;
 function addVolume() {
-  volumeIdx++;
-  const i = volumeIdx;
+  volumeCount++;
+  const i = volumeCount;
   const list = document.getElementById('volumes-list');
   if (!list) return;
   const div = document.createElement('div');
+  div.className = 'vol-box';
   div.id = `vol-${i}`;
-  div.style.cssText = 'background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:14px;margin-bottom:10px;';
   div.innerHTML = `
-    <div class="flex justify-between items-center mb-3">
-      <span style="font-size:12px;font-weight:700;color:var(--muted)">VOLUME ${i}</span>
-      ${i > 1 ? `<button class="btn btn-danger btn-sm" onclick="document.getElementById('vol-${i}').remove()">Remover</button>` : ''}
+    <div class="vol-header">
+      <span class="vol-label">Volume ${i}</span>
+      ${i>1?`<button class="btn btn-danger btn-sm" onclick="document.getElementById('vol-${i}').remove()">Remover</button>`:''}
     </div>
     <div class="form-grid">
-      <div class="field"><label>Qtd Volumes</label><input type="number" id="qtd-${i}" value="1" min="1" /></div>
-      <div class="field"><label>Peso (kg)</label><input type="number" id="peso-${i}" placeholder="0.0" step="0.001" min="0" /></div>
-      <div class="field"><label>Altura (cm)</label><input type="number" id="alt-${i}" placeholder="0" min="0" /></div>
-      <div class="field"><label>Largura (cm)</label><input type="number" id="larg-${i}" placeholder="0" min="0" /></div>
-      <div class="field"><label>Comprimento (cm)</label><input type="number" id="comp-${i}" placeholder="0" min="0" /></div>
+      <div class="field"><label>Qtd</label><input type="number" id="qtd-${i}" value="1" min="1" inputmode="numeric"/></div>
+      <div class="field"><label>Peso (kg)</label><input type="number" id="peso-${i}" placeholder="0.000" step="0.001" min="0" inputmode="decimal"/></div>
+      <div class="field"><label>Altura (cm)</label><input type="number" id="alt-${i}" placeholder="0" min="0" inputmode="numeric"/></div>
+      <div class="field"><label>Largura (cm)</label><input type="number" id="larg-${i}" placeholder="0" min="0" inputmode="numeric"/></div>
+      <div class="field full"><label>Comprimento (cm)</label><input type="number" id="comp-${i}" placeholder="0" min="0" inputmode="numeric"/></div>
     </div>
   `;
   list.appendChild(div);
 }
 
-function formatCEP(el) {
+function maskCEP(el) {
   let v = el.value.replace(/\D/g,'');
-  if (v.length > 5) v = v.slice(0,5)+'-'+v.slice(5,8);
+  if (v.length>5) v = v.slice(0,5)+'-'+v.slice(5,8);
   el.value = v;
 }
-
-function formatCNPJ(el) {
+function maskCNPJ(el) {
   let v = el.value.replace(/\D/g,'').slice(0,14);
-  if (v.length > 12) v = v.slice(0,2)+'.'+v.slice(2,5)+'.'+v.slice(5,8)+'/'+v.slice(8,12)+'-'+v.slice(12);
-  else if (v.length > 8) v = v.slice(0,2)+'.'+v.slice(2,5)+'.'+v.slice(5,8)+'/'+v.slice(8);
-  else if (v.length > 5) v = v.slice(0,2)+'.'+v.slice(2,5)+'.'+v.slice(5);
-  else if (v.length > 2) v = v.slice(0,2)+'.'+v.slice(2);
+  if (v.length>12) v=v.slice(0,2)+'.'+v.slice(2,5)+'.'+v.slice(5,8)+'/'+v.slice(8,12)+'-'+v.slice(12);
+  else if (v.length>8) v=v.slice(0,2)+'.'+v.slice(2,5)+'.'+v.slice(5,8)+'/'+v.slice(8);
+  else if (v.length>5) v=v.slice(0,2)+'.'+v.slice(2,5)+'.'+v.slice(5);
+  else if (v.length>2) v=v.slice(0,2)+'.'+v.slice(2);
   el.value = v;
 }
 
 async function cotar() {
-  const id_local  = parseInt(document.getElementById('id_local').value);
-  const cep       = document.getElementById('cep_destino').value.replace(/\D/g,'');
-  const cnpj      = document.getElementById('cnpj_dest').value.replace(/\D/g,'');
-  const valor_nf  = parseFloat(document.getElementById('valor_nf').value) || 0;
+  const id_local = parseInt(document.getElementById('id_local')?.value);
+  const cep      = (document.getElementById('cep_destino')?.value||'').replace(/\D/g,'');
+  const cnpj     = (document.getElementById('cnpj_dest')?.value||'').replace(/\D/g,'');
+  const valor_nf = parseFloat(document.getElementById('valor_nf')?.value)||0;
 
-  if (!cep || cep.length < 8) { toast('Informe o CEP destino', 'error'); return; }
+  if (!cep || cep.length<8) { toast('Informe o CEP destino','error'); return; }
+  if (!id_local)             { toast('Selecione o local de expedição','error'); return; }
 
   const pacotes = [];
-  for (let i = 1; i <= volumeIdx; i++) {
-    const el = document.getElementById(`vol-${i}`);
-    if (!el) continue;
-    const qtd  = parseInt(document.getElementById(`qtd-${i}`)?.value) || 1;
-    const peso = parseFloat(document.getElementById(`peso-${i}`)?.value) || 0;
-    const alt  = parseFloat(document.getElementById(`alt-${i}`)?.value) || 0;
-    const larg = parseFloat(document.getElementById(`larg-${i}`)?.value) || 0;
-    const comp = parseFloat(document.getElementById(`comp-${i}`)?.value) || 0;
-    if (peso <= 0) { toast(`Volume ${i}: informe o peso`, 'error'); return; }
-    pacotes.push({ quantidade: qtd, peso_kg: peso, altura_cm: alt, largura_cm: larg, comprimento_cm: comp });
+  for (let i=1; i<=volumeCount; i++) {
+    if (!document.getElementById(`vol-${i}`)) continue;
+    const peso = parseFloat(document.getElementById(`peso-${i}`)?.value)||0;
+    if (peso<=0) { toast(`Volume ${i}: informe o peso`,'error'); return; }
+    pacotes.push({
+      quantidade:      parseInt(document.getElementById(`qtd-${i}`)?.value)||1,
+      peso_kg:         peso,
+      altura_cm:       parseFloat(document.getElementById(`alt-${i}`)?.value)||0,
+      largura_cm:      parseFloat(document.getElementById(`larg-${i}`)?.value)||0,
+      comprimento_cm:  parseFloat(document.getElementById(`comp-${i}`)?.value)||0,
+    });
   }
+  if (!pacotes.length) { toast('Adicione ao menos um volume','error'); return; }
 
-  const res_div = document.getElementById('resultado-cotacao');
-  res_div.innerHTML = `<div class="loading-area"><div class="spinner"></div> Consultando transportadoras...</div>`;
+  const rdiv = document.getElementById('resultado-cotacao');
+  rdiv.innerHTML = `<div class="loading-area"><div class="spinner"></div> Consultando transportadoras...</div>`;
+  // scroll para resultado no mobile
+  rdiv.scrollIntoView({behavior:'smooth',block:'nearest'});
 
-  const payload = { id_local, cep_destino: cep, cnpj_destinatario: cnpj, valor_nf, pacotes };
-
+  const payload = {id_local, cep_destino:cep, cnpj_destinatario:cnpj||undefined, valor_nf, pacotes};
   try {
-    const res = await fetch(`${EDGE_URL}/cotar-frete`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${session?.access_token || SUPA_KEY}` },
-      body: JSON.stringify(payload)
+    const res = await fetch(`${EDGE_URL}/cotar-frete`,{
+      method:'POST',
+      headers:{'Content-Type':'application/json','Authorization':`Bearer ${session?.access_token||SUPA_KEY}`},
+      body:JSON.stringify(payload)
     });
+    if (!res.ok) throw new Error(`HTTP ${res.status}: ${(await res.text()).slice(0,200)}`);
     const data = await res.json();
-
-    await appLog('acao', 'Cotação de frete realizada', {
-      categoria: 'cotacao',
-      detalhe: { id_local, cep_destino: cep, valor_nf, pacotes: pacotes.length, resultados: data?.resultados?.length }
-    });
-
-    renderResultados(data, res_div);
+    await appLog('acao','Cotação realizada',{categoria:'cotacao', detalhe:{cep_destino:cep, n_pacotes:pacotes.length, n_resultados:data?.resultados?.length}});
+    renderResultados(data, rdiv);
   } catch(e) {
-    await appLog('erro', 'Falha na cotação de frete', { categoria: 'cotacao', detalhe: e.message, payload });
-    res_div.innerHTML = `<div class="card"><div class="empty-state"><div class="icon">❌</div><p>Erro ao cotar: ${e.message}</p></div></div>`;
-    toast('Erro ao cotar frete: ' + e.message, 'error');
+    await appLog('erro','Falha na cotação',{categoria:'cotacao', detalhe:{erro:e.message, cep}});
+    rdiv.innerHTML = `<div class="card"><div class="empty-state"><div class="icon">❌</div><p>${e.message}</p></div></div>`;
+    toast('Erro: '+e.message,'error');
   }
 }
 
 function renderResultados(data, container) {
-  const resultados = data?.resultados || [];
-  if (!resultados.length) {
-    container.innerHTML = `<div class="card"><div class="empty-state"><div class="icon">🔍</div><p>Nenhuma cotação retornada. Verifique CEP e local de expedição.</p></div></div>`;
+  const res = data?.resultados || [];
+  if (!res.length) {
+    container.innerHTML = `<div class="card"><div class="empty-state"><div class="icon">🔍</div><p>Nenhuma cotação retornada.<br>Verifique o CEP e o local de expedição.</p></div></div>`;
     return;
   }
-
-  // Ordena por valor (erros no final)
-  const ok  = resultados.filter(r => !r.erro).sort((a,b) => (a.valor_total||0) - (b.valor_total||0));
-  const err = resultados.filter(r => r.erro);
-  const ordered = [...ok, ...err];
+  const ok  = res.filter(r=>!r.erro).sort((a,b)=>(a.valor_total||0)-(b.valor_total||0));
+  const err = res.filter(r=>r.erro);
+  const all = [...ok,...err];
 
   let html = `<div class="card"><div class="card-title">🏆 Resultado das Cotações</div>`;
-
-  if (data.cidade_destino || data.uf_destino) {
-    html += `<div class="mb-4 flex gap-3 flex-wrap">
-      <span class="tag">📍 ${data.cidade_destino || ''} / ${data.uf_destino || ''}</span>
-      <span class="tag">⚖️ ${fmtNum(data.peso_total_kg)} kg</span>
-      ${data.peso_cubado_kg ? `<span class="tag">📦 Cubado: ${fmtNum(data.peso_cubado_kg)} kg</span>` : ''}
+  if (data.cidade_destino||data.uf_destino) {
+    html += `<div class="mb-3">
+      <span class="tag">📍 ${data.cidade_destino||''}${data.uf_destino?' / '+data.uf_destino:''}</span>
+      ${data.peso_total_kg?`<span class="tag">⚖️ ${fmtN(data.peso_total_kg)} kg</span>`:''}
+      ${data.peso_cubado_kg?`<span class="tag">📦 Cubado: ${fmtN(data.peso_cubado_kg)} kg</span>`:''}
     </div>`;
   }
-
   html += `<div class="result-grid">`;
-  ordered.forEach((r, idx) => {
+  all.forEach((r,i)=>{
     if (r.erro) {
-      html += `<div class="result-card error-card">
-        <div class="transp">${r.transportadora}</div>
-        <div class="preco">Indisponível</div>
-        <div class="detalhe">${r.erro}</div>
+      html += `<div class="result-card rc-error">
+        <div class="rc-transp">${r.transportadora||'Transportadora'}</div>
+        <div class="rc-preco">Indisponível</div>
+        <div class="rc-detalhe">${r.erro}</div>
       </div>`;
     } else {
-      const isWinner = idx === 0;
-      html += `<div class="result-card${isWinner?' winner':''}">
-        ${isWinner ? '<span class="badge-winner">✅ Menor Preço</span>' : ''}
-        <div class="transp">${r.transportadora}</div>
-        <div class="prazo">⏱️ ${r.prazo_dias ?? '?'} dia(s) úteis</div>
-        <div class="preco">${fmt(r.valor_total)}</div>
-        ${r.valor_frete   ? `<div class="detalhe">Frete: ${fmt(r.valor_frete)}</div>` : ''}
-        ${r.valor_pedagio ? `<div class="detalhe">Pedágio: ${fmt(r.valor_pedagio)}</div>` : ''}
-        ${r.valor_gris    ? `<div class="detalhe">GRIS: ${fmt(r.valor_gris)}</div>` : ''}
+      const winner = i===0;
+      html += `<div class="result-card${winner?' winner':''}">
+        ${winner?'<span class="badge-winner">✅ Menor Preço</span>':''}
+        <div class="rc-transp">${r.transportadora}</div>
+        <div class="rc-prazo">⏱️ ${r.prazo_dias??'?'} dia(s) úteis</div>
+        <div class="rc-preco">${fmt(r.valor_total)}</div>
+        ${r.valor_frete   ?`<div class="rc-detalhe">Frete: ${fmt(r.valor_frete)}</div>`:''}
+        ${r.valor_pedagio ?`<div class="rc-detalhe">Pedágio: ${fmt(r.valor_pedagio)}</div>`:''}
+        ${r.valor_gris    ?`<div class="rc-detalhe">GRIS: ${fmt(r.valor_gris)}</div>`:''}
       </div>`;
     }
   });
-
   html += `</div></div>`;
   container.innerHTML = html;
 }
 
-// ──────────────────────────────────────────────────
-// PAGE: AUDITORIA CTe
-// ──────────────────────────────────────────────────
+// ── PAGE: AUDITORIA CTe ──
 async function renderAuditoria() {
   const c = document.getElementById('page-content');
   c.innerHTML = `<div class="loading-area"><div class="spinner"></div> Carregando CTes...</div>`;
-
   try {
-    const [ctes, stats] = await Promise.all([
-      supa('frt_conhecimentos?select=id,num_cte,data_emissao,nome_transportadora,nome_destinatario,uf_destino,cidade_destino,valor_frete_cte,valor_frete_nf,divergencia,status_auditoria,valor_total_cte,peso_kg&order=criado_em.desc'),
-      supa('frt_conhecimentos?select=status_auditoria')
-    ]);
+    const ctes = await supa('frt_conhecimentos?select=id,num_cte,data_emissao,nome_transportadora,nome_destinatario,uf_destino,cidade_destino,valor_frete_cte,valor_frete_nf,divergencia,status_auditoria,valor_total_cte,peso_kg&order=criado_em.desc');
 
-    const total       = stats.length;
-    const pendentes   = stats.filter(x => x.status_auditoria === 'pendente').length;
-    const divergentes = stats.filter(x => x.status_auditoria === 'divergencia').length;
-    const ok          = stats.filter(x => x.status_auditoria === 'ok').length;
+    const total       = ctes.length;
+    const pendentes   = ctes.filter(x=>x.status_auditoria==='pendente').length;
+    const divergentes = ctes.filter(x=>x.status_auditoria==='divergencia').length;
+    const ok          = ctes.filter(x=>x.status_auditoria==='ok').length;
 
-    let html = `
+    c.innerHTML = `
       <div class="stats-grid">
         <div class="stat-card info"><div class="label">Total CTes</div><div class="value">${total}</div></div>
         <div class="stat-card warn"><div class="label">Pendentes</div><div class="value">${pendentes}</div></div>
-        <div class="stat-card"><div class="label" style="color:var(--danger)">Divergências</div><div class="value text-red">${divergentes}</div></div>
-        <div class="stat-card ok"><div class="label">Conferidos OK</div><div class="value">${ok}</div></div>
+        <div class="stat-card danger"><div class="label">Divergências</div><div class="value">${divergentes}</div></div>
+        <div class="stat-card ok"><div class="label">OK</div><div class="value">${ok}</div></div>
       </div>
       <div class="card">
-        <div class="flex justify-between items-center mb-4">
-          <div class="card-title" style="margin:0">🧾 Conhecimentos de Transporte</div>
+        <div class="flex justify-between items-center mb-4" style="flex-wrap:wrap;gap:8px">
+          <div class="card-title" style="margin:0">🧾 CTes (${total})</div>
           <div class="filters" style="margin:0">
-            <select id="filter-status-audit" onchange="filtrarCTes()">
-              <option value="">Todos os status</option>
+            <select class="filter-input" id="filter-st" onchange="filtrarCTes()" style="flex:0 0 auto">
+              <option value="">Todos</option>
               <option value="pendente">Pendente</option>
               <option value="ok">OK</option>
               <option value="divergencia">Divergência</option>
               <option value="contestado">Contestado</option>
               <option value="sem_vinculo">Sem vínculo</option>
             </select>
-            <input type="text" id="filter-transp-audit" placeholder="Filtrar transportadora..." oninput="filtrarCTes()" style="width:180px">
+            <input class="filter-input" id="filter-tr" placeholder="Transportadora..." oninput="filtrarCTes()"/>
           </div>
         </div>
-        <div class="table-wrap">
-          <table>
-            <thead>
-              <tr>
-                <th>CTe</th>
-                <th>Data</th>
-                <th>Transportadora</th>
-                <th>Destinatário</th>
-                <th>UF</th>
-                <th>Peso</th>
-                <th>Vl. CTe</th>
-                <th>Vl. NF</th>
-                <th>Divergência</th>
-                <th>Status</th>
-                <th></th>
-              </tr>
-            </thead>
-            <tbody id="tbody-auditoria">
-              ${renderLinhasCTe(ctes)}
-            </tbody>
-          </table>
+        <!-- MOBILE: cards -->
+        <div class="cte-mobile" id="cte-cards">${renderCTeMobile(ctes)}</div>
+        <!-- DESKTOP: tabela -->
+        <div class="cte-desktop">
+          <div class="table-wrap">
+            <table>
+              <thead><tr>
+                <th>CTe</th><th>Data</th><th>Transportadora</th><th>Destinatário</th>
+                <th>UF</th><th>Peso</th><th>Vl. CTe</th><th>Vl. NF</th><th>Divergência</th><th>Status</th>
+              </tr></thead>
+              <tbody id="cte-tbody">${renderCTeDesktop(ctes)}</tbody>
+            </table>
+          </div>
         </div>
       </div>
     `;
-    c.innerHTML = html;
     c.__ctes = ctes;
   } catch(e) {
-    await appLog('erro', 'Falha ao carregar auditoria CTe', { categoria: 'auditoria', detalhe: e.message });
+    await appLog('erro','Falha ao carregar CTes',{categoria:'auditoria',detalhe:{erro:e.message}});
     c.innerHTML = `<div class="empty-state"><div class="icon">❌</div><p>${e.message}</p></div>`;
-    toast('Erro ao carregar CTes: ' + e.message, 'error');
+    toast('Erro ao carregar CTes: '+e.message,'error');
   }
 }
 
 function statusBadge(s) {
-  const m = { pendente: 'badge-warn', ok: 'badge-ok', divergencia: 'badge-danger', contestado: 'badge-blue', sem_vinculo: 'badge-gray' };
-  return `<span class="badge ${m[s]||'badge-gray'}">${s}</span>`;
+  const cls = {pendente:'badge-warn',ok:'badge-ok',divergencia:'badge-danger',contestado:'badge-blue',sem_vinculo:'badge-gray'};
+  return `<span class="badge ${cls[s]||'badge-gray'}">${s||'—'}</span>`;
+}
+function statusSelect(id, current) {
+  const opts = ['pendente','ok','divergencia','contestado','sem_vinculo'];
+  return `<select class="cte-select" onchange="atualizarStatusCTe(${id},this.value)">
+    ${opts.map(o=>`<option value="${o}"${current===o?' selected':''}>${o}</option>`).join('')}
+  </select>`;
 }
 
-function renderLinhasCTe(ctes) {
-  if (!ctes.length) return `<tr><td colspan="11"><div class="empty-state"><div class="icon">📭</div><p>Nenhum CTe encontrado</p></div></td></tr>`;
-  return ctes.map(r => {
-    const div = Number(r.divergencia || 0);
-    const divClass = div > 0 ? 'text-red' : div < 0 ? 'text-green' : '';
+function renderCTeMobile(ctes) {
+  if (!ctes.length) return `<div class="empty-state"><div class="icon">📭</div><p>Nenhum CTe</p></div>`;
+  return ctes.map(r=>{
+    const div = Number(r.divergencia||0);
+    const divClass = div>0?'cte-div-pos':div<0?'cte-div-neg':'';
+    return `<div class="cte-card">
+      <div class="cte-card-header">
+        <div>
+          <div class="cte-num">CTe ${r.num_cte||'—'}</div>
+          <div class="cte-transp">${r.nome_transportadora||'—'} · ${fmtD(r.data_emissao)}</div>
+        </div>
+        ${statusBadge(r.status_auditoria)}
+      </div>
+      <div class="cte-row"><span class="cte-row-label">Destinatário</span><span style="text-align:right;max-width:60%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${r.nome_destinatario||'—'}</span></div>
+      <div class="cte-row"><span class="cte-row-label">Destino</span><span>${r.cidade_destino||'—'}${r.uf_destino?' / '+r.uf_destino:''}</span></div>
+      <div class="cte-row"><span class="cte-row-label">Peso</span><span>${r.peso_kg?fmtN(r.peso_kg)+' kg':'—'}</span></div>
+      <div class="cte-row"><span class="cte-row-label">Vl. CTe</span><span>${fmt(r.valor_frete_cte)}</span></div>
+      <div class="cte-row"><span class="cte-row-label">Vl. NF</span><span>${fmt(r.valor_frete_nf)}</span></div>
+      <div class="cte-row"><span class="cte-row-label">Divergência</span><span class="${divClass}">${div!==0?fmt(div):'—'}</span></div>
+      ${statusSelect(r.id, r.status_auditoria)}
+    </div>`;
+  }).join('');
+}
+
+function renderCTeDesktop(ctes) {
+  if (!ctes.length) return `<tr><td colspan="10"><div class="empty-state"><div class="icon">📭</div><p>Nenhum CTe</p></div></td></tr>`;
+  return ctes.map(r=>{
+    const div = Number(r.divergencia||0);
+    const divClass = div>0?'text-red':div<0?'text-green':'';
     return `<tr>
       <td><strong>${r.num_cte||'—'}</strong></td>
-      <td>${fmtDate(r.data_emissao)}</td>
+      <td>${fmtD(r.data_emissao)}</td>
       <td>${r.nome_transportadora||'—'}</td>
-      <td style="max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${r.nome_destinatario||'—'}</td>
+      <td style="max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${r.nome_destinatario||'—'}</td>
       <td>${r.uf_destino||'—'}</td>
-      <td>${r.peso_kg ? fmtNum(r.peso_kg)+' kg' : '—'}</td>
+      <td>${r.peso_kg?fmtN(r.peso_kg)+' kg':'—'}</td>
       <td>${fmt(r.valor_frete_cte)}</td>
       <td>${fmt(r.valor_frete_nf)}</td>
-      <td class="${divClass}" style="font-weight:600">${div !== 0 ? fmt(div) : '—'}</td>
-      <td>${statusBadge(r.status_auditoria)}</td>
-      <td>
-        <select style="background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:4px 8px;font-size:12px;color:var(--text);cursor:pointer"
-          onchange="atualizarStatusCTe(${r.id}, this.value)">
-          <option value="pendente"  ${r.status_auditoria==='pendente'?'selected':''}>Pendente</option>
-          <option value="ok"        ${r.status_auditoria==='ok'?'selected':''}>OK</option>
-          <option value="divergencia" ${r.status_auditoria==='divergencia'?'selected':''}>Divergência</option>
-          <option value="contestado" ${r.status_auditoria==='contestado'?'selected':''}>Contestado</option>
-          <option value="sem_vinculo" ${r.status_auditoria==='sem_vinculo'?'selected':''}>Sem vínculo</option>
-        </select>
-      </td>
+      <td class="${divClass}" style="font-weight:600">${div!==0?fmt(div):'—'}</td>
+      <td>${statusSelect(r.id, r.status_auditoria)}</td>
     </tr>`;
   }).join('');
 }
 
 function filtrarCTes() {
   const c = document.getElementById('page-content');
-  const ctes = c.__ctes || [];
-  const statusFilt = document.getElementById('filter-status-audit')?.value || '';
-  const transpFilt = document.getElementById('filter-transp-audit')?.value?.toLowerCase() || '';
-  const filtered = ctes.filter(r => {
-    const matchStatus = !statusFilt || r.status_auditoria === statusFilt;
-    const matchTransp = !transpFilt || (r.nome_transportadora||'').toLowerCase().includes(transpFilt);
-    return matchStatus && matchTransp;
+  const ctes = c.__ctes||[];
+  const st = document.getElementById('filter-st')?.value||'';
+  const tr = (document.getElementById('filter-tr')?.value||'').toLowerCase();
+  const filtered = ctes.filter(r=>{
+    const mSt = !st || r.status_auditoria===st;
+    const mTr = !tr || (r.nome_transportadora||'').toLowerCase().includes(tr);
+    return mSt && mTr;
   });
-  const tbody = document.getElementById('tbody-auditoria');
-  if (tbody) tbody.innerHTML = renderLinhasCTe(filtered);
+  const cards  = document.getElementById('cte-cards');
+  const tbody  = document.getElementById('cte-tbody');
+  if (cards) cards.innerHTML  = renderCTeMobile(filtered);
+  if (tbody) tbody.innerHTML  = renderCTeDesktop(filtered);
 }
 
 async function atualizarStatusCTe(id, status) {
   try {
-    await fetch(`${SUPA_URL}/rest/v1/frt_conhecimentos?id=eq.${id}`, {
-      method: 'PATCH',
-      headers: { ...headers(session?.access_token), 'Prefer': 'return=minimal' },
-      body: JSON.stringify({ status_auditoria: status, atualizado_em: new Date().toISOString() })
+    const res = await fetch(`${SUPA_URL}/rest/v1/frt_conhecimentos?id=eq.${id}`,{
+      method:'PATCH',
+      headers:{...hdrs(session?.access_token),'Prefer':'return=minimal'},
+      body:JSON.stringify({status_auditoria:status, atualizado_em:new Date().toISOString()})
     });
-    await appLog('acao', `Status CTe #${id} alterado para "${status}"`, { categoria: 'auditoria', detalhe: { id, status } });
-    toast(`Status atualizado para "${status}"`, 'success');
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    await appLog('acao',`Status CTe #${id} → "${status}"`,{categoria:'auditoria'});
+    toast(`Status: ${status}`,'success');
+    // atualiza cache local
     const c = document.getElementById('page-content');
-    if (c.__ctes) {
-      const cte = c.__ctes.find(x => x.id === id);
-      if (cte) cte.status_auditoria = status;
-    }
+    if (c.__ctes) { const cte=c.__ctes.find(x=>x.id===id); if(cte) cte.status_auditoria=status; }
   } catch(e) {
-    await appLog('erro', `Falha ao atualizar status CTe #${id}`, { categoria: 'auditoria', detalhe: e.message });
-    toast('Erro ao atualizar: ' + e.message, 'error');
+    await appLog('erro',`Falha ao atualizar CTe #${id}`,{categoria:'auditoria',detalhe:{erro:e.message}});
+    toast('Erro: '+e.message,'error');
   }
 }
 
-// ──────────────────────────────────────────────────
-// PAGE: HISTÓRICO DE COTAÇÕES
-// ──────────────────────────────────────────────────
+// ── PAGE: HISTÓRICO ──
 async function renderHistorico() {
   const c = document.getElementById('page-content');
-  c.innerHTML = `<div class="loading-area"><div class="spinner"></div> Carregando histórico...</div>`;
+  c.innerHTML = `<div class="loading-area"><div class="spinner"></div> Carregando...</div>`;
   try {
-    const cotacoes = await supa('frt_cotacoes?select=*&order=criado_em.desc');
-    let html = `
+    // carrega locais para nome correto
+    if (!locaisCache.length) {
+      locaisCache = await supa('frt_locais_expedicao?select=id,nome,cidade,uf').catch(()=>[]);
+    }
+    const rows = await supa('frt_cotacoes?select=*&order=criado_em.desc');
+    const locMap = Object.fromEntries(locaisCache.map(l=>[l.id, `${l.nome}`]));
+
+    c.innerHTML = `
       <div class="card">
-        <div class="flex justify-between items-center mb-4">
-          <div class="card-title" style="margin:0">📋 Histórico de Cotações (${cotacoes.length})</div>
-          <input type="text" id="filter-hist" placeholder="Filtrar por CEP ou usuário..."
-            oninput="filtrarHistorico()" style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:8px 12px;font-size:13px;color:var(--text);outline:none;width:220px">
+        <div class="flex justify-between items-center mb-4" style="flex-wrap:wrap;gap:8px">
+          <div class="card-title" style="margin:0">📋 Histórico (${rows.length})</div>
+          <input class="filter-input" id="filter-hist" placeholder="CEP, cidade ou usuário..." oninput="filtrarHist()" style="max-width:240px"/>
         </div>
-        <div class="table-wrap">
-          <table>
-            <thead>
-              <tr>
-                <th>#</th>
-                <th>Data</th>
-                <th>Origem</th>
-                <th>CEP Destino</th>
-                <th>Cidade/UF</th>
-                <th>Valor NF</th>
-                <th>Peso (kg)</th>
-                <th>Criado por</th>
-              </tr>
-            </thead>
-            <tbody id="tbody-hist">
-              ${renderLinhasHistorico(cotacoes)}
-            </tbody>
-          </table>
+        <!-- MOBILE -->
+        <div class="hist-mobile" id="hist-cards">${renderHistMobile(rows,locMap)}</div>
+        <!-- DESKTOP -->
+        <div class="hist-desktop">
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>#</th><th>Data</th><th>Origem</th><th>CEP Destino</th><th>Cidade/UF</th><th>Valor NF</th><th>Peso</th><th>Usuário</th></tr></thead>
+              <tbody id="hist-tbody">${renderHistDesktop(rows,locMap)}</tbody>
+            </table>
+          </div>
         </div>
       </div>
     `;
-    c.innerHTML = html;
-    c.__hist = cotacoes;
+    c.__hist = rows;
+    c.__locMap = locMap;
   } catch(e) {
-    await appLog('erro', 'Falha ao carregar histórico', { categoria: 'historico', detalhe: e.message });
+    await appLog('erro','Falha ao carregar histórico',{categoria:'historico',detalhe:{erro:e.message}});
     c.innerHTML = `<div class="empty-state"><div class="icon">❌</div><p>${e.message}</p></div>`;
-    toast('Erro ao carregar histórico: ' + e.message, 'error');
+    toast('Erro: '+e.message,'error');
   }
 }
 
-function renderLinhasHistorico(rows) {
+function renderHistMobile(rows,locMap) {
+  if (!rows.length) return `<div class="empty-state"><div class="icon">📭</div><p>Sem cotações</p></div>`;
+  return rows.map(r=>`<div class="hist-card">
+    <div class="hist-card-row"><span class="hist-label">Data</span><strong>${fmtDT(r.criado_em)}</strong></div>
+    <div class="hist-card-row"><span class="hist-label">Origem</span><span>${locMap[r.id_local]||r.id_local||'—'}</span></div>
+    <div class="hist-card-row"><span class="hist-label">CEP Destino</span><span>${r.cep_destino||'—'}</span></div>
+    <div class="hist-card-row"><span class="hist-label">Cidade/UF</span><span>${r.cidade_destino||'—'}${r.uf_destino?' / '+r.uf_destino:''}</span></div>
+    <div class="hist-card-row"><span class="hist-label">Valor NF</span><span>${fmt(r.valor_nf)}</span></div>
+    <div class="hist-card-row"><span class="hist-label">Peso</span><span>${r.peso_total_kg?fmtN(r.peso_total_kg)+' kg':'—'}</span></div>
+    <div class="hist-card-row"><span class="hist-label">Usuário</span><span class="text-muted">${r.criado_por||'—'}</span></div>
+  </div>`).join('');
+}
+function renderHistDesktop(rows,locMap) {
   if (!rows.length) return `<tr><td colspan="8"><div class="empty-state"><div class="icon">📭</div><p>Sem cotações</p></div></td></tr>`;
-  return rows.map(r => `<tr>
+  return rows.map(r=>`<tr>
     <td class="text-muted">${r.id}</td>
-    <td>${fmtDatetime(r.criado_em)}</td>
-    <td><span class="badge badge-blue">${r.id_local === 1 ? 'PR' : r.id_local === 2 ? 'SC' : r.id_local === 3 ? 'SP' : r.id_local||'—'}</span></td>
+    <td>${fmtDT(r.criado_em)}</td>
+    <td>${locMap[r.id_local]||r.id_local||'—'}</td>
     <td>${r.cep_destino||'—'}</td>
-    <td>${r.cidade_destino||'—'}${r.uf_destino ? ' / '+r.uf_destino : ''}</td>
+    <td>${r.cidade_destino||'—'}${r.uf_destino?' / '+r.uf_destino:''}</td>
     <td>${fmt(r.valor_nf)}</td>
-    <td>${r.peso_total_kg ? fmtNum(r.peso_total_kg)+' kg' : '—'}</td>
+    <td>${r.peso_total_kg?fmtN(r.peso_total_kg)+' kg':'—'}</td>
     <td class="text-muted">${r.criado_por||'—'}</td>
   </tr>`).join('');
 }
-
-function filtrarHistorico() {
+function filtrarHist() {
   const c = document.getElementById('page-content');
-  const rows = c.__hist || [];
-  const q = document.getElementById('filter-hist')?.value?.toLowerCase() || '';
-  const filtered = q ? rows.filter(r =>
-    (r.cep_destino||'').includes(q) ||
-    (r.criado_por||'').toLowerCase().includes(q) ||
-    (r.cidade_destino||'').toLowerCase().includes(q)
+  const rows = c.__hist||[]; const locMap = c.__locMap||{};
+  const q = (document.getElementById('filter-hist')?.value||'').toLowerCase();
+  const filtered = q ? rows.filter(r=>
+    (r.cep_destino||'').includes(q)||
+    (r.cidade_destino||'').toLowerCase().includes(q)||
+    (r.criado_por||'').toLowerCase().includes(q)
   ) : rows;
-  const tbody = document.getElementById('tbody-hist');
-  if (tbody) tbody.innerHTML = renderLinhasHistorico(filtered);
+  const mob = document.getElementById('hist-cards');
+  const tbl = document.getElementById('hist-tbody');
+  if (mob) mob.innerHTML = renderHistMobile(filtered,locMap);
+  if (tbl) tbl.innerHTML = renderHistDesktop(filtered,locMap);
 }
 
-// ──────────────────────────────────────────────────
-// PAGE: LOGS DO SISTEMA
-// ──────────────────────────────────────────────────
+// ── PAGE: LOGS ──
 async function renderLogs() {
   const c = document.getElementById('page-content');
   c.innerHTML = `<div class="loading-area"><div class="spinner"></div> Carregando logs...</div>`;
-
   try {
     const logs = await supa('frt_logs?select=*&order=criado_em.desc');
-    const erros    = logs.filter(l => l.tipo === 'erro').length;
-    const acoes    = logs.filter(l => l.tipo === 'acao').length;
-    const avisos   = logs.filter(l => l.tipo === 'aviso').length;
+    const erros  = logs.filter(l=>l.tipo==='erro').length;
+    const acoes  = logs.filter(l=>l.tipo==='acao').length;
+    const avisos = logs.filter(l=>l.tipo==='aviso').length;
 
-    let html = `
+    c.innerHTML = `
       <div class="stats-grid">
-        <div class="stat-card info"><div class="label">Total Eventos</div><div class="value">${logs.length}</div></div>
-        <div class="stat-card"><div class="label" style="color:var(--danger)">Erros</div><div class="value text-red">${erros}</div></div>
+        <div class="stat-card info"><div class="label">Total</div><div class="value">${logs.length}</div></div>
+        <div class="stat-card danger"><div class="label">Erros</div><div class="value">${erros}</div></div>
         <div class="stat-card ok"><div class="label">Ações</div><div class="value">${acoes}</div></div>
         <div class="stat-card warn"><div class="label">Avisos</div><div class="value">${avisos}</div></div>
       </div>
       <div class="card">
-        <div class="flex justify-between items-center mb-4" style="flex-wrap:wrap;gap:10px">
-          <div class="card-title" style="margin:0">🔍 Logs do Sistema</div>
+        <div class="flex justify-between items-center mb-4" style="flex-wrap:wrap;gap:8px">
+          <div class="card-title" style="margin:0">🔍 Logs</div>
           <div class="filters" style="margin:0">
-            <select id="log-filter-tipo" onchange="filtrarLogs()">
-              <option value="">Todos os tipos</option>
+            <select class="filter-input" id="log-tipo" onchange="filtrarLogs()" style="flex:0 0 auto">
+              <option value="">Todos</option>
               <option value="erro">Erros</option>
               <option value="acao">Ações</option>
               <option value="aviso">Avisos</option>
             </select>
-            <select id="log-filter-cat" onchange="filtrarLogs()">
-              <option value="">Todas as categorias</option>
+            <select class="filter-input" id="log-cat" onchange="filtrarLogs()" style="flex:0 0 auto">
+              <option value="">Todas categorias</option>
               <option value="cotacao">Cotação</option>
               <option value="auditoria">Auditoria</option>
-              <option value="sistema">Sistema</option>
               <option value="historico">Histórico</option>
+              <option value="sistema">Sistema</option>
             </select>
-            <input type="text" id="log-filter-text" placeholder="Pesquisar descrição..." oninput="filtrarLogs()" style="width:200px">
-            <button class="btn btn-ghost btn-sm" onclick="renderLogs()">↺ Atualizar</button>
-            <button class="btn btn-danger btn-sm" onclick="limparLogs()">🗑️ Limpar logs antigos</button>
+            <input class="filter-input" id="log-txt" placeholder="Pesquisar..." oninput="filtrarLogs()"/>
           </div>
         </div>
-        <div id="logs-list">
-          ${renderItensLog(logs)}
+        <div class="flex gap-2 mb-4" style="flex-wrap:wrap">
+          <button class="btn btn-ghost btn-sm" onclick="renderLogs()">↺ Atualizar</button>
+          <button class="btn btn-danger btn-sm" onclick="limparLogs()">🗑️ Limpar &gt;30 dias</button>
         </div>
+        <div id="logs-list">${renderItensLog(logs)}</div>
       </div>
     `;
-    c.innerHTML = html;
     c.__logs = logs;
   } catch(e) {
-    // tabela ainda não existe — mostra aviso amigável
-    c.innerHTML = `
-      <div class="card">
-        <div class="empty-state">
-          <div class="icon">🗄️</div>
-          <p style="margin-bottom:16px">A tabela <strong>frt_logs</strong> ainda não existe no Supabase.</p>
-          <p style="font-size:12px;color:var(--muted);margin-bottom:20px">Execute o SQL abaixo para criá-la:</p>
-          <pre style="background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:16px;font-size:12px;color:#a5b4fc;text-align:left;overflow:auto">${SQL_CREATE_LOGS}</pre>
-        </div>
-      </div>
-    `;
+    c.innerHTML = `<div class="empty-state"><div class="icon">✅</div><p>Nenhum log ainda ou tabela não encontrada.</p><p style="font-size:12px;margin-top:8px;color:var(--muted)">${e.message}</p></div>`;
   }
 }
 
-const SQL_CREATE_LOGS = `CREATE TABLE IF NOT EXISTS frt_logs (
-  id          BIGSERIAL PRIMARY KEY,
-  tipo        TEXT NOT NULL DEFAULT 'acao'
-              CHECK (tipo IN ('acao','erro','aviso')),
-  categoria   TEXT,
-  descricao   TEXT NOT NULL,
-  detalhe     JSONB,
-  usuario     TEXT,
-  criado_em   TIMESTAMPTZ DEFAULT NOW()
-);
-
--- Índices para performance
-CREATE INDEX IF NOT EXISTS idx_frt_logs_tipo ON frt_logs (tipo);
-CREATE INDEX IF NOT EXISTS idx_frt_logs_criado_em ON frt_logs (criado_em DESC);
-
--- RLS permissivo (ajuste conforme necessidade)
-ALTER TABLE frt_logs ENABLE ROW LEVEL SECURITY;
-CREATE POLICY "frt_logs_all" ON frt_logs FOR ALL USING (true) WITH CHECK (true);
-GRANT ALL ON frt_logs TO anon, authenticated;
-GRANT USAGE, SELECT ON SEQUENCE frt_logs_id_seq TO anon, authenticated;`;
-
 function renderItensLog(logs) {
-  if (!logs.length) return `<div class="empty-state"><div class="icon">✅</div><p>Nenhum log registrado</p></div>`;
-  return logs.map((l, i) => {
-    const icons = { erro: '❌', acao: '✅', aviso: '⚠️' };
-    const cat = l.detalhe?.categoria || l.categoria || '';
-    const detalheStr = l.detalhe ? JSON.stringify(l.detalhe, null, 2) : '';
-    return `
-      <div class="log-item log-${l.tipo}" onclick="toggleLogDetail(${i})">
-        <div class="log-icon">${icons[l.tipo]||'ℹ️'}</div>
-        <div class="log-body">
-          <div class="log-desc">${l.descricao}</div>
-          <div class="log-meta">
-            <span>⏰ ${fmtDatetime(l.criado_em)}</span>
-            ${cat ? `<span>📁 ${cat}</span>` : ''}
-            ${l.usuario ? `<span>👤 ${l.usuario}</span>` : ''}
-            <span class="badge ${l.tipo==='erro'?'badge-danger':l.tipo==='aviso'?'badge-warn':'badge-ok'}">${l.tipo}</span>
-          </div>
-          ${detalheStr ? `<div class="log-detail" id="log-detail-${i}">${detalheStr}</div>` : ''}
+  if (!logs.length) return `<div class="empty-state"><div class="icon">✅</div><p>Nenhum evento registrado</p></div>`;
+  const icons = {erro:'❌',acao:'✅',aviso:'⚠️'};
+  return logs.map((l,i)=>{
+    const detalheStr = l.detalhe ? JSON.stringify(l.detalhe,null,2) : '';
+    return `<div class="log-item log-${l.tipo}" onclick="toggleLog(${i})">
+      <div class="log-icon">${icons[l.tipo]||'ℹ️'}</div>
+      <div class="log-body">
+        <div class="log-desc">${l.descricao}</div>
+        <div class="log-meta">
+          <span>⏰ ${fmtDT(l.criado_em)}</span>
+          ${l.categoria?`<span>📁 ${l.categoria}</span>`:''}
+          ${l.usuario?`<span>👤 ${l.usuario}</span>`:''}
+          <span class="badge ${l.tipo==='erro'?'badge-danger':l.tipo==='aviso'?'badge-warn':'badge-ok'}">${l.tipo}</span>
         </div>
+        ${detalheStr?`<div class="log-detail" id="ld-${i}">${detalheStr}</div>`:''}
       </div>
-    `;
+    </div>`;
   }).join('');
 }
-
-function toggleLogDetail(i) {
-  const el = document.getElementById(`log-detail-${i}`);
-  if (el) el.classList.toggle('open');
+function toggleLog(i) {
+  document.getElementById(`ld-${i}`)?.classList.toggle('open');
 }
-
 function filtrarLogs() {
-  const c = document.getElementById('page-content');
-  const logs = c.__logs || [];
-  const tipo = document.getElementById('log-filter-tipo')?.value || '';
-  const cat  = document.getElementById('log-filter-cat')?.value || '';
-  const txt  = document.getElementById('log-filter-text')?.value?.toLowerCase() || '';
-  const filtered = logs.filter(l => {
-    const matchTipo = !tipo || l.tipo === tipo;
-    const matchCat  = !cat  || (l.detalhe?.categoria || l.categoria || '') === cat;
-    const matchTxt  = !txt  || (l.descricao||'').toLowerCase().includes(txt);
-    return matchTipo && matchCat && matchTxt;
+  const c    = document.getElementById('page-content');
+  const logs = c.__logs||[];
+  const tipo = document.getElementById('log-tipo')?.value||'';
+  const cat  = document.getElementById('log-cat')?.value||'';
+  const txt  = (document.getElementById('log-txt')?.value||'').toLowerCase();
+  const filtered = logs.filter(l=>{
+    const mT = !tipo || l.tipo===tipo;
+    const mC = !cat  || l.categoria===cat;
+    const mX = !txt  || (l.descricao||'').toLowerCase().includes(txt);
+    return mT && mC && mX;
   });
   const el = document.getElementById('logs-list');
   if (el) el.innerHTML = renderItensLog(filtered);
 }
-
 async function limparLogs() {
   if (!confirm('Excluir logs com mais de 30 dias?')) return;
   try {
-    const cutoff = new Date(Date.now() - 30 * 86400000).toISOString();
-    await fetch(`${SUPA_URL}/rest/v1/frt_logs?criado_em=lt.${cutoff}`, {
-      method: 'DELETE',
-      headers: { ...headers(session?.access_token) }
+    const cutoff = new Date(Date.now()-30*86400000).toISOString();
+    const res = await fetch(`${SUPA_URL}/rest/v1/frt_logs?criado_em=lt.${cutoff}`,{
+      method:'DELETE',
+      headers:hdrs(session?.access_token)
     });
-    toast('Logs antigos removidos ✅', 'success');
-    await appLog('acao', 'Limpeza de logs antigos realizada', { categoria: 'sistema' });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    await appLog('acao','Limpeza de logs antigos',{categoria:'sistema'});
+    toast('Logs antigos removidos','success');
     renderLogs();
   } catch(e) {
-    toast('Erro ao limpar: ' + e.message, 'error');
+    toast('Erro: '+e.message,'error');
   }
 }
 
-// ──────────────────────────────────────────────────
-// ENTER no login
-// ──────────────────────────────────────────────────
-document.getElementById('auth-pass').addEventListener('keydown', e => {
-  if (e.key === 'Enter') fazerLogin();
-});
-document.getElementById('auth-email').addEventListener('keydown', e => {
-  if (e.key === 'Enter') document.getElementById('auth-pass').focus();
+// ── ENTER no login ──
+['auth-email','auth-pass'].forEach(id=>{
+  document.getElementById(id).addEventListener('keydown',e=>{
+    if (e.key==='Enter') {
+      if (id==='auth-email') document.getElementById('auth-pass').focus();
+      else fazerLogin();
+    }
+  });
 });
 </script>
 </body>
