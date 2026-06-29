@@ -366,7 +366,11 @@ async function pgCotar(){
       </div>
       <div class="field"><label>CEP Destino</label><input id="cep" type="tel" placeholder="00000-000" maxlength="9" oninput="mCEP(this)" inputmode="numeric"/></div>
       <div class="field"><label>Valor da NF (R$)</label><input id="vnf" type="number" placeholder="0,00" step="0.01" min="0" inputmode="decimal"/></div>
-      <div class="field full"><label>CNPJ Destinatário (opcional)</label><input id="cnpj" type="tel" placeholder="00.000.000/0000-00" maxlength="18" oninput="mCNPJ(this)" inputmode="numeric"/></div>
+      <div class="field full">
+        <label>CPF / CNPJ do Destinatário <span id="badge-pf-pj" style="margin-left:6px"></span></label>
+        <input id="cnpj" type="tel" placeholder="CPF (PF) ou CNPJ (PJ)" maxlength="18" oninput="mDocDest(this)" inputmode="numeric"/>
+        <span style="font-size:11px;color:var(--muted);margin-top:3px">11 dígitos = Pessoa Física · 14 dígitos = Pessoa Jurídica</span>
+      </div>
     </div>
   </div>
 
@@ -466,11 +470,38 @@ function addVol(){
 }
 
 function mCEP(el){let v=el.value.replace(/\D/g,'');if(v.length>5)v=v.slice(0,5)+'-'+v.slice(5,8);el.value=v}
-function mCNPJ(el){let v=el.value.replace(/\D/g,'').slice(0,14);
-  if(v.length>12)v=v.slice(0,2)+'.'+v.slice(2,5)+'.'+v.slice(5,8)+'/'+v.slice(8,12)+'-'+v.slice(12);
-  else if(v.length>8)v=v.slice(0,2)+'.'+v.slice(2,5)+'.'+v.slice(5,8)+'/'+v.slice(8);
-  else if(v.length>5)v=v.slice(0,2)+'.'+v.slice(2,5)+'.'+v.slice(5);
-  else if(v.length>2)v=v.slice(0,2)+'.'+v.slice(2);el.value=v}
+// Máscara unificada CPF (PF) ou CNPJ (PJ) — detecta pelo tamanho
+function mDocDest(el){
+  let v=el.value.replace(/\D/g,'').slice(0,14);
+  const badge=document.getElementById('badge-pf-pj');
+  const digits=v.length;
+  // decide se é CPF ou CNPJ pelo que já foi digitado
+  // Se ≤11 dígitos mantém como CPF; se >11 trata como CNPJ
+  const isPF=digits<=11&&(digits<12);
+  if(isPF){
+    // máscara CPF: 000.000.000-00
+    if(v.length>9)       v=v.slice(0,3)+'.'+v.slice(3,6)+'.'+v.slice(6,9)+'-'+v.slice(9,11);
+    else if(v.length>6)  v=v.slice(0,3)+'.'+v.slice(3,6)+'.'+v.slice(6);
+    else if(v.length>3)  v=v.slice(0,3)+'.'+v.slice(3);
+    el.maxLength=14; // 000.000.000-00
+    if(badge){
+      if(digits===11) badge.innerHTML='<span class="badge b-purple">👤 Pessoa Física</span>';
+      else badge.innerHTML='';
+    }
+  }else{
+    // máscara CNPJ: 00.000.000/0000-00
+    if(v.length>12)      v=v.slice(0,2)+'.'+v.slice(2,5)+'.'+v.slice(5,8)+'/'+v.slice(8,12)+'-'+v.slice(12);
+    else if(v.length>8)  v=v.slice(0,2)+'.'+v.slice(2,5)+'.'+v.slice(5,8)+'/'+v.slice(8);
+    else if(v.length>5)  v=v.slice(0,2)+'.'+v.slice(2,5)+'.'+v.slice(5);
+    else if(v.length>2)  v=v.slice(0,2)+'.'+v.slice(2);
+    el.maxLength=18; // 00.000.000/0000-00
+    if(badge){
+      if(digits===14) badge.innerHTML='<span class="badge b-blue">🏢 Pessoa Jurídica</span>';
+      else badge.innerHTML='';
+    }
+  }
+  el.value=v;
+}
 
 async function cotar(){
   const id_local=parseInt(document.getElementById('id_local')?.value);
@@ -478,6 +509,9 @@ async function cotar(){
   const cnpj=(document.getElementById('cnpj')?.value||'').replace(/\D/g,'');
   const valor_nf=parseFloat(document.getElementById('vnf')?.value)||0;
   if(!cep||cep.length<8){toast('Informe o CEP destino','error');return}
+  // valida tamanho do documento se informado
+  if(cnpj&&cnpj.length!==11&&cnpj.length!==14){toast('CPF deve ter 11 dígitos ou CNPJ 14 dígitos','error');return}
+  const tipo_dest=cnpj.length===11?'PF':cnpj.length===14?'PJ':null;
   const pacotes=[];
   for(let i=1;i<=volIdx;i++){
     if(!document.getElementById(`vol-${i}`))continue;
@@ -495,25 +529,25 @@ async function cotar(){
   try{
     const r=await fetch(`${EDGE}/cotar-frete`,{method:'POST',
       headers:{'Content-Type':'application/json','Authorization':`Bearer ${sess?.access_token||KEY}`},
-      body:JSON.stringify({id_local,cep_destino:cep,cnpj_destinatario:cnpj||undefined,valor_nf,pacotes})});
+      body:JSON.stringify({id_local,cep_destino:cep,cnpj_destinatario:cnpj||undefined,tipo_destinatario:tipo_dest,valor_nf,pacotes})});
     if(!r.ok)throw new Error(`HTTP ${r.status}: ${(await r.text()).slice(0,200)}`);
     const data=await r.json();
-    await log('acao','Cotação realizada',{cat:'cotacao',d:{cep,n:pacotes.length,res:data?.resultados?.length}});
-    renderResult(data,rd);
+    await log('acao','Cotação realizada',{cat:'cotacao',d:{cep,tipo_dest,n:pacotes.length,res:data?.resultados?.length}});
+    renderResult(data,rd,tipo_dest);
   }catch(e){
     await log('erro','Falha cotação',{cat:'cotacao',d:{e:e.message,cep}});
     rd.innerHTML=`<div class="card"><div class="empty"><div class="ei">❌</div><p>${e.message}</p></div></div>`;
     toast('Erro: '+e.message,'error');
   }
 }
-function renderResult(data,c){
+function renderResult(data,c,tipo_dest){
   const res=data?.resultados||[];
   if(!res.length){c.innerHTML=`<div class="card"><div class="empty"><div class="ei">🔍</div><p>Nenhuma cotação retornada.<br>Verifique o CEP e local de expedição.</p></div></div>`;return}
   const ok=res.filter(r=>!r.erro).sort((a,b)=>(a.valor_total||0)-(b.valor_total||0));
   const er=res.filter(r=>r.erro);
   let html=`<div class="card"><div class="card-title">🏆 Cotações</div>`;
   if(data.cidade_destino||data.uf_destino)
-    html+=`<div class="mb-3"><span class="tag">📍 ${data.cidade_destino||''}${data.uf_destino?' / '+data.uf_destino:''}</span>${data.peso_total_kg?`<span class="tag">⚖️ ${N(data.peso_total_kg)} kg</span>`:''}${data.peso_cubado_kg?`<span class="tag">📦 Cubado: ${N(data.peso_cubado_kg)} kg</span>`:''}</div>`;
+    html+=`<div class="mb-3"><span class="tag">📍 ${data.cidade_destino||''}${data.uf_destino?' / '+data.uf_destino:''}</span>${data.peso_total_kg?`<span class="tag">⚖️ ${N(data.peso_total_kg)} kg</span>`:''}${data.peso_cubado_kg?`<span class="tag">📦 Cubado: ${N(data.peso_cubado_kg)} kg</span>`:''}${tipo_dest?`<span class="tag ${tipo_dest==='PF'?'':''}">👤 ${tipo_dest==='PF'?'Pessoa Física':'Pessoa Jurídica'}</span>`:''}</div>`;
   html+=`<div class="result-grid">`;
   [...ok,...er].forEach((r,i)=>{
     if(r.erro){html+=`<div class="r-card r-error"><div class="r-transp">${r.transportadora||'—'}</div><div class="r-preco">Indisponível</div><div class="r-detail">${r.erro}</div></div>`;return}
