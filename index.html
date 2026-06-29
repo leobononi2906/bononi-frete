@@ -234,7 +234,7 @@ td select{padding:5px 8px;font-size:12px;border-radius:6px}
     <input id="ae" type="email" placeholder="E-mail" autocomplete="email" style="margin-bottom:10px"/>
     <input id="ap" type="password" placeholder="Senha" autocomplete="current-password" style="margin-bottom:12px"/>
     <div class="err" id="aerr"></div>
-    <button class="btn btn-primary btn-full" onclick="login()">Entrar</button>
+    <button class="btn btn-primary btn-full" onclick="fazerLogin()">Entrar</button>
   </div>
 </div>
 
@@ -304,7 +304,7 @@ async function log(tipo,desc,extra={}){
 }
 
 // ── AUTH ──
-async function login(){
+async function fazerLogin(){
   const em=document.getElementById('ae').value.trim(),pw=document.getElementById('ap').value;
   const er=document.getElementById('aerr');er.textContent='';
   if(!em||!pw){er.textContent='Preencha e-mail e senha';return}
@@ -1057,7 +1057,7 @@ async function limparLogs(){
 
 // ENTER no login
 ['ae','ap'].forEach(id=>document.getElementById(id).addEventListener('keydown',e=>{
-  if(e.key==='Enter'){if(id==='ae')document.getElementById('ap').focus();else login();}
+  if(e.key==='Enter'){if(id==='ae')document.getElementById('ap').focus();else fazerLogin();}
 }));
 </script>
 </body>
