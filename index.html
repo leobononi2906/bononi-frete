@@ -527,6 +527,7 @@ function setPJ(){
   el.value='';el.maxLength=18;
   el.value=DOC_PJ_PADRAO;mDocDest(el);
 }
+async function cotar(){
   const id_local=parseInt(document.getElementById('id_local')?.value);
   const cep=(document.getElementById('cep')?.value||'').replace(/\D/g,'');
   const cnpj=(document.getElementById('cnpj')?.value||'').replace(/\D/g,'');
