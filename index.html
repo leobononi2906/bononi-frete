@@ -5,1001 +5,929 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <title>Frete — Bononi</title>
 <style>
-:root {
-  --bg:       #0f1117;
-  --surface:  #181c25;
-  --surface2: #1e2330;
-  --border:   #2a2f3f;
-  --accent:   #f59e0b;
-  --green:    #10b981;
-  --danger:   #ef4444;
-  --warn:     #f97316;
-  --text:     #e8eaf0;
-  --muted:    #6b7280;
-  --blue:     #3b82f6;
-  --sidebar-w: 220px;
-  --topbar-h:  56px;
-  --bottomnav-h: 60px;
+:root{
+  --bg:#0f1117;--surface:#181c25;--surface2:#1e2330;--border:#2a2f3f;
+  --accent:#f59e0b;--green:#10b981;--danger:#ef4444;--warn:#f97316;
+  --text:#e8eaf0;--muted:#6b7280;--blue:#3b82f6;--purple:#8b5cf6;
 }
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 html,body{height:100%;overflow:hidden}
 body{font-family:system-ui,-apple-system,'Segoe UI',sans-serif;background:var(--bg);color:var(--text)}
-
-/* ── LAYOUT ── */
 #app{display:flex;height:100vh;overflow:hidden}
 
-/* ── SIDEBAR desktop ── */
-#sidebar{
-  width:var(--sidebar-w);min-width:var(--sidebar-w);
-  background:var(--surface);border-right:1px solid var(--border);
-  display:flex;flex-direction:column;transition:transform .25s;z-index:50;
-}
-.sidebar-logo{padding:20px 18px 14px;border-bottom:1px solid var(--border)}
-.sidebar-logo .brand{font-size:10px;text-transform:uppercase;letter-spacing:2px;color:var(--muted);display:block;margin-bottom:3px}
-.sidebar-logo .title{font-size:16px;font-weight:700;color:var(--accent);display:flex;align-items:center;gap:7px}
+/* SIDEBAR */
+#sidebar{width:220px;min-width:220px;background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;transition:transform .25s;z-index:50}
+.sb-logo{padding:18px 16px 14px;border-bottom:1px solid var(--border)}
+.sb-brand{font-size:10px;text-transform:uppercase;letter-spacing:2px;color:var(--muted);display:block;margin-bottom:2px}
+.sb-title{font-size:16px;font-weight:700;color:var(--accent)}
 nav{flex:1;padding:10px 8px;overflow-y:auto}
-.nav-item{
-  display:flex;align-items:center;gap:10px;padding:11px 12px;
-  border-radius:9px;cursor:pointer;font-size:13.5px;color:var(--muted);
-  margin-bottom:3px;transition:all .15s;border:1px solid transparent;
-  user-select:none;
-}
+.nav-item{display:flex;align-items:center;gap:9px;padding:10px 12px;border-radius:9px;cursor:pointer;font-size:13.5px;color:var(--muted);margin-bottom:2px;transition:all .15s;border:1px solid transparent;user-select:none}
 .nav-item:active{opacity:.7}
 .nav-item.active{background:rgba(245,158,11,.12);color:var(--accent);border-color:rgba(245,158,11,.25)}
-.nav-item .icon{font-size:17px;width:22px;text-align:center;flex-shrink:0}
-.sidebar-footer{padding:12px 16px;border-top:1px solid var(--border);font-size:12px}
-#sidebar-user{font-weight:600;color:var(--text);margin-bottom:5px;font-size:13px}
+.nav-icon{font-size:16px;width:20px;text-align:center;flex-shrink:0}
+.sb-footer{padding:12px 16px;border-top:1px solid var(--border)}
+#sb-user{font-weight:600;color:var(--text);margin-bottom:4px;font-size:13px}
 .btn-sair{color:var(--muted);cursor:pointer;font-size:12px}
-.btn-sair:active{opacity:.6}
 
-/* ── MAIN ── */
+/* MAIN */
 #main{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0}
-.topbar{
-  background:var(--surface);border-bottom:1px solid var(--border);
-  padding:0 16px;display:flex;align-items:center;justify-content:space-between;
-  min-height:var(--topbar-h);flex-shrink:0;
-}
-.topbar-left{display:flex;align-items:center;gap:10px;min-width:0}
-#menu-toggle{
-  display:none;background:none;border:none;color:var(--text);
-  font-size:22px;cursor:pointer;padding:6px;border-radius:6px;flex-shrink:0;
-}
-.topbar h1{font-size:15px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.topbar .subtitle{font-size:11px;color:var(--muted);margin-top:1px;white-space:nowrap}
-.page-content{flex:1;overflow-y:auto;padding:16px;-webkit-overflow-scrolling:touch}
+.topbar{background:var(--surface);border-bottom:1px solid var(--border);padding:0 16px;display:flex;align-items:center;min-height:56px;flex-shrink:0;gap:10px}
+#menu-btn{display:none;background:none;border:none;color:var(--text);font-size:22px;cursor:pointer;padding:6px;border-radius:6px;flex-shrink:0}
+.topbar h1{font-size:15px;font-weight:600}
+.topbar-sub{font-size:11px;color:var(--muted);margin-top:1px}
+.page{flex:1;overflow-y:auto;padding:16px;-webkit-overflow-scrolling:touch}
 
-/* ── OVERLAY mobile ── */
-#overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:49;backdrop-filter:blur(2px)}
+/* OVERLAY */
+#overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:49}
+#overlay.open{display:block}
 
-/* ── AUTH ── */
-#auth-screen{
-  position:fixed;inset:0;background:var(--bg);
-  display:flex;align-items:center;justify-content:center;z-index:100;padding:16px;
-}
-.auth-card{
-  background:var(--surface);border:1px solid var(--border);
-  border-radius:18px;padding:32px 28px;width:100%;max-width:360px;text-align:center;
-}
-.auth-logo{font-size:40px;margin-bottom:6px}
-.auth-card h2{font-size:20px;font-weight:700;margin-bottom:3px;color:var(--accent)}
-.auth-card p{font-size:13px;color:var(--muted);margin-bottom:24px}
-.auth-input{
-  width:100%;background:var(--surface2);border:1px solid var(--border);
-  border-radius:10px;padding:13px 14px;font-size:16px;color:var(--text);
-  margin-bottom:12px;outline:none;-webkit-appearance:none;
-}
-.auth-input:focus{border-color:var(--accent)}
-.auth-error{color:var(--danger);font-size:13px;margin-bottom:10px;min-height:18px}
+/* AUTH */
+#auth{position:fixed;inset:0;background:var(--bg);display:flex;align-items:center;justify-content:center;z-index:100;padding:16px}
+.auth-box{background:var(--surface);border:1px solid var(--border);border-radius:18px;padding:32px 28px;width:100%;max-width:360px;text-align:center}
+.auth-box h2{font-size:20px;font-weight:700;color:var(--accent);margin:8px 0 3px}
+.auth-box p{font-size:13px;color:var(--muted);margin-bottom:24px}
+.err{color:var(--danger);font-size:13px;margin-bottom:10px;min-height:18px}
 
-/* ── BOTÕES ── */
-.btn{
-  display:inline-flex;align-items:center;justify-content:center;gap:6px;
-  padding:11px 20px;border-radius:9px;font-size:14px;font-weight:600;
-  cursor:pointer;border:none;transition:all .15s;user-select:none;
-}
+/* INPUTS */
+input,select,textarea{font-family:inherit;font-size:16px;color:var(--text);background:var(--surface2);border:1px solid var(--border);border-radius:9px;padding:11px 12px;outline:none;-webkit-appearance:none;width:100%}
+input:focus,select:focus{border-color:var(--accent)}
+input::placeholder{color:var(--muted)}
+select option{background:var(--surface2)}
+textarea{resize:vertical;min-height:72px}
+
+/* BTNS */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:11px 18px;border-radius:9px;font-size:14px;font-weight:600;cursor:pointer;border:none;transition:all .15s;user-select:none;font-family:inherit}
 .btn:active{opacity:.75;transform:scale(.98)}
 .btn-primary{background:var(--accent);color:#000}
-.btn-full{width:100%}
-.btn-sm{padding:8px 14px;font-size:12.5px}
 .btn-ghost{background:transparent;color:var(--muted);border:1px solid var(--border)}
-.btn-danger{background:rgba(239,68,68,.15);color:var(--danger);border:1px solid rgba(239,68,68,.3)}
-.btn-success{background:rgba(16,185,129,.15);color:var(--green);border:1px solid rgba(16,185,129,.3)}
+.btn-danger{background:rgba(239,68,68,.12);color:var(--danger);border:1px solid rgba(239,68,68,.3)}
+.btn-success{background:rgba(16,185,129,.12);color:var(--green);border:1px solid rgba(16,185,129,.3)}
+.btn-purple{background:rgba(139,92,246,.12);color:var(--purple);border:1px solid rgba(139,92,246,.3)}
+.btn-full{width:100%}
+.btn-sm{padding:7px 13px;font-size:12.5px}
 
-/* ── CARDS ── */
-.stats-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-bottom:16px}
-.stat-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px 16px}
-.stat-card .label{font-size:10.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;margin-bottom:6px}
-.stat-card .value{font-size:24px;font-weight:700}
-.stat-card.warn .value{color:var(--warn)}
-.stat-card.ok .value{color:var(--green)}
-.stat-card.info .value{color:var(--blue)}
-.stat-card.danger .value{color:var(--danger)}
+/* CARDS */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:14px}
+.card-title{font-size:11.5px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);margin-bottom:14px;display:flex;align-items:center;gap:7px}
+.stats-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-bottom:14px}
+.stat{background:var(--surface);border:1px solid var(--border);border-radius:11px;padding:14px}
+.stat-lbl{font-size:10.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.7px;margin-bottom:5px}
+.stat-val{font-size:24px;font-weight:700}
+.c-green .stat-val{color:var(--green)}.c-warn .stat-val{color:var(--warn)}.c-red .stat-val{color:var(--danger)}.c-blue .stat-val{color:var(--blue)}
 
-.card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:16px}
-.card-title{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);margin-bottom:14px;display:flex;align-items:center;gap:7px}
-
-/* ── FORM ── */
-.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px}
+/* FORM */
+.grid{display:grid;gap:12px;margin-bottom:14px}
+.g2{grid-template-columns:1fr 1fr}
+.g1{grid-template-columns:1fr}
 .field{display:flex;flex-direction:column;gap:5px}
 .field label{font-size:11.5px;color:var(--muted);font-weight:500}
-.field input,.field select{
-  background:var(--surface2);border:1px solid var(--border);
-  border-radius:9px;padding:11px 12px;font-size:16px;color:var(--text);
-  outline:none;-webkit-appearance:none;width:100%;
-}
-.field input:focus,.field select:focus{border-color:var(--accent)}
 .field.full{grid-column:1/-1}
 
+/* VOLUME BOX */
 .vol-box{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:10px}
-.vol-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
-.vol-label{font-size:11.5px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.6px}
+.vol-hdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+.vol-lbl{font-size:11.5px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px}
 
-/* ── RESULTADOS COTAÇÃO ── */
-.result-grid{display:grid;grid-template-columns:1fr;gap:12px;margin-top:14px}
-.result-card{background:var(--surface2);border:1px solid var(--border);border-radius:11px;padding:16px;position:relative}
-.result-card.winner{border-color:var(--green);background:rgba(16,185,129,.06)}
-.badge-winner{
-  position:absolute;top:-9px;right:12px;
-  background:var(--green);color:#000;font-size:10px;font-weight:700;
-  padding:2px 9px;border-radius:20px;
+/* PRODUTOS */
+.prod-search-wrap{position:relative;margin-bottom:10px}
+.prod-search-wrap input{padding-right:80px}
+.prod-search-badge{position:absolute;right:10px;top:50%;transform:translateY(-50%);font-size:11px;color:var(--muted)}
+.prod-dropdown{
+  position:absolute;top:100%;left:0;right:0;z-index:20;
+  background:var(--surface);border:1px solid var(--border);border-radius:9px;
+  max-height:220px;overflow-y:auto;box-shadow:0 8px 24px rgba(0,0,0,.4);
+  display:none;margin-top:3px;
 }
-.rc-transp{font-size:14px;font-weight:700;margin-bottom:3px}
-.rc-prazo{font-size:12px;color:var(--muted);margin-bottom:10px}
-.rc-preco{font-size:26px;font-weight:800}
-.result-card.winner .rc-preco{color:var(--green)}
-.rc-detalhe{font-size:11.5px;color:var(--muted);margin-top:5px}
-.rc-error{border-color:rgba(239,68,68,.3)}
-.rc-error .rc-preco{color:var(--danger);font-size:14px}
+.prod-dropdown.open{display:block}
+.prod-opt{padding:10px 14px;cursor:pointer;font-size:13px;border-bottom:1px solid var(--border)}
+.prod-opt:last-child{border-bottom:none}
+.prod-opt:hover,.prod-opt:active{background:var(--surface2)}
+.prod-opt .ref{font-size:11px;color:var(--muted);margin-top:2px}
+.prod-opt .dims{font-size:11px;color:var(--blue);margin-top:2px}
+.prod-list{margin-top:8px}
+.prod-item{
+  background:var(--surface2);border:1px solid var(--border);border-radius:8px;
+  padding:10px 12px;margin-bottom:8px;
+}
+.prod-item-hdr{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;margin-bottom:6px}
+.prod-item-nome{font-size:13px;font-weight:600;line-height:1.3}
+.prod-item-dims{font-size:11.5px;color:var(--muted);margin-top:2px}
+.prod-item-row{display:flex;align-items:center;gap:8px;margin-top:6px}
+.prod-item-row label{font-size:11.5px;color:var(--muted);flex-shrink:0}
+.prod-item-row input{max-width:80px;padding:6px 8px;font-size:13px;text-align:center}
+.badge-novo{background:rgba(139,92,246,.15);color:var(--purple);font-size:10px;font-weight:700;padding:1px 6px;border-radius:4px;flex-shrink:0}
+.badge-catalogo{background:rgba(59,130,246,.15);color:var(--blue);font-size:10px;font-weight:700;padding:1px 6px;border-radius:4px;flex-shrink:0}
+.badge-dim{background:rgba(16,185,129,.15);color:var(--green);font-size:10px;font-weight:700;padding:1px 6px;border-radius:4px;flex-shrink:0}
 
-/* ── CARDS DE AUDITORIA (mobile-first) ── */
+/* RESULTADO COTAÇÃO */
+.result-grid{display:grid;gap:12px}
+.r-card{background:var(--surface2);border:1px solid var(--border);border-radius:11px;padding:16px;position:relative}
+.r-card.winner{border-color:var(--green);background:rgba(16,185,129,.05)}
+.r-winner-badge{position:absolute;top:-9px;right:12px;background:var(--green);color:#000;font-size:10px;font-weight:700;padding:2px 9px;border-radius:20px}
+.r-transp{font-size:14px;font-weight:700;margin-bottom:3px}
+.r-prazo{font-size:12px;color:var(--muted);margin-bottom:10px}
+.r-preco{font-size:26px;font-weight:800}
+.r-card.winner .r-preco{color:var(--green)}
+.r-detail{font-size:12px;color:var(--muted);margin-top:4px}
+.r-error .r-preco{color:var(--danger);font-size:14px}
+.r-error{border-color:rgba(239,68,68,.25)}
+
+/* AUDITORIA */
 .cte-card{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:10px}
-.cte-card-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;gap:8px}
+.cte-hdr{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;margin-bottom:10px}
 .cte-num{font-size:14px;font-weight:700}
-.cte-transp{font-size:12px;color:var(--muted);margin-top:2px}
-.cte-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;font-size:13px}
-.cte-row-label{color:var(--muted);font-size:11.5px}
-.cte-div-pos{color:var(--danger);font-weight:700}
-.cte-div-neg{color:var(--green);font-weight:700}
-.cte-select{
-  width:100%;background:var(--surface);border:1px solid var(--border);
-  border-radius:8px;padding:9px 12px;font-size:14px;color:var(--text);
-  margin-top:8px;-webkit-appearance:none;outline:none;
-}
+.cte-sub{font-size:12px;color:var(--muted);margin-top:2px}
+.cte-row{display:flex;justify-content:space-between;align-items:center;padding:4px 0;font-size:13px;border-bottom:1px solid rgba(42,47,63,.6)}
+.cte-row:last-of-type{border-bottom:none}
+.cte-lbl{color:var(--muted);font-size:11.5px}
+.div-pos{color:var(--danger);font-weight:700}
+.div-neg{color:var(--green);font-weight:700}
+.cte-obs{margin-top:10px}
+.cte-obs textarea{font-size:13px;padding:8px 10px;min-height:56px}
+.cte-actions{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
+.audit-select{width:100%;margin-top:8px;padding:9px 12px;font-size:14px}
 
-/* ── CARDS DE HISTÓRICO (mobile) ── */
-.hist-card{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:10px}
-.hist-card-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:5px;font-size:13px}
-.hist-label{color:var(--muted);font-size:11.5px}
-
-/* ── TABLE (desktop only) ── */
+/* DESKTOP TABLE */
 .table-wrap{overflow-x:auto}
 table{width:100%;border-collapse:collapse;font-size:13px}
-thead th{text-align:left;padding:10px 12px;background:var(--surface2);color:var(--muted);font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.6px;border-bottom:1px solid var(--border)}
+thead th{text-align:left;padding:9px 12px;background:var(--surface2);color:var(--muted);font-size:10.5px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;border-bottom:1px solid var(--border);white-space:nowrap}
 tbody tr{border-bottom:1px solid var(--border);transition:background .1s}
 tbody tr:hover{background:var(--surface2)}
-tbody td{padding:10px 12px}
+tbody td{padding:9px 12px;vertical-align:middle}
+td select{padding:5px 8px;font-size:12px;border-radius:6px}
 
-/* ── BADGE ── */
-.badge{display:inline-block;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:600;white-space:nowrap}
-.badge-ok{background:rgba(16,185,129,.15);color:var(--green)}
-.badge-warn{background:rgba(249,115,22,.15);color:var(--warn)}
-.badge-danger{background:rgba(239,68,68,.15);color:var(--danger)}
-.badge-gray{background:rgba(107,114,128,.15);color:var(--muted)}
-.badge-blue{background:rgba(59,130,246,.15);color:var(--blue)}
-.tag{display:inline-block;padding:2px 8px;border-radius:5px;font-size:11px;background:var(--surface2);border:1px solid var(--border);color:var(--muted);margin:2px}
+/* HIST CARD mobile */
+.hist-card{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:13px;margin-bottom:10px}
+.hist-row{display:flex;justify-content:space-between;align-items:center;padding:3px 0;font-size:13px}
+.hist-lbl{color:var(--muted);font-size:11.5px}
 
-/* ── LOGS ── */
-.log-item{
-  background:var(--surface2);border:1px solid var(--border);
-  border-radius:9px;padding:12px 14px;margin-bottom:8px;
-  display:flex;align-items:flex-start;gap:10px;cursor:pointer;
-}
+/* LOGS */
+.log-item{background:var(--surface2);border:1px solid var(--border);border-radius:9px;padding:12px 14px;margin-bottom:8px;display:flex;align-items:flex-start;gap:10px;cursor:pointer}
 .log-item.log-erro{border-left:3px solid var(--danger)}
 .log-item.log-acao{border-left:3px solid var(--green)}
 .log-item.log-aviso{border-left:3px solid var(--warn)}
-.log-icon{font-size:17px;flex-shrink:0;margin-top:1px}
+.log-icon{font-size:17px;flex-shrink:0}
 .log-body{flex:1;min-width:0}
 .log-desc{font-size:13.5px;margin-bottom:4px;word-break:break-word}
 .log-meta{font-size:11.5px;color:var(--muted);display:flex;gap:10px;flex-wrap:wrap}
-.log-detail{
-  margin-top:10px;background:var(--bg);border:1px solid var(--border);
-  border-radius:6px;padding:10px;font-family:monospace;font-size:11px;
-  color:#a5b4fc;white-space:pre-wrap;display:none;max-height:180px;overflow-y:auto;
-}
+.log-detail{margin-top:8px;background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:10px;font-family:monospace;font-size:11px;color:#a5b4fc;white-space:pre-wrap;display:none;max-height:180px;overflow-y:auto}
 .log-detail.open{display:block}
 
-/* ── FILTERS ── */
-.filters{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;align-items:center}
-.filter-input{
-  background:var(--surface2);border:1px solid var(--border);
-  border-radius:8px;padding:9px 12px;font-size:14px;color:var(--text);
-  outline:none;-webkit-appearance:none;flex:1;min-width:120px;
-}
-.filter-input:focus{border-color:var(--accent)}
+/* BADGES */
+.badge{display:inline-flex;align-items:center;padding:2px 9px;border-radius:20px;font-size:11px;font-weight:600;white-space:nowrap}
+.b-ok{background:rgba(16,185,129,.15);color:var(--green)}
+.b-warn{background:rgba(249,115,22,.15);color:var(--warn)}
+.b-red{background:rgba(239,68,68,.15);color:var(--danger)}
+.b-gray{background:rgba(107,114,128,.15);color:var(--muted)}
+.b-blue{background:rgba(59,130,246,.15);color:var(--blue)}
+.b-purple{background:rgba(139,92,246,.15);color:var(--purple)}
+.tag{display:inline-block;padding:2px 8px;border-radius:5px;font-size:11px;background:var(--surface2);border:1px solid var(--border);color:var(--muted);margin:2px}
 
-/* ── SPINNER ── */
+/* MISC */
 .spinner{display:inline-block;width:20px;height:20px;border:2px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
-.loading-area{display:flex;align-items:center;gap:12px;padding:24px;color:var(--muted);font-size:13px}
-
-/* ── TOAST ── */
-#toast-container{position:fixed;bottom:80px;right:12px;display:flex;flex-direction:column;gap:8px;z-index:200;max-width:calc(100vw - 24px)}
-.toast{
-  background:var(--surface);border:1px solid var(--border);border-radius:10px;
-  padding:11px 16px;font-size:13px;display:flex;align-items:center;gap:9px;
-  box-shadow:0 4px 20px rgba(0,0,0,.5);animation:slideIn .2s ease;
-}
-.toast.success{border-left:3px solid var(--green)}
-.toast.error{border-left:3px solid var(--danger)}
-.toast.info{border-left:3px solid var(--blue)}
-@keyframes slideIn{from{opacity:0;transform:translateX(20px)}to{opacity:1;transform:translateX(0)}}
-
-/* ── MISC ── */
-.text-muted{color:var(--muted)}
-.text-accent{color:var(--accent)}
-.text-green{color:var(--green)}
-.text-red{color:var(--danger)}
+.loading{display:flex;align-items:center;gap:12px;padding:24px;color:var(--muted);font-size:13px}
+#toasts{position:fixed;bottom:76px;right:12px;display:flex;flex-direction:column;gap:8px;z-index:200;max-width:calc(100vw - 24px)}
+.toast{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:11px 16px;font-size:13px;display:flex;align-items:center;gap:9px;box-shadow:0 4px 20px rgba(0,0,0,.5);animation:si .2s ease}
+.toast.success{border-left:3px solid var(--green)}.toast.error{border-left:3px solid var(--danger)}.toast.info{border-left:3px solid var(--blue)}
+@keyframes si{from{opacity:0;transform:translateX(20px)}to{opacity:1;transform:translateX(0)}}
 .hidden{display:none!important}
-.flex{display:flex}.gap-2{gap:8px}.items-center{align-items:center}.justify-between{justify-content:space-between}
-.mb-3{margin-bottom:12px}.mb-4{margin-bottom:16px}
-hr.section{border:none;border-top:1px solid var(--border);margin:16px 0}
-.empty-state{text-align:center;padding:40px 20px;color:var(--muted)}
-.empty-state .icon{font-size:40px;margin-bottom:10px}
-.empty-state p{font-size:14px}
-.divider-label{
-  font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;
-  font-weight:600;margin:14px 0 10px;padding-left:2px;
-}
+.flex{display:flex}.gap-2{gap:8px}.ac{align-items:center}.jb{justify-content:space-between}
+.mb-2{margin-bottom:8px}.mb-3{margin-bottom:12px}.mb-4{margin-bottom:16px}
+.empty{text-align:center;padding:40px 16px;color:var(--muted)}
+.empty .ei{font-size:40px;margin-bottom:10px}
+.divider{border:none;border-top:1px solid var(--border);margin:14px 0}
+.section-lbl{font-size:10.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;font-weight:700;margin:14px 0 8px;padding-left:2px}
+.text-muted{color:var(--muted)}.text-red{color:var(--danger)}.text-green{color:var(--green)}
+.filters{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;align-items:center}
+.fi{flex:1;min-width:120px;padding:9px 12px;font-size:14px}
 
-/* ── RESPONSIVE ── */
+/* RESPONSIVE */
 @media(max-width:768px){
-  #sidebar{
-    position:fixed;top:0;left:0;bottom:0;
-    transform:translateX(-100%);
-  }
+  #sidebar{position:fixed;top:0;left:0;bottom:0;transform:translateX(-100%)}
   #sidebar.open{transform:translateX(0)}
-  #overlay.open{display:block}
-  #menu-toggle{display:block}
-  #toast-container{bottom:72px}
-  .page-content{padding:12px;padding-bottom:20px}
-  .form-grid{grid-template-columns:1fr}
-  .field.half{grid-column:auto}
+  #menu-btn{display:block}
+  .g2{grid-template-columns:1fr}
   .stats-grid{grid-template-columns:1fr 1fr}
   .result-grid{grid-template-columns:1fr}
+  .desktop-only{display:none}
+  #toasts{bottom:16px}
 }
 @media(min-width:769px){
-  .result-grid{grid-template-columns:repeat(auto-fill,minmax(220px,1fr))}
+  .result-grid{grid-template-columns:repeat(auto-fill,minmax(210px,1fr))}
   .stats-grid{grid-template-columns:repeat(4,1fr)}
-  .form-grid{grid-template-columns:repeat(auto-fill,minmax(160px,1fr))}
-  .cte-mobile{display:none}
-  .cte-desktop{display:block}
-  #toast-container{bottom:24px;right:24px}
-}
-@media(max-width:768px){
-  .cte-desktop{display:none}
-  .cte-mobile{display:block}
-  .hist-desktop{display:none}
-  .hist-mobile{display:block}
-}
-@media(min-width:769px){
-  .hist-mobile{display:none}
-  .hist-desktop{display:block}
+  .grid.g2{grid-template-columns:repeat(auto-fill,minmax(160px,1fr))}
+  .mobile-only{display:none}
+  #toasts{bottom:24px;right:24px}
 }
 </style>
 </head>
 <body>
 
-<!-- AUTH -->
-<div id="auth-screen">
-  <div class="auth-card">
-    <div class="auth-logo">🚚</div>
+<div id="auth">
+  <div class="auth-box">
+    <div style="font-size:40px">🚚</div>
     <h2>App de Frete</h2>
     <p>Grupo Bononi Acessórios</p>
-    <input class="auth-input" type="email" id="auth-email" placeholder="E-mail" autocomplete="email" />
-    <input class="auth-input" type="password" id="auth-pass" placeholder="Senha" autocomplete="current-password" />
-    <div class="auth-error" id="auth-error"></div>
-    <button class="btn btn-primary btn-full" onclick="fazerLogin()">Entrar</button>
+    <input id="ae" type="email" placeholder="E-mail" autocomplete="email" style="margin-bottom:10px"/>
+    <input id="ap" type="password" placeholder="Senha" autocomplete="current-password" style="margin-bottom:12px"/>
+    <div class="err" id="aerr"></div>
+    <button class="btn btn-primary btn-full" onclick="login()">Entrar</button>
   </div>
 </div>
 
-<!-- OVERLAY mobile -->
-<div id="overlay" onclick="fecharSidebar()"></div>
+<div id="overlay" onclick="closeSb()"></div>
 
 <div id="app">
-  <!-- SIDEBAR -->
   <div id="sidebar">
-    <div class="sidebar-logo">
-      <span class="brand">Bononi Acessórios</span>
-      <div class="title">🚚 Frete</div>
+    <div class="sb-logo">
+      <span class="sb-brand">Bononi Acessórios</span>
+      <div class="sb-title">🚚 Frete</div>
     </div>
     <nav>
-      <div class="nav-item active" onclick="goto('cotacao')" id="nav-cotacao">
-        <span class="icon">💰</span> Cotar Frete
-      </div>
-      <div class="nav-item" onclick="goto('auditoria')" id="nav-auditoria">
-        <span class="icon">🧾</span> Auditoria CTe
-      </div>
-      <div class="nav-item" onclick="goto('cotacoes')" id="nav-cotacoes">
-        <span class="icon">📋</span> Histórico
-      </div>
-      <div class="nav-item" onclick="goto('logs')" id="nav-logs">
-        <span class="icon">🔍</span> Logs
-      </div>
+      <div class="nav-item active" id="nav-cotar" onclick="go('cotar')"><span class="nav-icon">💰</span>Cotar Frete</div>
+      <div class="nav-item" id="nav-auditoria" onclick="go('auditoria')"><span class="nav-icon">🧾</span>Auditoria CTe</div>
+      <div class="nav-item" id="nav-historico" onclick="go('historico')"><span class="nav-icon">📋</span>Histórico</div>
+      <div class="nav-item" id="nav-dimensoes" onclick="go('dimensoes')"><span class="nav-icon">📦</span>Dimensões</div>
+      <div class="nav-item" id="nav-logs" onclick="go('logs')"><span class="nav-icon">🔍</span>Logs</div>
     </nav>
-    <div class="sidebar-footer">
-      <div id="sidebar-user"></div>
-      <div class="btn-sair" onclick="sair()">Sair →</div>
+    <div class="sb-footer">
+      <div id="sb-user"></div>
+      <div class="btn-sair" onclick="logout()">Sair →</div>
     </div>
   </div>
 
-  <!-- MAIN -->
   <div id="main">
     <div class="topbar">
-      <div class="topbar-left">
-        <button id="menu-toggle" onclick="toggleSidebar()">☰</button>
-        <div>
-          <h1 id="page-title">Cotar Frete</h1>
-          <div class="subtitle" id="page-sub">Comparativo entre transportadoras</div>
-        </div>
+      <button id="menu-btn" onclick="toggleSb()">☰</button>
+      <div>
+        <h1 id="pg-title">Cotar Frete</h1>
+        <div class="topbar-sub" id="pg-sub">Comparativo entre transportadoras</div>
       </div>
     </div>
-    <div class="page-content" id="page-content"></div>
+    <div class="page" id="pg"></div>
   </div>
 </div>
 
-<div id="toast-container"></div>
+<div id="toasts"></div>
 
 <script>
-const SUPA_URL = 'https://vishxwdxqiygbxmtpfoy.supabase.co';
-const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZpc2h4d2R4cWl5Z2J4bXRwZm95Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI0Njg2MjIsImV4cCI6MjA4ODA0NDYyMn0.J647m3ieDHahNQYBWMRESl0aPFXsT_zt_7ZcDvyB-SA';
-const EDGE_URL = 'https://vishxwdxqiygbxmtpfoy.supabase.co/functions/v1';
+const SB   = 'https://vishxwdxqiygbxmtpfoy.supabase.co';
+const KEY  = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZpc2h4d2R4cWl5Z2J4bXRwZm95Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI0Njg2MjIsImV4cCI6MjA4ODA0NDYyMn0.J647m3ieDHahNQYBWMRESl0aPFXsT_zt_7ZcDvyB-SA';
+const EDGE = SB+'/functions/v1';
+let sess=null, user='', locais=[], volIdx=0;
 
-let session = null;
-let userName = '';
-let locaisCache = [];
-let volumeCount = 0;
-
-// ── HELPERS ──
-function hdrs(token) {
-  return {
-    'apikey': SUPA_KEY,
-    'Authorization': `Bearer ${token || SUPA_KEY}`,
-    'Content-Type': 'application/json'
-  };
+// ── UTILS ──
+function hdrs(t){return{'apikey':KEY,'Authorization':'Bearer '+(t||KEY),'Content-Type':'application/json'}}
+async function db(path,opts={}){
+  const url=`${SB}/rest/v1/${path}${path.includes('?')?'&':'?'}limit=9999`;
+  const r=await fetch(url,{headers:hdrs(sess?.access_token),...opts});
+  if(!r.ok){const e=await r.text();throw new Error(`[${r.status}] ${e.slice(0,200)}`)}
+  return r.json();
 }
-
-async function supa(path, opts = {}) {
-  // monta URL sem duplicar limit
-  const hasQ = path.includes('?');
-  const url = `${SUPA_URL}/rest/v1/${path}${hasQ ? '&' : '?'}limit=9999`;
-  const res = await fetch(url, { headers: hdrs(session?.access_token), ...opts });
-  if (!res.ok) {
-    const err = await res.text();
-    throw new Error(`[${res.status}] ${err.slice(0,200)}`);
-  }
-  const ct = res.headers.get('content-type') || '';
-  return ct.includes('json') ? res.json() : [];
+const R=v=>v==null?'—':Number(v).toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
+const N=v=>v==null?'—':Number(v).toLocaleString('pt-BR',{minimumFractionDigits:2});
+const D=d=>d?new Date(d).toLocaleDateString('pt-BR'):'—';
+const DT=d=>d?new Date(d).toLocaleString('pt-BR'):'—';
+function toast(msg,t='info'){
+  const e=document.createElement('div');e.className=`toast ${t}`;
+  e.innerHTML=`<span>${{success:'✅',error:'❌',info:'ℹ️'}[t]||'ℹ️'}</span>${msg}`;
+  document.getElementById('toasts').appendChild(e);setTimeout(()=>e.remove(),4000);
 }
-
-const fmt    = v => v == null ? '—' : Number(v).toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
-const fmtN   = v => v == null ? '—' : Number(v).toLocaleString('pt-BR',{minimumFractionDigits:2});
-const fmtD   = d => d ? new Date(d).toLocaleDateString('pt-BR') : '—';
-const fmtDT  = d => d ? new Date(d).toLocaleString('pt-BR') : '—';
-
-function toast(msg, type='info') {
-  const icons = {success:'✅',error:'❌',info:'ℹ️'};
-  const el = document.createElement('div');
-  el.className = `toast ${type}`;
-  el.innerHTML = `<span>${icons[type]||'ℹ️'}</span>${msg}`;
-  document.getElementById('toast-container').appendChild(el);
-  setTimeout(()=>el.remove(), 4000);
-}
-
-// ── LOG ──
-async function appLog(tipo, descricao, extra={}) {
-  try {
-    await fetch(`${SUPA_URL}/rest/v1/frt_logs`, {
-      method:'POST',
-      headers:{...hdrs(session?.access_token),'Prefer':'return=minimal'},
-      body:JSON.stringify({tipo, descricao, categoria: extra.categoria||null, detalhe: extra.detalhe||null, usuario: userName||'—'})
-    });
-  } catch(e){ console.warn('log falhou:', e.message); }
+async function log(tipo,desc,extra={}){
+  try{await fetch(`${SB}/rest/v1/frt_logs`,{method:'POST',
+    headers:{...hdrs(sess?.access_token),'Prefer':'return=minimal'},
+    body:JSON.stringify({tipo,descricao:desc,categoria:extra.cat||null,detalhe:extra.d||null,usuario:user||'—'})
+  })}catch(e){console.warn('log:',e.message)}
 }
 
 // ── AUTH ──
-async function fazerLogin() {
-  const email = document.getElementById('auth-email').value.trim();
-  const pass  = document.getElementById('auth-pass').value;
-  const errEl = document.getElementById('auth-error');
-  errEl.textContent = '';
-
-  if (!email || !pass) { errEl.textContent = 'Preencha e-mail e senha'; return; }
-
-  try {
-    const res = await fetch(`${SUPA_URL}/auth/v1/token?grant_type=password`, {
-      method:'POST',
-      headers:{'apikey':SUPA_KEY,'Content-Type':'application/json'},
-      body:JSON.stringify({email, password:pass})
+async function login(){
+  const em=document.getElementById('ae').value.trim(),pw=document.getElementById('ap').value;
+  const er=document.getElementById('aerr');er.textContent='';
+  if(!em||!pw){er.textContent='Preencha e-mail e senha';return}
+  try{
+    const r=await fetch(`${SB}/auth/v1/token?grant_type=password`,{
+      method:'POST',headers:{'apikey':KEY,'Content-Type':'application/json'},
+      body:JSON.stringify({email:em,password:pw})
     });
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.error_description || data.message || 'Erro no login');
-
-    const meta = data.user?.user_metadata || {};
-    const isAdmin = meta.admin === true || meta.admin === 'true';
-    const modulos = meta.modulos || [];
-    if (!isAdmin && !modulos.includes('frete'))
-      throw new Error('Você não tem acesso ao módulo de Frete');
-
-    session  = data;
-    userName = meta.nome || email.split('@')[0];
-    document.getElementById('sidebar-user').textContent = userName;
-    document.getElementById('auth-screen').classList.add('hidden');
-
-    await appLog('acao','Login realizado',{categoria:'sistema'});
-    goto('cotacao');
-  } catch(e) {
-    errEl.textContent = e.message;
-    await appLog('erro','Falha no login',{categoria:'sistema', detalhe:{email, erro: e.message}});
-  }
+    const d=await r.json();
+    if(!r.ok)throw new Error(d.error_description||d.message||'Erro no login');
+    const m=d.user?.user_metadata||{};
+    const isAdmin=m.admin===true||m.admin==='true';
+    if(!isAdmin&&!(m.modulos||[]).includes('frete'))throw new Error('Sem acesso ao módulo Frete');
+    sess=d;user=m.nome||em.split('@')[0];
+    document.getElementById('sb-user').textContent=user;
+    document.getElementById('auth').classList.add('hidden');
+    await log('acao','Login',{cat:'sistema'});
+    go('cotar');
+  }catch(e){document.getElementById('aerr').textContent=e.message}
 }
+function logout(){sess=null;document.getElementById('auth').classList.remove('hidden');document.getElementById('ap').value='';closeSb()}
 
-function sair() {
-  session = null; userName = '';
-  document.getElementById('auth-screen').classList.remove('hidden');
-  document.getElementById('auth-pass').value = '';
-  fecharSidebar();
-}
+// ── SIDEBAR ──
+function toggleSb(){document.getElementById('sidebar').classList.toggle('open');document.getElementById('overlay').classList.toggle('open')}
+function closeSb(){document.getElementById('sidebar').classList.remove('open');document.getElementById('overlay').classList.remove('open')}
 
-// ── SIDEBAR mobile ──
-function toggleSidebar() {
-  document.getElementById('sidebar').classList.toggle('open');
-  document.getElementById('overlay').classList.toggle('open');
-}
-function fecharSidebar() {
-  document.getElementById('sidebar').classList.remove('open');
-  document.getElementById('overlay').classList.remove('open');
-}
-
-// ── NAVEGAÇÃO ──
-const PAGES = {
-  cotacao:   {title:'Cotar Frete',        sub:'Comparativo entre transportadoras',   fn:renderCotacao},
-  auditoria: {title:'Auditoria CTe',      sub:'Conferência de conhecimentos de transporte', fn:renderAuditoria},
-  cotacoes:  {title:'Histórico',          sub:'Cotações realizadas',                  fn:renderHistorico},
-  logs:      {title:'Logs do Sistema',    sub:'Ações e erros em tempo real',          fn:renderLogs},
+// ── NAV ──
+const PAGES={
+  cotar:{t:'Cotar Frete',s:'Comparativo entre transportadoras',fn:pgCotar},
+  auditoria:{t:'Auditoria CTe',s:'Conferência de conhecimentos de transporte',fn:pgAuditoria},
+  historico:{t:'Histórico',s:'Cotações realizadas',fn:pgHistorico},
+  dimensoes:{t:'Dimensões de Produtos',s:'Cadastro e consulta de medidas',fn:pgDimensoes},
+  logs:{t:'Logs do Sistema',s:'Ações e erros em tempo real',fn:pgLogs},
 };
-
-function goto(page) {
-  document.querySelectorAll('.nav-item').forEach(el=>el.classList.remove('active'));
-  const navEl = document.getElementById(`nav-${page}`);
-  if (navEl) navEl.classList.add('active');
-  const p = PAGES[page];
-  document.getElementById('page-title').textContent = p.title;
-  document.getElementById('page-sub').textContent   = p.sub;
-  fecharSidebar();
-  p.fn();
+function go(p){
+  document.querySelectorAll('.nav-item').forEach(e=>e.classList.remove('active'));
+  document.getElementById('nav-'+p)?.classList.add('active');
+  document.getElementById('pg-title').textContent=PAGES[p].t;
+  document.getElementById('pg-sub').textContent=PAGES[p].s;
+  closeSb();PAGES[p].fn();
 }
 
-// ── PAGE: COTAÇÃO ──
-async function renderCotacao() {
-  const c = document.getElementById('page-content');
-  c.innerHTML = `<div class="loading-area"><div class="spinner"></div> Carregando locais...</div>`;
-  try {
-    locaisCache = await supa('frt_locais_expedicao?select=id,nome,cidade,uf&ativo=eq.true&order=nome');
-  } catch(e) {
-    await appLog('erro','Falha ao carregar locais',{categoria:'cotacao',detalhe:{erro:e.message}});
-    c.innerHTML = `<div class="empty-state"><div class="icon">⚠️</div><p>${e.message}</p></div>`;
-    return;
-  }
-
-  volumeCount = 0;
-  c.innerHTML = `
-    <div class="card">
-      <div class="card-title">📦 Dados do Embarque</div>
-      <div class="form-grid">
-        <div class="field full">
-          <label>Local de Expedição</label>
-          <select id="id_local">
-            ${locaisCache.map(l=>`<option value="${l.id}">${l.nome} — ${l.cidade}/${l.uf}</option>`).join('')}
-          </select>
-        </div>
-        <div class="field">
-          <label>CEP Destino</label>
-          <input type="tel" id="cep_destino" placeholder="00000-000" maxlength="9" oninput="maskCEP(this)" inputmode="numeric"/>
-        </div>
-        <div class="field">
-          <label>Valor da NF (R$)</label>
-          <input type="number" id="valor_nf" placeholder="0,00" step="0.01" min="0" inputmode="decimal"/>
-        </div>
-        <div class="field full">
-          <label>CNPJ Destinatário (opcional)</label>
-          <input type="tel" id="cnpj_dest" placeholder="00.000.000/0000-00" maxlength="18" oninput="maskCNPJ(this)" inputmode="numeric"/>
-        </div>
+// ────────────────────────────────────────────
+// PAGE: COTAR FRETE
+// ────────────────────────────────────────────
+async function pgCotar(){
+  const c=document.getElementById('pg');
+  c.innerHTML=`<div class="loading"><div class="spinner"></div>Carregando locais...</div>`;
+  try{locais=await db('frt_locais_expedicao?select=id,nome,cidade,uf&ativo=eq.true&order=nome')}
+  catch(e){await log('erro','Falha carregar locais',{cat:'cotacao',d:{e:e.message}});c.innerHTML=`<div class="empty"><div class="ei">⚠️</div><p>${e.message}</p></div>`;return}
+  volIdx=0;
+  c.innerHTML=`
+  <div class="card">
+    <div class="card-title">📍 Embarque</div>
+    <div class="grid g2">
+      <div class="field full">
+        <label>Local de Expedição</label>
+        <select id="id_local">${locais.map(l=>`<option value="${l.id}">${l.nome} — ${l.cidade}/${l.uf}</option>`).join('')}</select>
       </div>
+      <div class="field"><label>CEP Destino</label><input id="cep" type="tel" placeholder="00000-000" maxlength="9" oninput="mCEP(this)" inputmode="numeric"/></div>
+      <div class="field"><label>Valor da NF (R$)</label><input id="vnf" type="number" placeholder="0,00" step="0.01" min="0" inputmode="decimal"/></div>
+      <div class="field full"><label>CNPJ Destinatário (opcional)</label><input id="cnpj" type="tel" placeholder="00.000.000/0000-00" maxlength="18" oninput="mCNPJ(this)" inputmode="numeric"/></div>
     </div>
-    <div class="card">
-      <div class="card-title">📐 Volumes</div>
-      <div id="volumes-list"></div>
-      <button class="btn btn-ghost btn-sm" style="margin-top:2px;width:100%" onclick="addVolume()">+ Adicionar Volume</button>
-    </div>
-    <button class="btn btn-primary btn-full" style="margin-bottom:16px" onclick="cotar()">🔍 Cotar Frete</button>
-    <div id="resultado-cotacao"></div>
-  `;
-  addVolume();
+  </div>
+
+  <div class="card">
+    <div class="card-title">📦 Volumes / Produtos</div>
+    <p class="text-muted mb-3" style="font-size:12px">Adicione produtos pelo catálogo ou insira as medidas manualmente</p>
+    <div id="vols"></div>
+    <button class="btn btn-ghost btn-sm btn-full" onclick="addVol()" style="margin-top:4px">+ Adicionar Volume</button>
+  </div>
+
+  <button class="btn btn-primary btn-full mb-4" onclick="cotar()">🔍 Cotar Frete</button>
+  <div id="result"></div>`;
+  addVol();
 }
 
-function addVolume() {
-  volumeCount++;
-  const i = volumeCount;
-  const list = document.getElementById('volumes-list');
-  if (!list) return;
-  const div = document.createElement('div');
-  div.className = 'vol-box';
-  div.id = `vol-${i}`;
-  div.innerHTML = `
-    <div class="vol-header">
-      <span class="vol-label">Volume ${i}</span>
+// Busca produto — combina catálogo + dimensões cadastradas
+let prodTimer=null;
+async function buscaProd(i,q){
+  clearTimeout(prodTimer);
+  const dd=document.getElementById(`pd-${i}`);
+  if(!dd)return;
+  if(q.length<2){dd.classList.remove('open');dd.innerHTML='';return}
+  prodTimer=setTimeout(async()=>{
+    try{
+      // busca em paralelo: catálogo (portal representantes) + dimensões manuais
+      const [cat,dim]=await Promise.all([
+        db(`frt_catalogo_produtos?select=id,nome,referencia,peso_kg,altura_cm,largura_cm,comprimento_cm,volume_m3&ativo=eq.true&or=(nome.ilike.*${encodeURIComponent(q)}*,referencia.ilike.*${encodeURIComponent(q)}*)`).catch(()=>[]),
+        db(`frt_produtos_dimensoes?select=id,id_produto,descricao,referencia,peso_kg,altura_cm,largura_cm,comprimento_cm&ativo=eq.true&or=(descricao.ilike.*${encodeURIComponent(q)}*,referencia.ilike.*${encodeURIComponent(q)}*)`).catch(()=>[])
+      ]);
+      const todos=[
+        ...cat.slice(0,8).map(p=>({...p,_src:'catalogo'})),
+        ...dim.filter(d=>!cat.find(c=>c.referencia===d.referencia)).slice(0,5).map(p=>({...p,nome:p.descricao,_src:'dim'}))
+      ];
+      if(!todos.length){dd.innerHTML=`<div class="prod-opt text-muted">Nenhum produto encontrado</div>`;dd.classList.add('open');return}
+      dd.innerHTML=todos.map(p=>{
+        const hasDim=p.peso_kg&&p.altura_cm&&p.largura_cm&&p.comprimento_cm;
+        return`<div class="prod-opt" onclick="selProd(${i},${JSON.stringify(JSON.stringify(p))})">
+          <div style="font-weight:600;font-size:13px">${p.nome||p.descricao||'—'}</div>
+          ${p.referencia?`<div class="ref">Ref: ${p.referencia}</div>`:''}
+          ${hasDim?`<div class="dims">📐 ${p.peso_kg}kg · ${p.altura_cm}×${p.largura_cm}×${p.comprimento_cm}cm</div>`:`<div class="dims" style="color:var(--warn)">⚠️ Sem dimensões — preencha manualmente</div>`}
+          <span class="badge ${p._src==='catalogo'?'b-blue':'b-purple'}" style="margin-top:3px">${p._src==='catalogo'?'Portal Rep.':'Cadastro manual'}</span>
+        </div>`;
+      }).join('');
+      dd.classList.add('open');
+    }catch(e){dd.classList.remove('open')}
+  },300);
+}
+
+function selProd(i,pJson){
+  const p=JSON.parse(pJson);
+  // preenche campos do volume
+  const peso=document.getElementById(`p-${i}`);
+  const alt=document.getElementById(`a-${i}`);
+  const lar=document.getElementById(`l-${i}`);
+  const com=document.getElementById(`co-${i}`);
+  if(peso&&p.peso_kg) peso.value=p.peso_kg;
+  if(alt&&p.altura_cm) alt.value=p.altura_cm;
+  if(lar&&p.largura_cm) lar.value=p.largura_cm;
+  if(com&&p.comprimento_cm) com.value=p.comprimento_cm;
+  // mostra nome selecionado
+  const box=document.getElementById(`vol-${i}`);
+  const tag=box?.querySelector('.prod-sel-tag');
+  if(tag) tag.innerHTML=`<span class="badge b-ok">✅ ${p.nome||p.descricao||p.referencia}</span>`;
+  document.getElementById(`pi-${i}`).value='';
+  document.getElementById(`pd-${i}`)?.classList.remove('open');
+  document.getElementById(`pd-${i}`).innerHTML='';
+}
+
+function addVol(){
+  volIdx++;const i=volIdx;
+  const vols=document.getElementById('vols');if(!vols)return;
+  const d=document.createElement('div');d.className='vol-box';d.id=`vol-${i}`;
+  d.innerHTML=`
+    <div class="vol-hdr">
+      <span class="vol-lbl">Volume ${i}</span>
       ${i>1?`<button class="btn btn-danger btn-sm" onclick="document.getElementById('vol-${i}').remove()">Remover</button>`:''}
     </div>
-    <div class="form-grid">
-      <div class="field"><label>Qtd</label><input type="number" id="qtd-${i}" value="1" min="1" inputmode="numeric"/></div>
-      <div class="field"><label>Peso (kg)</label><input type="number" id="peso-${i}" placeholder="0.000" step="0.001" min="0" inputmode="decimal"/></div>
-      <div class="field"><label>Altura (cm)</label><input type="number" id="alt-${i}" placeholder="0" min="0" inputmode="numeric"/></div>
-      <div class="field"><label>Largura (cm)</label><input type="number" id="larg-${i}" placeholder="0" min="0" inputmode="numeric"/></div>
-      <div class="field full"><label>Comprimento (cm)</label><input type="number" id="comp-${i}" placeholder="0" min="0" inputmode="numeric"/></div>
+    <div class="prod-sel-tag mb-2"></div>
+    <div class="prod-search-wrap">
+      <input id="pi-${i}" placeholder="Buscar produto por nome ou referência..." oninput="buscaProd(${i},this.value)" autocomplete="off"/>
+      <span class="prod-search-badge">🔍 Catálogo</span>
+      <div class="prod-dropdown" id="pd-${i}"></div>
     </div>
-  `;
-  list.appendChild(div);
+    <div class="grid g2" style="margin-top:10px">
+      <div class="field"><label>Qtd volumes</label><input id="q-${i}" type="number" value="1" min="1" inputmode="numeric"/></div>
+      <div class="field"><label>Peso unitário (kg)</label><input id="p-${i}" type="number" placeholder="0.000" step="0.001" min="0" inputmode="decimal"/></div>
+      <div class="field"><label>Altura (cm)</label><input id="a-${i}" type="number" placeholder="0" min="0" inputmode="numeric"/></div>
+      <div class="field"><label>Largura (cm)</label><input id="l-${i}" type="number" placeholder="0" min="0" inputmode="numeric"/></div>
+      <div class="field full"><label>Comprimento (cm)</label><input id="co-${i}" type="number" placeholder="0" min="0" inputmode="numeric"/></div>
+    </div>`;
+  vols.appendChild(d);
+  // fecha dropdown ao clicar fora
+  document.addEventListener('click',e=>{
+    const dd=document.getElementById(`pd-${i}`);
+    if(dd&&!dd.contains(e.target)&&e.target.id!==`pi-${i}`) dd.classList.remove('open');
+  },{once:false});
 }
 
-function maskCEP(el) {
-  let v = el.value.replace(/\D/g,'');
-  if (v.length>5) v = v.slice(0,5)+'-'+v.slice(5,8);
-  el.value = v;
-}
-function maskCNPJ(el) {
-  let v = el.value.replace(/\D/g,'').slice(0,14);
-  if (v.length>12) v=v.slice(0,2)+'.'+v.slice(2,5)+'.'+v.slice(5,8)+'/'+v.slice(8,12)+'-'+v.slice(12);
-  else if (v.length>8) v=v.slice(0,2)+'.'+v.slice(2,5)+'.'+v.slice(5,8)+'/'+v.slice(8);
-  else if (v.length>5) v=v.slice(0,2)+'.'+v.slice(2,5)+'.'+v.slice(5);
-  else if (v.length>2) v=v.slice(0,2)+'.'+v.slice(2);
-  el.value = v;
-}
+function mCEP(el){let v=el.value.replace(/\D/g,'');if(v.length>5)v=v.slice(0,5)+'-'+v.slice(5,8);el.value=v}
+function mCNPJ(el){let v=el.value.replace(/\D/g,'').slice(0,14);
+  if(v.length>12)v=v.slice(0,2)+'.'+v.slice(2,5)+'.'+v.slice(5,8)+'/'+v.slice(8,12)+'-'+v.slice(12);
+  else if(v.length>8)v=v.slice(0,2)+'.'+v.slice(2,5)+'.'+v.slice(5,8)+'/'+v.slice(8);
+  else if(v.length>5)v=v.slice(0,2)+'.'+v.slice(2,5)+'.'+v.slice(5);
+  else if(v.length>2)v=v.slice(0,2)+'.'+v.slice(2);el.value=v}
 
-async function cotar() {
-  const id_local = parseInt(document.getElementById('id_local')?.value);
-  const cep      = (document.getElementById('cep_destino')?.value||'').replace(/\D/g,'');
-  const cnpj     = (document.getElementById('cnpj_dest')?.value||'').replace(/\D/g,'');
-  const valor_nf = parseFloat(document.getElementById('valor_nf')?.value)||0;
-
-  if (!cep || cep.length<8) { toast('Informe o CEP destino','error'); return; }
-  if (!id_local)             { toast('Selecione o local de expedição','error'); return; }
-
-  const pacotes = [];
-  for (let i=1; i<=volumeCount; i++) {
-    if (!document.getElementById(`vol-${i}`)) continue;
-    const peso = parseFloat(document.getElementById(`peso-${i}`)?.value)||0;
-    if (peso<=0) { toast(`Volume ${i}: informe o peso`,'error'); return; }
-    pacotes.push({
-      quantidade:      parseInt(document.getElementById(`qtd-${i}`)?.value)||1,
-      peso_kg:         peso,
-      altura_cm:       parseFloat(document.getElementById(`alt-${i}`)?.value)||0,
-      largura_cm:      parseFloat(document.getElementById(`larg-${i}`)?.value)||0,
-      comprimento_cm:  parseFloat(document.getElementById(`comp-${i}`)?.value)||0,
-    });
+async function cotar(){
+  const id_local=parseInt(document.getElementById('id_local')?.value);
+  const cep=(document.getElementById('cep')?.value||'').replace(/\D/g,'');
+  const cnpj=(document.getElementById('cnpj')?.value||'').replace(/\D/g,'');
+  const valor_nf=parseFloat(document.getElementById('vnf')?.value)||0;
+  if(!cep||cep.length<8){toast('Informe o CEP destino','error');return}
+  const pacotes=[];
+  for(let i=1;i<=volIdx;i++){
+    if(!document.getElementById(`vol-${i}`))continue;
+    const peso=parseFloat(document.getElementById(`p-${i}`)?.value)||0;
+    if(peso<=0){toast(`Volume ${i}: informe o peso`,'error');return}
+    pacotes.push({quantidade:parseInt(document.getElementById(`q-${i}`)?.value)||1,peso_kg:peso,
+      altura_cm:parseFloat(document.getElementById(`a-${i}`)?.value)||0,
+      largura_cm:parseFloat(document.getElementById(`l-${i}`)?.value)||0,
+      comprimento_cm:parseFloat(document.getElementById(`co-${i}`)?.value)||0});
   }
-  if (!pacotes.length) { toast('Adicione ao menos um volume','error'); return; }
-
-  const rdiv = document.getElementById('resultado-cotacao');
-  rdiv.innerHTML = `<div class="loading-area"><div class="spinner"></div> Consultando transportadoras...</div>`;
-  // scroll para resultado no mobile
-  rdiv.scrollIntoView({behavior:'smooth',block:'nearest'});
-
-  const payload = {id_local, cep_destino:cep, cnpj_destinatario:cnpj||undefined, valor_nf, pacotes};
-  try {
-    const res = await fetch(`${EDGE_URL}/cotar-frete`,{
-      method:'POST',
-      headers:{'Content-Type':'application/json','Authorization':`Bearer ${session?.access_token||SUPA_KEY}`},
-      body:JSON.stringify(payload)
-    });
-    if (!res.ok) throw new Error(`HTTP ${res.status}: ${(await res.text()).slice(0,200)}`);
-    const data = await res.json();
-    await appLog('acao','Cotação realizada',{categoria:'cotacao', detalhe:{cep_destino:cep, n_pacotes:pacotes.length, n_resultados:data?.resultados?.length}});
-    renderResultados(data, rdiv);
-  } catch(e) {
-    await appLog('erro','Falha na cotação',{categoria:'cotacao', detalhe:{erro:e.message, cep}});
-    rdiv.innerHTML = `<div class="card"><div class="empty-state"><div class="icon">❌</div><p>${e.message}</p></div></div>`;
+  if(!pacotes.length){toast('Adicione ao menos um volume','error');return}
+  const rd=document.getElementById('result');
+  rd.innerHTML=`<div class="loading"><div class="spinner"></div>Consultando transportadoras...</div>`;
+  rd.scrollIntoView({behavior:'smooth',block:'nearest'});
+  try{
+    const r=await fetch(`${EDGE}/cotar-frete`,{method:'POST',
+      headers:{'Content-Type':'application/json','Authorization':`Bearer ${sess?.access_token||KEY}`},
+      body:JSON.stringify({id_local,cep_destino:cep,cnpj_destinatario:cnpj||undefined,valor_nf,pacotes})});
+    if(!r.ok)throw new Error(`HTTP ${r.status}: ${(await r.text()).slice(0,200)}`);
+    const data=await r.json();
+    await log('acao','Cotação realizada',{cat:'cotacao',d:{cep,n:pacotes.length,res:data?.resultados?.length}});
+    renderResult(data,rd);
+  }catch(e){
+    await log('erro','Falha cotação',{cat:'cotacao',d:{e:e.message,cep}});
+    rd.innerHTML=`<div class="card"><div class="empty"><div class="ei">❌</div><p>${e.message}</p></div></div>`;
     toast('Erro: '+e.message,'error');
   }
 }
-
-function renderResultados(data, container) {
-  const res = data?.resultados || [];
-  if (!res.length) {
-    container.innerHTML = `<div class="card"><div class="empty-state"><div class="icon">🔍</div><p>Nenhuma cotação retornada.<br>Verifique o CEP e o local de expedição.</p></div></div>`;
-    return;
-  }
-  const ok  = res.filter(r=>!r.erro).sort((a,b)=>(a.valor_total||0)-(b.valor_total||0));
-  const err = res.filter(r=>r.erro);
-  const all = [...ok,...err];
-
-  let html = `<div class="card"><div class="card-title">🏆 Resultado das Cotações</div>`;
-  if (data.cidade_destino||data.uf_destino) {
-    html += `<div class="mb-3">
-      <span class="tag">📍 ${data.cidade_destino||''}${data.uf_destino?' / '+data.uf_destino:''}</span>
-      ${data.peso_total_kg?`<span class="tag">⚖️ ${fmtN(data.peso_total_kg)} kg</span>`:''}
-      ${data.peso_cubado_kg?`<span class="tag">📦 Cubado: ${fmtN(data.peso_cubado_kg)} kg</span>`:''}
+function renderResult(data,c){
+  const res=data?.resultados||[];
+  if(!res.length){c.innerHTML=`<div class="card"><div class="empty"><div class="ei">🔍</div><p>Nenhuma cotação retornada.<br>Verifique o CEP e local de expedição.</p></div></div>`;return}
+  const ok=res.filter(r=>!r.erro).sort((a,b)=>(a.valor_total||0)-(b.valor_total||0));
+  const er=res.filter(r=>r.erro);
+  let html=`<div class="card"><div class="card-title">🏆 Cotações</div>`;
+  if(data.cidade_destino||data.uf_destino)
+    html+=`<div class="mb-3"><span class="tag">📍 ${data.cidade_destino||''}${data.uf_destino?' / '+data.uf_destino:''}</span>${data.peso_total_kg?`<span class="tag">⚖️ ${N(data.peso_total_kg)} kg</span>`:''}${data.peso_cubado_kg?`<span class="tag">📦 Cubado: ${N(data.peso_cubado_kg)} kg</span>`:''}</div>`;
+  html+=`<div class="result-grid">`;
+  [...ok,...er].forEach((r,i)=>{
+    if(r.erro){html+=`<div class="r-card r-error"><div class="r-transp">${r.transportadora||'—'}</div><div class="r-preco">Indisponível</div><div class="r-detail">${r.erro}</div></div>`;return}
+    const w=i===0;
+    html+=`<div class="r-card${w?' winner':''}">
+      ${w?'<span class="r-winner-badge">✅ Menor Preço</span>':''}
+      <div class="r-transp">${r.transportadora}</div>
+      <div class="r-prazo">⏱️ ${r.prazo_dias??'?'} dia(s) úteis</div>
+      <div class="r-preco">${R(r.valor_total)}</div>
+      ${r.valor_frete?`<div class="r-detail">Frete: ${R(r.valor_frete)}</div>`:''}
+      ${r.valor_pedagio?`<div class="r-detail">Pedágio: ${R(r.valor_pedagio)}</div>`:''}
+      ${r.valor_gris?`<div class="r-detail">GRIS: ${R(r.valor_gris)}</div>`:''}
     </div>`;
-  }
-  html += `<div class="result-grid">`;
-  all.forEach((r,i)=>{
-    if (r.erro) {
-      html += `<div class="result-card rc-error">
-        <div class="rc-transp">${r.transportadora||'Transportadora'}</div>
-        <div class="rc-preco">Indisponível</div>
-        <div class="rc-detalhe">${r.erro}</div>
-      </div>`;
-    } else {
-      const winner = i===0;
-      html += `<div class="result-card${winner?' winner':''}">
-        ${winner?'<span class="badge-winner">✅ Menor Preço</span>':''}
-        <div class="rc-transp">${r.transportadora}</div>
-        <div class="rc-prazo">⏱️ ${r.prazo_dias??'?'} dia(s) úteis</div>
-        <div class="rc-preco">${fmt(r.valor_total)}</div>
-        ${r.valor_frete   ?`<div class="rc-detalhe">Frete: ${fmt(r.valor_frete)}</div>`:''}
-        ${r.valor_pedagio ?`<div class="rc-detalhe">Pedágio: ${fmt(r.valor_pedagio)}</div>`:''}
-        ${r.valor_gris    ?`<div class="rc-detalhe">GRIS: ${fmt(r.valor_gris)}</div>`:''}
-      </div>`;
-    }
   });
-  html += `</div></div>`;
-  container.innerHTML = html;
+  html+=`</div></div>`;c.innerHTML=html;
 }
 
-// ── PAGE: AUDITORIA CTe ──
-async function renderAuditoria() {
-  const c = document.getElementById('page-content');
-  c.innerHTML = `<div class="loading-area"><div class="spinner"></div> Carregando CTes...</div>`;
-  try {
-    const ctes = await supa('frt_conhecimentos?select=id,num_cte,data_emissao,nome_transportadora,nome_destinatario,uf_destino,cidade_destino,valor_frete_cte,valor_frete_nf,divergencia,status_auditoria,valor_total_cte,peso_kg&order=criado_em.desc');
-
-    const total       = ctes.length;
-    const pendentes   = ctes.filter(x=>x.status_auditoria==='pendente').length;
-    const divergentes = ctes.filter(x=>x.status_auditoria==='divergencia').length;
-    const ok          = ctes.filter(x=>x.status_auditoria==='ok').length;
-
-    c.innerHTML = `
+// ────────────────────────────────────────────
+// PAGE: AUDITORIA CTe
+// ────────────────────────────────────────────
+async function pgAuditoria(){
+  const c=document.getElementById('pg');
+  c.innerHTML=`<div class="loading"><div class="spinner"></div>Carregando CTes...</div>`;
+  try{
+    const ctes=await db('frt_conhecimentos?select=id,num_cte,serie_cte,data_emissao,nome_transportadora,cnpj_transportadora,nome_destinatario,cnpj_destinatario,uf_destino,cidade_destino,peso_kg,valor_mercadoria,valor_frete_cte,valor_frete_nf,valor_pedagio,valor_gris,valor_total_cte,valor_cotado,divergencia,status_auditoria,observacao_auditoria,notas_fiscais,criado_em&order=criado_em.desc');
+    const tot=ctes.length,pend=ctes.filter(x=>x.status_auditoria==='pendente').length,
+          div=ctes.filter(x=>x.status_auditoria==='divergencia').length,ok=ctes.filter(x=>x.status_auditoria==='ok').length;
+    c.__ctes=ctes;
+    c.innerHTML=`
       <div class="stats-grid">
-        <div class="stat-card info"><div class="label">Total CTes</div><div class="value">${total}</div></div>
-        <div class="stat-card warn"><div class="label">Pendentes</div><div class="value">${pendentes}</div></div>
-        <div class="stat-card danger"><div class="label">Divergências</div><div class="value">${divergentes}</div></div>
-        <div class="stat-card ok"><div class="label">OK</div><div class="value">${ok}</div></div>
+        <div class="stat c-blue"><div class="stat-lbl">Total CTes</div><div class="stat-val">${tot}</div></div>
+        <div class="stat c-warn"><div class="stat-lbl">Pendentes</div><div class="stat-val">${pend}</div></div>
+        <div class="stat c-red"><div class="stat-lbl">Divergências</div><div class="stat-val">${div}</div></div>
+        <div class="stat c-green"><div class="stat-lbl">OK</div><div class="stat-val">${ok}</div></div>
       </div>
       <div class="card">
-        <div class="flex justify-between items-center mb-4" style="flex-wrap:wrap;gap:8px">
-          <div class="card-title" style="margin:0">🧾 CTes (${total})</div>
+        <div class="flex jb ac mb-3" style="flex-wrap:wrap;gap:8px">
+          <div class="card-title" style="margin:0">🧾 Conhecimentos (${tot})</div>
           <div class="filters" style="margin:0">
-            <select class="filter-input" id="filter-st" onchange="filtrarCTes()" style="flex:0 0 auto">
-              <option value="">Todos</option>
+            <select class="fi" id="fst" onchange="filtCTE()" style="flex:0 0 auto;min-width:130px">
+              <option value="">Todos status</option>
               <option value="pendente">Pendente</option>
               <option value="ok">OK</option>
               <option value="divergencia">Divergência</option>
               <option value="contestado">Contestado</option>
               <option value="sem_vinculo">Sem vínculo</option>
             </select>
-            <input class="filter-input" id="filter-tr" placeholder="Transportadora..." oninput="filtrarCTes()"/>
+            <input class="fi" id="ftr" placeholder="Transportadora ou destinatário..." oninput="filtCTE()"/>
           </div>
         </div>
-        <!-- MOBILE: cards -->
-        <div class="cte-mobile" id="cte-cards">${renderCTeMobile(ctes)}</div>
-        <!-- DESKTOP: tabela -->
-        <div class="cte-desktop">
+        <!-- MOBILE -->
+        <div class="mobile-only" id="cte-mob">${renderCTEmob(ctes)}</div>
+        <!-- DESKTOP -->
+        <div class="desktop-only">
           <div class="table-wrap">
             <table>
               <thead><tr>
                 <th>CTe</th><th>Data</th><th>Transportadora</th><th>Destinatário</th>
-                <th>UF</th><th>Peso</th><th>Vl. CTe</th><th>Vl. NF</th><th>Divergência</th><th>Status</th>
+                <th>UF</th><th>Peso</th><th>Vl.CTe</th><th>Vl.NF</th><th>Divergência</th><th>Status</th>
               </tr></thead>
-              <tbody id="cte-tbody">${renderCTeDesktop(ctes)}</tbody>
+              <tbody id="cte-tb">${renderCTEdesk(ctes)}</tbody>
             </table>
           </div>
         </div>
-      </div>
-    `;
-    c.__ctes = ctes;
-  } catch(e) {
-    await appLog('erro','Falha ao carregar CTes',{categoria:'auditoria',detalhe:{erro:e.message}});
-    c.innerHTML = `<div class="empty-state"><div class="icon">❌</div><p>${e.message}</p></div>`;
-    toast('Erro ao carregar CTes: '+e.message,'error');
+      </div>`;
+  }catch(e){
+    await log('erro','Falha auditoria',{cat:'auditoria',d:{e:e.message}});
+    c.innerHTML=`<div class="empty"><div class="ei">❌</div><p>${e.message}</p></div>`;
+    toast('Erro: '+e.message,'error');
   }
 }
 
-function statusBadge(s) {
-  const cls = {pendente:'badge-warn',ok:'badge-ok',divergencia:'badge-danger',contestado:'badge-blue',sem_vinculo:'badge-gray'};
-  return `<span class="badge ${cls[s]||'badge-gray'}">${s||'—'}</span>`;
+function stBadge(s){
+  const m={pendente:'b-warn',ok:'b-ok',divergencia:'b-red',contestado:'b-blue',sem_vinculo:'b-gray'};
+  return`<span class="badge ${m[s]||'b-gray'}">${s||'—'}</span>`;
 }
-function statusSelect(id, current) {
-  const opts = ['pendente','ok','divergencia','contestado','sem_vinculo'];
-  return `<select class="cte-select" onchange="atualizarStatusCTe(${id},this.value)">
-    ${opts.map(o=>`<option value="${o}"${current===o?' selected':''}>${o}</option>`).join('')}
+function stSelect(id,cur){
+  const opts=['pendente','ok','divergencia','contestado','sem_vinculo'];
+  return`<select class="audit-select" onchange="updCTE(${id},this.value,'status')">
+    ${opts.map(o=>`<option value="${o}"${cur===o?' selected':''}>${o}</option>`).join('')}
   </select>`;
 }
 
-function renderCTeMobile(ctes) {
-  if (!ctes.length) return `<div class="empty-state"><div class="icon">📭</div><p>Nenhum CTe</p></div>`;
+function renderCTEmob(ctes){
+  if(!ctes.length)return`<div class="empty"><div class="ei">📭</div><p>Nenhum CTe</p></div>`;
   return ctes.map(r=>{
-    const div = Number(r.divergencia||0);
-    const divClass = div>0?'cte-div-pos':div<0?'cte-div-neg':'';
-    return `<div class="cte-card">
-      <div class="cte-card-header">
+    const div=Number(r.divergencia||0);
+    const divCls=div>0?'div-pos':div<0?'div-neg':'';
+    const nfs=r.notas_fiscais?JSON.parse(typeof r.notas_fiscais==='string'?r.notas_fiscais:JSON.stringify(r.notas_fiscais)):[];
+    return`<div class="cte-card" id="cte-${r.id}">
+      <div class="cte-hdr">
         <div>
-          <div class="cte-num">CTe ${r.num_cte||'—'}</div>
-          <div class="cte-transp">${r.nome_transportadora||'—'} · ${fmtD(r.data_emissao)}</div>
+          <div class="cte-num">CTe ${r.num_cte||'—'}${r.serie_cte?' / Série '+r.serie_cte:''}</div>
+          <div class="cte-sub">${r.nome_transportadora||'—'} · ${D(r.data_emissao)}</div>
         </div>
-        ${statusBadge(r.status_auditoria)}
+        ${stBadge(r.status_auditoria)}
       </div>
-      <div class="cte-row"><span class="cte-row-label">Destinatário</span><span style="text-align:right;max-width:60%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${r.nome_destinatario||'—'}</span></div>
-      <div class="cte-row"><span class="cte-row-label">Destino</span><span>${r.cidade_destino||'—'}${r.uf_destino?' / '+r.uf_destino:''}</span></div>
-      <div class="cte-row"><span class="cte-row-label">Peso</span><span>${r.peso_kg?fmtN(r.peso_kg)+' kg':'—'}</span></div>
-      <div class="cte-row"><span class="cte-row-label">Vl. CTe</span><span>${fmt(r.valor_frete_cte)}</span></div>
-      <div class="cte-row"><span class="cte-row-label">Vl. NF</span><span>${fmt(r.valor_frete_nf)}</span></div>
-      <div class="cte-row"><span class="cte-row-label">Divergência</span><span class="${divClass}">${div!==0?fmt(div):'—'}</span></div>
-      ${statusSelect(r.id, r.status_auditoria)}
+      <div class="cte-row"><span class="cte-lbl">Destinatário</span><span style="text-align:right;max-width:55%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${r.nome_destinatario||'—'}</span></div>
+      <div class="cte-row"><span class="cte-lbl">CNPJ Dest.</span><span>${r.cnpj_destinatario||'—'}</span></div>
+      <div class="cte-row"><span class="cte-lbl">Destino</span><span>${r.cidade_destino||'—'}${r.uf_destino?' / '+r.uf_destino:''}</span></div>
+      <div class="cte-row"><span class="cte-lbl">Peso</span><span>${r.peso_kg?N(r.peso_kg)+' kg':'—'}</span></div>
+      <div class="cte-row"><span class="cte-lbl">Vl. Mercadoria</span><span>${R(r.valor_mercadoria)}</span></div>
+      <div class="cte-row"><span class="cte-lbl">Vl. Frete CTe</span><span>${R(r.valor_frete_cte)}</span></div>
+      <div class="cte-row"><span class="cte-lbl">Vl. Frete NF</span><span>${R(r.valor_frete_nf)}</span></div>
+      ${r.valor_pedagio?`<div class="cte-row"><span class="cte-lbl">Pedágio</span><span>${R(r.valor_pedagio)}</span></div>`:''}
+      ${r.valor_gris?`<div class="cte-row"><span class="cte-lbl">GRIS</span><span>${R(r.valor_gris)}</span></div>`:''}
+      <div class="cte-row"><span class="cte-lbl">Vl. Total CTe</span><span style="font-weight:700">${R(r.valor_total_cte)}</span></div>
+      <div class="cte-row"><span class="cte-lbl">Vl. Cotado</span><span>${R(r.valor_cotado)}</span></div>
+      <div class="cte-row"><span class="cte-lbl">Divergência</span><span class="${divCls}" style="font-weight:700">${div!==0?R(div):'—'}</span></div>
+      ${nfs.length?`<div class="cte-row"><span class="cte-lbl">NFs</span><span>${nfs.map(n=>n.num_nf||n.chave_nfe?.slice(-9)||'?').join(', ')}</span></div>`:''}
+      ${stSelect(r.id,r.status_auditoria)}
+      <div class="cte-obs">
+        <textarea id="obs-${r.id}" placeholder="Observação de auditoria..." style="margin-top:6px">${r.observacao_auditoria||''}</textarea>
+        <button class="btn btn-ghost btn-sm" style="margin-top:6px;width:100%" onclick="updCTE(${r.id},document.getElementById('obs-${r.id}').value,'obs')">💾 Salvar observação</button>
+      </div>
     </div>`;
   }).join('');
 }
 
-function renderCTeDesktop(ctes) {
-  if (!ctes.length) return `<tr><td colspan="10"><div class="empty-state"><div class="icon">📭</div><p>Nenhum CTe</p></div></td></tr>`;
+function renderCTEdesk(ctes){
+  if(!ctes.length)return`<tr><td colspan="10"><div class="empty"><div class="ei">📭</div><p>Nenhum CTe</p></div></td></tr>`;
   return ctes.map(r=>{
-    const div = Number(r.divergencia||0);
-    const divClass = div>0?'text-red':div<0?'text-green':'';
-    return `<tr>
-      <td><strong>${r.num_cte||'—'}</strong></td>
-      <td>${fmtD(r.data_emissao)}</td>
-      <td>${r.nome_transportadora||'—'}</td>
-      <td style="max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${r.nome_destinatario||'—'}</td>
+    const div=Number(r.divergencia||0);
+    const divCls=div>0?'text-red':div<0?'text-green':'';
+    return`<tr id="cte-${r.id}">
+      <td><strong>${r.num_cte||'—'}</strong>${r.serie_cte?`<br><span class="text-muted" style="font-size:10px">s.${r.serie_cte}</span>`:''}</td>
+      <td>${D(r.data_emissao)}</td>
+      <td style="max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${r.nome_transportadora||'—'}</td>
+      <td style="max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${r.nome_destinatario||'—'}</td>
       <td>${r.uf_destino||'—'}</td>
-      <td>${r.peso_kg?fmtN(r.peso_kg)+' kg':'—'}</td>
-      <td>${fmt(r.valor_frete_cte)}</td>
-      <td>${fmt(r.valor_frete_nf)}</td>
-      <td class="${divClass}" style="font-weight:600">${div!==0?fmt(div):'—'}</td>
-      <td>${statusSelect(r.id, r.status_auditoria)}</td>
+      <td>${r.peso_kg?N(r.peso_kg)+' kg':'—'}</td>
+      <td>${R(r.valor_frete_cte)}</td>
+      <td>${R(r.valor_frete_nf)}</td>
+      <td class="${divCls}" style="font-weight:700">${div!==0?R(div):'—'}</td>
+      <td><select style="background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:5px 8px;font-size:12px;color:var(--text)" onchange="updCTE(${r.id},this.value,'status')">
+        ${['pendente','ok','divergencia','contestado','sem_vinculo'].map(o=>`<option value="${o}"${r.status_auditoria===o?' selected':''}>${o}</option>`).join('')}
+      </select></td>
     </tr>`;
   }).join('');
 }
 
-function filtrarCTes() {
-  const c = document.getElementById('page-content');
-  const ctes = c.__ctes||[];
-  const st = document.getElementById('filter-st')?.value||'';
-  const tr = (document.getElementById('filter-tr')?.value||'').toLowerCase();
-  const filtered = ctes.filter(r=>{
-    const mSt = !st || r.status_auditoria===st;
-    const mTr = !tr || (r.nome_transportadora||'').toLowerCase().includes(tr);
-    return mSt && mTr;
-  });
-  const cards  = document.getElementById('cte-cards');
-  const tbody  = document.getElementById('cte-tbody');
-  if (cards) cards.innerHTML  = renderCTeMobile(filtered);
-  if (tbody) tbody.innerHTML  = renderCTeDesktop(filtered);
+function filtCTE(){
+  const c=document.getElementById('pg'),ctes=c.__ctes||[];
+  const st=document.getElementById('fst')?.value||'',q=(document.getElementById('ftr')?.value||'').toLowerCase();
+  const f=ctes.filter(r=>(!st||r.status_auditoria===st)&&(!q||(r.nome_transportadora||'').toLowerCase().includes(q)||(r.nome_destinatario||'').toLowerCase().includes(q)));
+  const mob=document.getElementById('cte-mob'),tb=document.getElementById('cte-tb');
+  if(mob)mob.innerHTML=renderCTEmob(f);
+  if(tb)tb.innerHTML=renderCTEdesk(f);
 }
 
-async function atualizarStatusCTe(id, status) {
-  try {
-    const res = await fetch(`${SUPA_URL}/rest/v1/frt_conhecimentos?id=eq.${id}`,{
-      method:'PATCH',
-      headers:{...hdrs(session?.access_token),'Prefer':'return=minimal'},
-      body:JSON.stringify({status_auditoria:status, atualizado_em:new Date().toISOString()})
-    });
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    await appLog('acao',`Status CTe #${id} → "${status}"`,{categoria:'auditoria'});
-    toast(`Status: ${status}`,'success');
-    // atualiza cache local
-    const c = document.getElementById('page-content');
-    if (c.__ctes) { const cte=c.__ctes.find(x=>x.id===id); if(cte) cte.status_auditoria=status; }
-  } catch(e) {
-    await appLog('erro',`Falha ao atualizar CTe #${id}`,{categoria:'auditoria',detalhe:{erro:e.message}});
-    toast('Erro: '+e.message,'error');
-  }
+async function updCTE(id,val,campo){
+  try{
+    const body=campo==='status'?{status_auditoria:val,atualizado_em:new Date().toISOString()}:{observacao_auditoria:val,atualizado_em:new Date().toISOString()};
+    const r=await fetch(`${SB}/rest/v1/frt_conhecimentos?id=eq.${id}`,{method:'PATCH',headers:{...hdrs(sess?.access_token),'Prefer':'return=minimal'},body:JSON.stringify(body)});
+    if(!r.ok)throw new Error(`HTTP ${r.status}`);
+    await log('acao',campo==='status'?`CTe #${id} → ${val}`:`Obs CTe #${id} salva`,{cat:'auditoria'});
+    toast(campo==='status'?`Status: ${val}`:'Observação salva','success');
+    const c=document.getElementById('pg');if(c.__ctes){const x=c.__ctes.find(x=>x.id===id);if(x){if(campo==='status')x.status_auditoria=val;else x.observacao_auditoria=val;}}
+  }catch(e){toast('Erro: '+e.message,'error')}
 }
 
-// ── PAGE: HISTÓRICO ──
-async function renderHistorico() {
-  const c = document.getElementById('page-content');
-  c.innerHTML = `<div class="loading-area"><div class="spinner"></div> Carregando...</div>`;
-  try {
-    // carrega locais para nome correto
-    if (!locaisCache.length) {
-      locaisCache = await supa('frt_locais_expedicao?select=id,nome,cidade,uf').catch(()=>[]);
-    }
-    const rows = await supa('frt_cotacoes?select=*&order=criado_em.desc');
-    const locMap = Object.fromEntries(locaisCache.map(l=>[l.id, `${l.nome}`]));
-
-    c.innerHTML = `
+// ────────────────────────────────────────────
+// PAGE: HISTÓRICO
+// ────────────────────────────────────────────
+async function pgHistorico(){
+  const c=document.getElementById('pg');
+  c.innerHTML=`<div class="loading"><div class="spinner"></div>Carregando...</div>`;
+  try{
+    if(!locais.length)locais=await db('frt_locais_expedicao?select=id,nome,cidade,uf').catch(()=>[]);
+    const rows=await db('frt_cotacoes?select=*&order=criado_em.desc');
+    const lm=Object.fromEntries(locais.map(l=>[l.id,l.nome]));
+    c.__hist=rows;c.__lm=lm;
+    c.innerHTML=`
       <div class="card">
-        <div class="flex justify-between items-center mb-4" style="flex-wrap:wrap;gap:8px">
-          <div class="card-title" style="margin:0">📋 Histórico (${rows.length})</div>
-          <input class="filter-input" id="filter-hist" placeholder="CEP, cidade ou usuário..." oninput="filtrarHist()" style="max-width:240px"/>
+        <div class="flex jb ac mb-3" style="flex-wrap:wrap;gap:8px">
+          <div class="card-title" style="margin:0">📋 Cotações (${rows.length})</div>
+          <input class="fi" id="fh" placeholder="CEP, cidade ou usuário..." oninput="filtHist()" style="max-width:240px"/>
         </div>
-        <!-- MOBILE -->
-        <div class="hist-mobile" id="hist-cards">${renderHistMobile(rows,locMap)}</div>
-        <!-- DESKTOP -->
-        <div class="hist-desktop">
+        <div class="mobile-only" id="hist-mob">${renderHistMob(rows,lm)}</div>
+        <div class="desktop-only">
           <div class="table-wrap">
             <table>
-              <thead><tr><th>#</th><th>Data</th><th>Origem</th><th>CEP Destino</th><th>Cidade/UF</th><th>Valor NF</th><th>Peso</th><th>Usuário</th></tr></thead>
-              <tbody id="hist-tbody">${renderHistDesktop(rows,locMap)}</tbody>
+              <thead><tr><th>#</th><th>Data</th><th>Origem</th><th>CEP</th><th>Cidade/UF</th><th>Valor NF</th><th>Peso</th><th>Usuário</th></tr></thead>
+              <tbody id="hist-tb">${renderHistDesk(rows,lm)}</tbody>
             </table>
           </div>
         </div>
-      </div>
-    `;
-    c.__hist = rows;
-    c.__locMap = locMap;
-  } catch(e) {
-    await appLog('erro','Falha ao carregar histórico',{categoria:'historico',detalhe:{erro:e.message}});
-    c.innerHTML = `<div class="empty-state"><div class="icon">❌</div><p>${e.message}</p></div>`;
-    toast('Erro: '+e.message,'error');
-  }
+      </div>`;
+  }catch(e){c.innerHTML=`<div class="empty"><div class="ei">❌</div><p>${e.message}</p></div>`}
 }
-
-function renderHistMobile(rows,locMap) {
-  if (!rows.length) return `<div class="empty-state"><div class="icon">📭</div><p>Sem cotações</p></div>`;
+function renderHistMob(rows,lm){
+  if(!rows.length)return`<div class="empty"><div class="ei">📭</div><p>Sem cotações</p></div>`;
   return rows.map(r=>`<div class="hist-card">
-    <div class="hist-card-row"><span class="hist-label">Data</span><strong>${fmtDT(r.criado_em)}</strong></div>
-    <div class="hist-card-row"><span class="hist-label">Origem</span><span>${locMap[r.id_local]||r.id_local||'—'}</span></div>
-    <div class="hist-card-row"><span class="hist-label">CEP Destino</span><span>${r.cep_destino||'—'}</span></div>
-    <div class="hist-card-row"><span class="hist-label">Cidade/UF</span><span>${r.cidade_destino||'—'}${r.uf_destino?' / '+r.uf_destino:''}</span></div>
-    <div class="hist-card-row"><span class="hist-label">Valor NF</span><span>${fmt(r.valor_nf)}</span></div>
-    <div class="hist-card-row"><span class="hist-label">Peso</span><span>${r.peso_total_kg?fmtN(r.peso_total_kg)+' kg':'—'}</span></div>
-    <div class="hist-card-row"><span class="hist-label">Usuário</span><span class="text-muted">${r.criado_por||'—'}</span></div>
+    <div class="hist-row"><span class="hist-lbl">Data</span><strong>${DT(r.criado_em)}</strong></div>
+    <div class="hist-row"><span class="hist-lbl">Origem</span><span>${lm[r.id_local]||r.id_local||'—'}</span></div>
+    <div class="hist-row"><span class="hist-lbl">CEP</span><span>${r.cep_destino||'—'}</span></div>
+    <div class="hist-row"><span class="hist-lbl">Cidade/UF</span><span>${r.cidade_destino||'—'}${r.uf_destino?' / '+r.uf_destino:''}</span></div>
+    <div class="hist-row"><span class="hist-lbl">Valor NF</span><span>${R(r.valor_nf)}</span></div>
+    <div class="hist-row"><span class="hist-lbl">Peso</span><span>${r.peso_total_kg?N(r.peso_total_kg)+' kg':'—'}</span></div>
+    <div class="hist-row"><span class="hist-lbl">Usuário</span><span class="text-muted">${r.criado_por||'—'}</span></div>
   </div>`).join('');
 }
-function renderHistDesktop(rows,locMap) {
-  if (!rows.length) return `<tr><td colspan="8"><div class="empty-state"><div class="icon">📭</div><p>Sem cotações</p></div></td></tr>`;
+function renderHistDesk(rows,lm){
+  if(!rows.length)return`<tr><td colspan="8"><div class="empty"><div class="ei">📭</div><p>Sem cotações</p></div></td></tr>`;
   return rows.map(r=>`<tr>
-    <td class="text-muted">${r.id}</td>
-    <td>${fmtDT(r.criado_em)}</td>
-    <td>${locMap[r.id_local]||r.id_local||'—'}</td>
-    <td>${r.cep_destino||'—'}</td>
+    <td class="text-muted">${r.id}</td><td>${DT(r.criado_em)}</td>
+    <td>${lm[r.id_local]||r.id_local||'—'}</td><td>${r.cep_destino||'—'}</td>
     <td>${r.cidade_destino||'—'}${r.uf_destino?' / '+r.uf_destino:''}</td>
-    <td>${fmt(r.valor_nf)}</td>
-    <td>${r.peso_total_kg?fmtN(r.peso_total_kg)+' kg':'—'}</td>
+    <td>${R(r.valor_nf)}</td><td>${r.peso_total_kg?N(r.peso_total_kg)+' kg':'—'}</td>
     <td class="text-muted">${r.criado_por||'—'}</td>
   </tr>`).join('');
 }
-function filtrarHist() {
-  const c = document.getElementById('page-content');
-  const rows = c.__hist||[]; const locMap = c.__locMap||{};
-  const q = (document.getElementById('filter-hist')?.value||'').toLowerCase();
-  const filtered = q ? rows.filter(r=>
-    (r.cep_destino||'').includes(q)||
-    (r.cidade_destino||'').toLowerCase().includes(q)||
-    (r.criado_por||'').toLowerCase().includes(q)
-  ) : rows;
-  const mob = document.getElementById('hist-cards');
-  const tbl = document.getElementById('hist-tbody');
-  if (mob) mob.innerHTML = renderHistMobile(filtered,locMap);
-  if (tbl) tbl.innerHTML = renderHistDesktop(filtered,locMap);
+function filtHist(){
+  const c=document.getElementById('pg');const rows=c.__hist||[],lm=c.__lm||{};
+  const q=(document.getElementById('fh')?.value||'').toLowerCase();
+  const f=q?rows.filter(r=>(r.cep_destino||'').includes(q)||(r.cidade_destino||'').toLowerCase().includes(q)||(r.criado_por||'').toLowerCase().includes(q)):rows;
+  const mob=document.getElementById('hist-mob'),tb=document.getElementById('hist-tb');
+  if(mob)mob.innerHTML=renderHistMob(f,lm);if(tb)tb.innerHTML=renderHistDesk(f,lm);
 }
 
-// ── PAGE: LOGS ──
-async function renderLogs() {
-  const c = document.getElementById('page-content');
-  c.innerHTML = `<div class="loading-area"><div class="spinner"></div> Carregando logs...</div>`;
-  try {
-    const logs = await supa('frt_logs?select=*&order=criado_em.desc');
-    const erros  = logs.filter(l=>l.tipo==='erro').length;
-    const acoes  = logs.filter(l=>l.tipo==='acao').length;
-    const avisos = logs.filter(l=>l.tipo==='aviso').length;
-
-    c.innerHTML = `
-      <div class="stats-grid">
-        <div class="stat-card info"><div class="label">Total</div><div class="value">${logs.length}</div></div>
-        <div class="stat-card danger"><div class="label">Erros</div><div class="value">${erros}</div></div>
-        <div class="stat-card ok"><div class="label">Ações</div><div class="value">${acoes}</div></div>
-        <div class="stat-card warn"><div class="label">Avisos</div><div class="value">${avisos}</div></div>
+// ────────────────────────────────────────────
+// PAGE: DIMENSÕES DE PRODUTOS
+// ────────────────────────────────────────────
+async function pgDimensoes(){
+  const c=document.getElementById('pg');
+  c.innerHTML=`<div class="loading"><div class="spinner"></div>Carregando...</div>`;
+  try{
+    const [dims,cat]=await Promise.all([
+      db('frt_produtos_dimensoes?select=*&ativo=eq.true&order=descricao'),
+      db('frt_catalogo_produtos?select=id,nome,referencia,peso_kg,altura_cm,largura_cm,comprimento_cm,volume_m3&ativo=eq.true&order=nome')
+    ]);
+    c.__dims=dims;c.__cat=cat;
+    c.innerHTML=`
+      <div class="stats-grid" style="grid-template-columns:1fr 1fr 1fr">
+        <div class="stat c-blue"><div class="stat-lbl">Portal Representantes</div><div class="stat-val">${cat.length}</div></div>
+        <div class="stat c-green"><div class="stat-lbl">Cadastros Manuais</div><div class="stat-val">${dims.length}</div></div>
+        <div class="stat c-warn"><div class="stat-lbl">Total disponível</div><div class="stat-val">${cat.length+dims.length}</div></div>
       </div>
+
       <div class="card">
-        <div class="flex justify-between items-center mb-4" style="flex-wrap:wrap;gap:8px">
-          <div class="card-title" style="margin:0">🔍 Logs</div>
+        <div class="card-title">➕ Novo Cadastro Manual</div>
+        <div class="grid g2">
+          <div class="field full"><label>Descrição / Nome do produto</label><input id="nd" placeholder="Ex: Volante Esportivo 14 pol"/></div>
+          <div class="field"><label>Referência</label><input id="nr" placeholder="Ex: VE-14"/></div>
+          <div class="field"><label>Peso (kg)</label><input id="np" type="number" placeholder="0.000" step="0.001" inputmode="decimal"/></div>
+          <div class="field"><label>Altura (cm)</label><input id="na" type="number" placeholder="0" inputmode="numeric"/></div>
+          <div class="field"><label>Largura (cm)</label><input id="nl" type="number" placeholder="0" inputmode="numeric"/></div>
+          <div class="field"><label>Comprimento (cm)</label><input id="nc" type="number" placeholder="0" inputmode="numeric"/></div>
+        </div>
+        <button class="btn btn-primary btn-full" onclick="salvarDim()">💾 Salvar Dimensão</button>
+      </div>
+
+      <div class="card">
+        <div class="flex jb ac mb-3" style="flex-wrap:wrap;gap:8px">
+          <div class="card-title" style="margin:0">📦 Dimensões Cadastradas</div>
           <div class="filters" style="margin:0">
-            <select class="filter-input" id="log-tipo" onchange="filtrarLogs()" style="flex:0 0 auto">
-              <option value="">Todos</option>
-              <option value="erro">Erros</option>
-              <option value="acao">Ações</option>
-              <option value="aviso">Avisos</option>
+            <select class="fi" id="dfonte" onchange="filtDim()" style="flex:0 0 auto;min-width:140px">
+              <option value="">Todas as fontes</option>
+              <option value="catalogo">Portal Representantes</option>
+              <option value="manual">Cadastro Manual</option>
             </select>
-            <select class="filter-input" id="log-cat" onchange="filtrarLogs()" style="flex:0 0 auto">
-              <option value="">Todas categorias</option>
-              <option value="cotacao">Cotação</option>
-              <option value="auditoria">Auditoria</option>
-              <option value="historico">Histórico</option>
-              <option value="sistema">Sistema</option>
-            </select>
-            <input class="filter-input" id="log-txt" placeholder="Pesquisar..." oninput="filtrarLogs()"/>
+            <input class="fi" id="dq" placeholder="Buscar produto..." oninput="filtDim()"/>
           </div>
         </div>
-        <div class="flex gap-2 mb-4" style="flex-wrap:wrap">
-          <button class="btn btn-ghost btn-sm" onclick="renderLogs()">↺ Atualizar</button>
+        <div id="dims-list">${renderDims(dims,cat)}</div>
+      </div>`;
+  }catch(e){c.innerHTML=`<div class="empty"><div class="ei">❌</div><p>${e.message}</p></div>`}
+}
+
+function renderDims(dims,cat){
+  const all=[
+    ...cat.map(p=>({...p,_src:'catalogo',descricao:p.nome})),
+    ...dims.map(p=>({...p,_src:'manual'}))
+  ];
+  if(!all.length)return`<div class="empty"><div class="ei">📭</div><p>Nenhum produto cadastrado</p></div>`;
+  return`<div class="table-wrap">
+    <table>
+      <thead><tr><th>Fonte</th><th>Produto</th><th>Ref.</th><th>Peso</th><th>A×L×C (cm)</th><th>Vol. m³</th><th></th></tr></thead>
+      <tbody>
+        ${all.map(p=>{
+          const vol=p.volume_m3||(p.altura_cm&&p.largura_cm&&p.comprimento_cm?(p.altura_cm/100*p.largura_cm/100*p.comprimento_cm/100).toFixed(6):null);
+          return`<tr>
+            <td><span class="badge ${p._src==='catalogo'?'b-blue':'b-purple'}">${p._src==='catalogo'?'Portal':'Manual'}</span></td>
+            <td style="max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:600">${p.descricao||p.nome||'—'}</td>
+            <td class="text-muted">${p.referencia||'—'}</td>
+            <td>${p.peso_kg?N(p.peso_kg)+' kg':'—'}</td>
+            <td>${p.altura_cm&&p.largura_cm&&p.comprimento_cm?`${p.altura_cm}×${p.largura_cm}×${p.comprimento_cm}`:'—'}</td>
+            <td>${vol?Number(vol).toFixed(4):'—'}</td>
+            <td>${p._src==='manual'?`<button class="btn btn-danger btn-sm" onclick="delDim(${p.id})">🗑️</button>`:'—'}</td>
+          </tr>`;
+        }).join('')}
+      </tbody>
+    </table>
+  </div>`;
+}
+
+function filtDim(){
+  const c=document.getElementById('pg');
+  const dims=c.__dims||[],cat=c.__cat||[];
+  const fonte=document.getElementById('dfonte')?.value||'';
+  const q=(document.getElementById('dq')?.value||'').toLowerCase();
+  let fd=dims,fc=cat;
+  if(fonte==='manual')fc=[];
+  if(fonte==='catalogo')fd=[];
+  if(q){fd=fd.filter(p=>(p.descricao||'').toLowerCase().includes(q)||(p.referencia||'').toLowerCase().includes(q));fc=fc.filter(p=>(p.nome||'').toLowerCase().includes(q)||(p.referencia||'').toLowerCase().includes(q));}
+  document.getElementById('dims-list').innerHTML=renderDims(fd,fc);
+}
+
+async function salvarDim(){
+  const desc=(document.getElementById('nd')?.value||'').trim();
+  const ref=(document.getElementById('nr')?.value||'').trim();
+  const peso=parseFloat(document.getElementById('np')?.value)||null;
+  const alt=parseFloat(document.getElementById('na')?.value)||null;
+  const lar=parseFloat(document.getElementById('nl')?.value)||null;
+  const com=parseFloat(document.getElementById('nc')?.value)||null;
+  if(!desc){toast('Informe a descrição do produto','error');return}
+  if(!peso){toast('Informe o peso','error');return}
+  try{
+    const r=await fetch(`${SB}/rest/v1/frt_produtos_dimensoes`,{
+      method:'POST',
+      headers:{...hdrs(sess?.access_token),'Prefer':'return=representation'},
+      body:JSON.stringify({descricao:desc,referencia:ref||null,peso_kg:peso,altura_cm:alt,largura_cm:lar,comprimento_cm:com,ativo:true,atualizado_em:new Date().toISOString()})
+    });
+    if(!r.ok)throw new Error(`HTTP ${r.status}: ${(await r.text()).slice(0,200)}`);
+    await log('acao',`Dimensão "${desc}" cadastrada`,{cat:'dimensoes'});
+    toast('Dimensão salva com sucesso!','success');
+    // limpa form
+    ['nd','nr','np','na','nl','nc'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+    pgDimensoes();
+  }catch(e){toast('Erro: '+e.message,'error')}
+}
+
+async function delDim(id){
+  if(!confirm('Excluir esta dimensão?'))return;
+  try{
+    await fetch(`${SB}/rest/v1/frt_produtos_dimensoes?id=eq.${id}`,{
+      method:'PATCH',headers:{...hdrs(sess?.access_token),'Prefer':'return=minimal'},
+      body:JSON.stringify({ativo:false})
+    });
+    await log('acao',`Dimensão #${id} removida`,{cat:'dimensoes'});
+    toast('Dimensão removida','success');pgDimensoes();
+  }catch(e){toast('Erro: '+e.message,'error')}
+}
+
+// ────────────────────────────────────────────
+// PAGE: LOGS
+// ────────────────────────────────────────────
+async function pgLogs(){
+  const c=document.getElementById('pg');
+  c.innerHTML=`<div class="loading"><div class="spinner"></div>Carregando...</div>`;
+  try{
+    const logs=await db('frt_logs?select=*&order=criado_em.desc');
+    const er=logs.filter(l=>l.tipo==='erro').length,ac=logs.filter(l=>l.tipo==='acao').length,av=logs.filter(l=>l.tipo==='aviso').length;
+    c.__logs=logs;
+    c.innerHTML=`
+      <div class="stats-grid">
+        <div class="stat c-blue"><div class="stat-lbl">Total</div><div class="stat-val">${logs.length}</div></div>
+        <div class="stat c-red"><div class="stat-lbl">Erros</div><div class="stat-val">${er}</div></div>
+        <div class="stat c-green"><div class="stat-lbl">Ações</div><div class="stat-val">${ac}</div></div>
+        <div class="stat c-warn"><div class="stat-lbl">Avisos</div><div class="stat-val">${av}</div></div>
+      </div>
+      <div class="card">
+        <div class="flex jb ac mb-3" style="flex-wrap:wrap;gap:8px">
+          <div class="card-title" style="margin:0">🔍 Logs</div>
+          <div class="filters" style="margin:0">
+            <select class="fi" id="lt" onchange="filtLog()" style="flex:0 0 auto"><option value="">Todos</option><option value="erro">Erros</option><option value="acao">Ações</option><option value="aviso">Avisos</option></select>
+            <select class="fi" id="lc" onchange="filtLog()" style="flex:0 0 auto"><option value="">Todas cats</option><option value="cotacao">Cotação</option><option value="auditoria">Auditoria</option><option value="dimensoes">Dimensões</option><option value="historico">Histórico</option><option value="sistema">Sistema</option></select>
+            <input class="fi" id="lq" placeholder="Buscar..." oninput="filtLog()"/>
+          </div>
+        </div>
+        <div class="flex gap-2 mb-3" style="flex-wrap:wrap">
+          <button class="btn btn-ghost btn-sm" onclick="pgLogs()">↺ Atualizar</button>
           <button class="btn btn-danger btn-sm" onclick="limparLogs()">🗑️ Limpar &gt;30 dias</button>
         </div>
-        <div id="logs-list">${renderItensLog(logs)}</div>
+        <div id="logs-list">${renderLogs(logs)}</div>
+      </div>`;
+  }catch(e){c.innerHTML=`<div class="empty"><div class="ei">✅</div><p>Nenhum log ou tabela não encontrada.<br><small>${e.message}</small></p></div>`}
+}
+function renderLogs(logs){
+  if(!logs.length)return`<div class="empty"><div class="ei">✅</div><p>Sem eventos</p></div>`;
+  const ic={erro:'❌',acao:'✅',aviso:'⚠️'};
+  return logs.map((l,i)=>`<div class="log-item log-${l.tipo}" onclick="document.getElementById('ld-${i}')?.classList.toggle('open')">
+    <div class="log-icon">${ic[l.tipo]||'ℹ️'}</div>
+    <div class="log-body">
+      <div class="log-desc">${l.descricao}</div>
+      <div class="log-meta">
+        <span>⏰ ${DT(l.criado_em)}</span>
+        ${l.categoria?`<span>📁 ${l.categoria}</span>`:''}
+        ${l.usuario?`<span>👤 ${l.usuario}</span>`:''}
+        <span class="badge ${l.tipo==='erro'?'b-red':l.tipo==='aviso'?'b-warn':'b-ok'}">${l.tipo}</span>
       </div>
-    `;
-    c.__logs = logs;
-  } catch(e) {
-    c.innerHTML = `<div class="empty-state"><div class="icon">✅</div><p>Nenhum log ainda ou tabela não encontrada.</p><p style="font-size:12px;margin-top:8px;color:var(--muted)">${e.message}</p></div>`;
-  }
+      ${l.detalhe?`<div class="log-detail" id="ld-${i}">${JSON.stringify(l.detalhe,null,2)}</div>`:''}
+    </div>
+  </div>`).join('');
+}
+function filtLog(){
+  const c=document.getElementById('pg'),logs=c.__logs||[];
+  const t=document.getElementById('lt')?.value||'',cat=document.getElementById('lc')?.value||'',q=(document.getElementById('lq')?.value||'').toLowerCase();
+  const f=logs.filter(l=>(!t||l.tipo===t)&&(!cat||l.categoria===cat)&&(!q||(l.descricao||'').toLowerCase().includes(q)));
+  document.getElementById('logs-list').innerHTML=renderLogs(f);
+}
+async function limparLogs(){
+  if(!confirm('Excluir logs com mais de 30 dias?'))return;
+  try{
+    const cut=new Date(Date.now()-30*86400000).toISOString();
+    await fetch(`${SB}/rest/v1/frt_logs?criado_em=lt.${cut}`,{method:'DELETE',headers:hdrs(sess?.access_token)});
+    await log('acao','Limpeza de logs',{cat:'sistema'});toast('Logs antigos removidos','success');pgLogs();
+  }catch(e){toast('Erro: '+e.message,'error')}
 }
 
-function renderItensLog(logs) {
-  if (!logs.length) return `<div class="empty-state"><div class="icon">✅</div><p>Nenhum evento registrado</p></div>`;
-  const icons = {erro:'❌',acao:'✅',aviso:'⚠️'};
-  return logs.map((l,i)=>{
-    const detalheStr = l.detalhe ? JSON.stringify(l.detalhe,null,2) : '';
-    return `<div class="log-item log-${l.tipo}" onclick="toggleLog(${i})">
-      <div class="log-icon">${icons[l.tipo]||'ℹ️'}</div>
-      <div class="log-body">
-        <div class="log-desc">${l.descricao}</div>
-        <div class="log-meta">
-          <span>⏰ ${fmtDT(l.criado_em)}</span>
-          ${l.categoria?`<span>📁 ${l.categoria}</span>`:''}
-          ${l.usuario?`<span>👤 ${l.usuario}</span>`:''}
-          <span class="badge ${l.tipo==='erro'?'badge-danger':l.tipo==='aviso'?'badge-warn':'badge-ok'}">${l.tipo}</span>
-        </div>
-        ${detalheStr?`<div class="log-detail" id="ld-${i}">${detalheStr}</div>`:''}
-      </div>
-    </div>`;
-  }).join('');
-}
-function toggleLog(i) {
-  document.getElementById(`ld-${i}`)?.classList.toggle('open');
-}
-function filtrarLogs() {
-  const c    = document.getElementById('page-content');
-  const logs = c.__logs||[];
-  const tipo = document.getElementById('log-tipo')?.value||'';
-  const cat  = document.getElementById('log-cat')?.value||'';
-  const txt  = (document.getElementById('log-txt')?.value||'').toLowerCase();
-  const filtered = logs.filter(l=>{
-    const mT = !tipo || l.tipo===tipo;
-    const mC = !cat  || l.categoria===cat;
-    const mX = !txt  || (l.descricao||'').toLowerCase().includes(txt);
-    return mT && mC && mX;
-  });
-  const el = document.getElementById('logs-list');
-  if (el) el.innerHTML = renderItensLog(filtered);
-}
-async function limparLogs() {
-  if (!confirm('Excluir logs com mais de 30 dias?')) return;
-  try {
-    const cutoff = new Date(Date.now()-30*86400000).toISOString();
-    const res = await fetch(`${SUPA_URL}/rest/v1/frt_logs?criado_em=lt.${cutoff}`,{
-      method:'DELETE',
-      headers:hdrs(session?.access_token)
-    });
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    await appLog('acao','Limpeza de logs antigos',{categoria:'sistema'});
-    toast('Logs antigos removidos','success');
-    renderLogs();
-  } catch(e) {
-    toast('Erro: '+e.message,'error');
-  }
-}
-
-// ── ENTER no login ──
-['auth-email','auth-pass'].forEach(id=>{
-  document.getElementById(id).addEventListener('keydown',e=>{
-    if (e.key==='Enter') {
-      if (id==='auth-email') document.getElementById('auth-pass').focus();
-      else fazerLogin();
-    }
-  });
-});
+// ENTER no login
+['ae','ap'].forEach(id=>document.getElementById(id).addEventListener('keydown',e=>{
+  if(e.key==='Enter'){if(id==='ae')document.getElementById('ap').focus();else login();}
+}));
 </script>
 </body>
 </html>
