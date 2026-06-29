@@ -317,12 +317,15 @@ async function login(){
     if(!r.ok)throw new Error(d.error_description||d.message||'Erro no login');
     const m=d.user?.user_metadata||{};
     const isAdmin=m.admin===true||m.admin==='true';
-    if(!isAdmin&&!(m.modulos||[]).includes('frete'))throw new Error('Sem acesso ao módulo Frete');
+    // modulos pode vir como array ou como string JSON
+    let modulos=m.modulos||[];
+    if(typeof modulos==='string'){try{modulos=JSON.parse(modulos)}catch{modulos=[modulos]}}
+    if(!isAdmin&&!modulos.includes('frete'))throw new Error('Sem acesso ao módulo Frete');
     sess=d;user=m.nome||em.split('@')[0];
     document.getElementById('sb-user').textContent=user;
     document.getElementById('auth').classList.add('hidden');
-    await log('acao','Login',{cat:'sistema'});
-    go('cotar');
+    go('cotar'); // primeiro navega, depois loga — log() não pode travar o fluxo
+    log('acao','Login',{cat:'sistema'}); // sem await — falha silenciosa
   }catch(e){document.getElementById('aerr').textContent=e.message}
 }
 function logout(){sess=null;document.getElementById('auth').classList.remove('hidden');document.getElementById('ap').value='';closeSb()}
