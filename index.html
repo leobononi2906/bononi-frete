@@ -598,7 +598,7 @@ async function pgAuditoria(){
   const c=document.getElementById('pg');
   c.innerHTML=`<div class="loading"><div class="spinner"></div>Carregando CTes...</div>`;
   try{
-    const ctes=await db('frt_conhecimentos?select=id,num_cte,serie_cte,data_emissao,nome_transportadora,nome_destinatario,cnpj_destinatario,uf_destino,cidade_destino,peso_kg,valor_mercadoria,valor_frete_cte,valor_frete_nf,valor_pedagio,valor_gris,valor_total_cte,valor_cotado,divergencia,status_auditoria,observacao_auditoria,notas_fiscais,criado_em&order=criado_em.desc');
+    const ctes=await db('frt_conhecimentos?select=id,num_cte,serie_cte,data_emissao,nome_transportadora,nome_destinatario,cnpj_destinatario,uf_destino,cidade_destino,nome_vendedor,valor_mercadoria,valor_frete_cte,valor_frete_nf,valor_pedagio,valor_gris,valor_total_cte,valor_cotado,divergencia,status_auditoria,observacao_auditoria,notas_fiscais,criado_em&order=criado_em.desc');
 
     // filtro padrão: mês corrente
     const now=new Date();
@@ -642,7 +642,7 @@ async function pgAuditoria(){
               <th class="th-sort" onclick="sortCTE('nome_transportadora')">Transportadora <span id="sh-nome_transportadora"></span></th>
               <th class="th-sort" onclick="sortCTE('nome_destinatario')">Destinatário <span id="sh-nome_destinatario"></span></th>
               <th class="th-sort" onclick="sortCTE('uf_destino')">UF <span id="sh-uf_destino"></span></th>
-              <th class="th-sort" onclick="sortCTE('peso_kg')">Peso <span id="sh-peso_kg"></span></th>
+              <th class="th-sort" onclick="sortCTE('nome_vendedor')">Vendedor <span id="sh-nome_vendedor"></span></th>
               <th class="th-sort" onclick="sortCTE('valor_frete_cte')">Vl. CTe <span id="sh-valor_frete_cte"></span></th>
               <th class="th-sort" onclick="sortCTE('valor_frete_nf')">Vl. NF <span id="sh-valor_frete_nf"></span></th>
               <th class="th-sort" onclick="sortCTE('divergencia')">Divergência <span id="sh-divergencia"></span></th>
@@ -722,7 +722,7 @@ function renderCTEdesk(ctes){
       <td style="max-width:130px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${r.nome_transportadora||''}">${r.nome_transportadora||'—'}</td>
       <td style="max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${r.nome_destinatario||''}">${r.nome_destinatario||'—'}</td>
       <td style="text-align:center">${r.uf_destino||'—'}</td>
-      <td style="text-align:right;white-space:nowrap">${r.peso_kg?N(r.peso_kg)+' kg':'—'}</td>
+      <td style="max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${r.nome_vendedor||''}">${r.nome_vendedor||'—'}</td>
       <td style="text-align:right;white-space:nowrap">${R(r.valor_frete_cte)}</td>
       <td style="text-align:right;white-space:nowrap">${R(r.valor_frete_nf)}</td>
       <td style="text-align:right;white-space:nowrap;font-weight:${div!==0?700:400}" class="${divCls}">${div!==0?R(div):'—'}</td>
@@ -766,32 +766,24 @@ async function pgHistorico(){
   c.innerHTML=`<div class="loading"><div class="spinner"></div>Carregando...</div>`;
   try{
     if(!locais.length)locais=await db('frt_locais_expedicao?select=id,nome,cidade,uf').catch(()=>[]);
-    // busca cotações + respostas em paralelo
     const[rows,resps]=await Promise.all([
       db('frt_cotacoes?select=id,id_local,cep_destino,cidade_destino,uf_destino,valor_nf,peso_total_kg,criado_por,criado_em&order=criado_em.desc'),
-      db('frt_cotacoes_respostas?select=id_cotacao,transportadora,valor_frete,prazo_dias,erro&order=valor_frete.asc.nullslast')
+      db('frt_cotacoes_respostas?select=id_cotacao,transportadora,valor_frete,valor_total,prazo_dias,erro&order=id_cotacao.asc,valor_frete.asc.nullslast')
     ]);
     const lm=Object.fromEntries(locais.map(l=>[l.id,l.nome]));
-    // agrupa respostas por cotacao
+    // agrupa respostas por id_cotacao
     const rm={};
-    resps.forEach(r=>{
-      if(!rm[r.id_cotacao])rm[r.id_cotacao]=[];
-      rm[r.id_cotacao].push(r);
-    });
+    resps.forEach(r=>{if(!rm[r.id_cotacao])rm[r.id_cotacao]=[];rm[r.id_cotacao].push(r)});
     c.__hist=rows;c.__lm=lm;c.__rm=rm;
 
-    // transportadoras únicas para colunas
     const transp=['Braspress','Sao Miguel','AGEX','Rodonaves'];
-
     c.innerHTML=`
       <div class="card">
         <div class="flex jb ac mb-3" style="flex-wrap:wrap;gap:8px">
           <div class="card-title" style="margin:0">📋 Histórico de Cotações (${rows.length})</div>
           <input class="fi" id="fh" placeholder="CEP, cidade ou usuário..." oninput="filtHist()" style="max-width:220px"/>
         </div>
-        <!-- MOBILE: cards -->
         <div class="mobile-only" id="hist-mob">${renderHistMob(rows,lm,rm)}</div>
-        <!-- DESKTOP: tabela com resultados -->
         <div class="desktop-only table-wrap">
           <table id="hist-table">
             <thead><tr>
@@ -813,27 +805,27 @@ async function pgHistorico(){
 function renderHistMob(rows,lm,rm){
   if(!rows.length)return`<div class="empty"><div class="ei">📭</div><p>Sem cotações</p></div>`;
   return rows.map(r=>{
-    const res=(rm[r.id]||[]).filter(x=>x.valor_frete);
-    const menor=res.sort((a,b)=>a.valor_frete-b.valor_frete)[0];
+    const res=(rm[r.id]||[]).filter(x=>x.valor_total||x.valor_frete);
+    const menor=res.sort((a,b)=>(a.valor_total||a.valor_frete||0)-(b.valor_total||b.valor_frete||0))[0];
     return`<div class="hist-card">
       <div class="hist-row"><span class="hist-lbl">Data</span><strong>${DT(r.criado_em)}</strong></div>
       <div class="hist-row"><span class="hist-lbl">Origem</span><span>${lm[r.id_local]||'—'}</span></div>
       <div class="hist-row"><span class="hist-lbl">Destino</span><span>${r.cidade_destino||r.cep_destino||'—'}${r.uf_destino?' / '+r.uf_destino:''}</span></div>
       <div class="hist-row"><span class="hist-lbl">Valor NF</span><span>${R(r.valor_nf)}</span></div>
-      ${res.map(x=>`<div class="hist-row"><span class="hist-lbl">${x.transportadora}</span><span style="font-weight:${menor?.transportadora===x.transportadora?'700':'400'};color:${menor?.transportadora===x.transportadora?'var(--green)':'inherit'}">${R(x.valor_frete)}${x.prazo_dias?' · '+x.prazo_dias+'d':''}</span></div>`).join('')}
-      ${(rm[r.id]||[]).filter(x=>x.erro).map(x=>`<div class="hist-row"><span class="hist-lbl">${x.transportadora}</span><span class="text-muted" style="font-size:11px">Indisponível</span></div>`).join('')}
-      ${menor?`<div class="hist-row" style="margin-top:4px;border-top:1px solid var(--border);padding-top:6px"><span class="hist-lbl">✅ Menor</span><span style="color:var(--green);font-weight:700">${menor.transportadora} — ${R(menor.valor_frete)}</span></div>`:''}
+      ${res.map(x=>{const v=x.valor_total||x.valor_frete;const isMin=menor?.transportadora===x.transportadora;return`<div class="hist-row"><span class="hist-lbl">${x.transportadora}</span><span style="font-weight:${isMin?700:400};color:${isMin?'var(--green)':'inherit'}">${R(v)}${x.prazo_dias?' · '+x.prazo_dias+'d':''}</span></div>`}).join('')}
+      ${(rm[r.id]||[]).filter(x=>x.erro&&!x.valor_total&&!x.valor_frete).map(x=>`<div class="hist-row"><span class="hist-lbl">${x.transportadora}</span><span class="text-muted" style="font-size:11px">Indisp.</span></div>`).join('')}
+      ${menor?`<div class="hist-row" style="border-top:1px solid var(--border);padding-top:6px;margin-top:4px"><span class="hist-lbl">✅ Menor</span><span style="color:var(--green);font-weight:700">${menor.transportadora} — ${R(menor.valor_total||menor.valor_frete)}</span></div>`:''}
       <div class="hist-row"><span class="hist-lbl">Usuário</span><span class="text-muted">${r.criado_por||'—'}</span></div>
     </div>`;
   }).join('');
 }
 
 function renderHistDesk(rows,lm,rm,transp){
-  if(!rows.length)return`<tr><td colspan="${5+transp.length+2}"><div class="empty"><div class="ei">📭</div><p>Sem cotações</p></div></td></tr>`;
+  if(!rows.length)return`<tr><td colspan="${4+transp.length+2}"><div class="empty"><div class="ei">📭</div><p>Sem cotações</p></div></td></tr>`;
   return rows.map(r=>{
     const res=rm[r.id]||[];
     const byT={};res.forEach(x=>{byT[x.transportadora]=x});
-    const ok=res.filter(x=>x.valor_frete).sort((a,b)=>a.valor_frete-b.valor_frete);
+    const ok=res.filter(x=>x.valor_total||x.valor_frete).sort((a,b)=>(a.valor_total||a.valor_frete||0)-(b.valor_total||b.valor_frete||0));
     const menor=ok[0];
     return`<tr>
       <td style="white-space:nowrap">${DT(r.criado_em)}</td>
@@ -843,14 +835,15 @@ function renderHistDesk(rows,lm,rm,transp){
       ${transp.map(t=>{
         const x=byT[t];
         if(!x)return`<td style="text-align:center;color:var(--muted)">—</td>`;
-        if(x.erro||!x.valor_frete)return`<td style="text-align:center;font-size:11px;color:var(--muted)">Indisp.</td>`;
+        const v=x.valor_total||x.valor_frete;
+        if(!v)return`<td style="text-align:center;font-size:11px;color:var(--muted)">Indisp.</td>`;
         const isMin=menor?.transportadora===t;
         return`<td style="text-align:center;font-weight:${isMin?700:400};color:${isMin?'var(--green)':'inherit'}">
-          ${R(x.valor_frete)}<br><span style="font-size:10px;color:var(--muted)">${x.prazo_dias?x.prazo_dias+'d':''}</span>
+          ${R(v)}<br><span style="font-size:10px;color:var(--muted)">${x.prazo_dias?x.prazo_dias+'d':''}</span>
         </td>`;
       }).join('')}
-      <td style="white-space:nowrap">${menor?`<span class="badge b-ok">${menor.transportadora}</span>`:'—'}</td>
-      <td class="text-muted">${r.criado_por||'—'}</td>
+      <td style="white-space:nowrap">${menor?`<span class="badge b-ok" style="font-size:11px">${menor.transportadora}</span>`:'—'}</td>
+      <td class="text-muted" style="white-space:nowrap">${r.criado_por||'—'}</td>
     </tr>`;
   }).join('');
 }
@@ -860,8 +853,8 @@ function filtHist(){
   const rows=c.__hist||[],lm=c.__lm||{},rm=c.__rm||{};
   const q=(document.getElementById('fh')?.value||'').toLowerCase();
   const f=q?rows.filter(r=>(r.cep_destino||'').includes(q)||(r.cidade_destino||'').toLowerCase().includes(q)||(r.criado_por||'').toLowerCase().includes(q)):rows;
-  const mob=document.getElementById('hist-mob'),tb=document.getElementById('hist-tb');
   const transp=['Braspress','Sao Miguel','AGEX','Rodonaves'];
+  const mob=document.getElementById('hist-mob'),tb=document.getElementById('hist-tb');
   if(mob)mob.innerHTML=renderHistMob(f,lm,rm);
   if(tb)tb.innerHTML=renderHistDesk(f,lm,rm,transp);
 }
