@@ -368,8 +368,12 @@ async function pgCotar(){
       <div class="field"><label>Valor da NF (R$)</label><input id="vnf" type="number" placeholder="0,00" step="0.01" min="0" inputmode="decimal"/></div>
       <div class="field full">
         <label>CPF / CNPJ do Destinatário <span id="badge-pf-pj" style="margin-left:6px"></span></label>
-        <input id="cnpj" type="tel" placeholder="CPF (PF) ou CNPJ (PJ)" maxlength="18" oninput="mDocDest(this)" inputmode="numeric"/>
-        <span style="font-size:11px;color:var(--muted);margin-top:3px">11 dígitos = Pessoa Física · 14 dígitos = Pessoa Jurídica</span>
+        <div style="display:flex;gap:8px;align-items:center">
+          <input id="cnpj" type="tel" placeholder="CPF ou CNPJ" maxlength="18" oninput="mDocDest(this)" inputmode="numeric" style="flex:1"/>
+          <button class="btn btn-ghost btn-sm" onclick="setPF()" title="Usar CPF padrão PF" style="flex-shrink:0;white-space:nowrap">👤 PF</button>
+          <button class="btn btn-ghost btn-sm" onclick="setPJ()" title="Usar CNPJ padrão PJ" style="flex-shrink:0;white-space:nowrap">🏢 PJ</button>
+        </div>
+        <span style="font-size:11px;color:var(--muted);margin-top:3px">Use os botões para preencher o padrão, ou digite o documento do destinatário</span>
       </div>
     </div>
   </div>
@@ -503,7 +507,23 @@ function mDocDest(el){
   el.value=v;
 }
 
-async function cotar(){
+// Padrões rápidos PF / PJ
+const DOC_PF_PADRAO  = '05646688930';        // CPF padrão PF
+const DOC_PJ_PADRAO  = '08827440000106';     // CNPJ Truckprest (PJ padrão)
+
+function setPF(){
+  const el=document.getElementById('cnpj');
+  if(!el)return;
+  el.value='';el.maxLength=14;
+  // simula digitação para aplicar máscara
+  el.value=DOC_PF_PADRAO;mDocDest(el);
+}
+function setPJ(){
+  const el=document.getElementById('cnpj');
+  if(!el)return;
+  el.value='';el.maxLength=18;
+  el.value=DOC_PJ_PADRAO;mDocDest(el);
+}
   const id_local=parseInt(document.getElementById('id_local')?.value);
   const cep=(document.getElementById('cep')?.value||'').replace(/\D/g,'');
   const cnpj=(document.getElementById('cnpj')?.value||'').replace(/\D/g,'');
@@ -566,28 +586,40 @@ function renderResult(data,c,tipo_dest){
 }
 
 // ────────────────────────────────────────────
-// PAGE: AUDITORIA CTe
+// PAGE: AUDITORIA CTe — tabela com sort e filtro mês
 // ────────────────────────────────────────────
+let auditSort={col:'data_emissao',dir:'desc'};
+
 async function pgAuditoria(){
   const c=document.getElementById('pg');
   c.innerHTML=`<div class="loading"><div class="spinner"></div>Carregando CTes...</div>`;
   try{
-    const ctes=await db('frt_conhecimentos?select=id,num_cte,serie_cte,data_emissao,nome_transportadora,cnpj_transportadora,nome_destinatario,cnpj_destinatario,uf_destino,cidade_destino,peso_kg,valor_mercadoria,valor_frete_cte,valor_frete_nf,valor_pedagio,valor_gris,valor_total_cte,valor_cotado,divergencia,status_auditoria,observacao_auditoria,notas_fiscais,criado_em&order=criado_em.desc');
-    const tot=ctes.length,pend=ctes.filter(x=>x.status_auditoria==='pendente').length,
-          div=ctes.filter(x=>x.status_auditoria==='divergencia').length,ok=ctes.filter(x=>x.status_auditoria==='ok').length;
+    const ctes=await db('frt_conhecimentos?select=id,num_cte,serie_cte,data_emissao,nome_transportadora,nome_destinatario,cnpj_destinatario,uf_destino,cidade_destino,peso_kg,valor_mercadoria,valor_frete_cte,valor_frete_nf,valor_pedagio,valor_gris,valor_total_cte,valor_cotado,divergencia,status_auditoria,observacao_auditoria,notas_fiscais,criado_em&order=criado_em.desc');
+
+    // filtro padrão: mês corrente
+    const now=new Date();
+    const mesAtual=`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
+
     c.__ctes=ctes;
+    c.__mes=mesAtual;
+
+    // stats totais (todos, não só mês)
+    const tot=ctes.length,pend=ctes.filter(x=>x.status_auditoria==='pendente').length,
+          divQ=ctes.filter(x=>x.status_auditoria==='divergencia').length,okQ=ctes.filter(x=>x.status_auditoria==='ok').length;
+
     c.innerHTML=`
       <div class="stats-grid">
         <div class="stat c-blue"><div class="stat-lbl">Total CTes</div><div class="stat-val">${tot}</div></div>
         <div class="stat c-warn"><div class="stat-lbl">Pendentes</div><div class="stat-val">${pend}</div></div>
-        <div class="stat c-red"><div class="stat-lbl">Divergências</div><div class="stat-val">${div}</div></div>
-        <div class="stat c-green"><div class="stat-lbl">OK</div><div class="stat-val">${ok}</div></div>
+        <div class="stat c-red"><div class="stat-lbl">Divergências</div><div class="stat-val">${divQ}</div></div>
+        <div class="stat c-green"><div class="stat-lbl">OK</div><div class="stat-val">${okQ}</div></div>
       </div>
       <div class="card">
         <div class="flex jb ac mb-3" style="flex-wrap:wrap;gap:8px">
-          <div class="card-title" style="margin:0">🧾 Conhecimentos (${tot})</div>
+          <div class="card-title" style="margin:0">🧾 Auditoria CTe</div>
           <div class="filters" style="margin:0">
-            <select class="fi" id="fst" onchange="filtCTE()" style="flex:0 0 auto;min-width:130px">
+            <input class="fi" id="fmes" type="month" value="${mesAtual}" onchange="filtCTE()" style="flex:0 0 auto"/>
+            <select class="fi" id="fst" onchange="filtCTE()" style="flex:0 0 auto;min-width:120px">
               <option value="">Todos status</option>
               <option value="pendente">Pendente</option>
               <option value="ok">OK</option>
@@ -595,24 +627,31 @@ async function pgAuditoria(){
               <option value="contestado">Contestado</option>
               <option value="sem_vinculo">Sem vínculo</option>
             </select>
-            <input class="fi" id="ftr" placeholder="Transportadora ou destinatário..." oninput="filtCTE()"/>
+            <input class="fi" id="ftr" placeholder="Transportadora, dest..." oninput="filtCTE()"/>
           </div>
         </div>
-        <!-- MOBILE -->
-        <div class="mobile-only" id="cte-mob">${renderCTEmob(ctes)}</div>
-        <!-- DESKTOP -->
-        <div class="desktop-only">
-          <div class="table-wrap">
-            <table>
-              <thead><tr>
-                <th>CTe</th><th>Data</th><th>Transportadora</th><th>Destinatário</th>
-                <th>UF</th><th>Peso</th><th>Vl.CTe</th><th>Vl.NF</th><th>Divergência</th><th>Status</th>
-              </tr></thead>
-              <tbody id="cte-tb">${renderCTEdesk(ctes)}</tbody>
-            </table>
-          </div>
+        <div class="table-wrap">
+          <table id="audit-table">
+            <thead><tr>
+              <th class="th-sort" onclick="sortCTE('num_cte')">CTe <span id="sh-num_cte"></span></th>
+              <th class="th-sort" onclick="sortCTE('data_emissao')">Data <span id="sh-data_emissao">↓</span></th>
+              <th class="th-sort" onclick="sortCTE('nome_transportadora')">Transportadora <span id="sh-nome_transportadora"></span></th>
+              <th class="th-sort" onclick="sortCTE('nome_destinatario')">Destinatário <span id="sh-nome_destinatario"></span></th>
+              <th class="th-sort" onclick="sortCTE('uf_destino')">UF <span id="sh-uf_destino"></span></th>
+              <th class="th-sort" onclick="sortCTE('peso_kg')">Peso <span id="sh-peso_kg"></span></th>
+              <th class="th-sort" onclick="sortCTE('valor_frete_cte')">Vl. CTe <span id="sh-valor_frete_cte"></span></th>
+              <th class="th-sort" onclick="sortCTE('valor_frete_nf')">Vl. NF <span id="sh-valor_frete_nf"></span></th>
+              <th class="th-sort" onclick="sortCTE('divergencia')">Divergência <span id="sh-divergencia"></span></th>
+              <th class="th-sort" onclick="sortCTE('status_auditoria')">Status <span id="sh-status_auditoria"></span></th>
+              <th>Observação</th>
+            </tr></thead>
+            <tbody id="cte-tb">${renderCTEdesk(filtrarCtesDados(ctes,mesAtual,'',''))}</tbody>
+          </table>
         </div>
       </div>`;
+
+    // estilo th-sort
+    document.querySelectorAll('.th-sort').forEach(th=>{th.style.cursor='pointer';th.style.userSelect='none';th.style.whiteSpace='nowrap'});
   }catch(e){
     await log('erro','Falha auditoria',{cat:'auditoria',d:{e:e.message}});
     c.innerHTML=`<div class="empty"><div class="ei">❌</div><p>${e.message}</p></div>`;
@@ -620,83 +659,89 @@ async function pgAuditoria(){
   }
 }
 
-function stBadge(s){
-  const m={pendente:'b-warn',ok:'b-ok',divergencia:'b-red',contestado:'b-blue',sem_vinculo:'b-gray'};
-  return`<span class="badge ${m[s]||'b-gray'}">${s||'—'}</span>`;
-}
-function stSelect(id,cur){
-  const opts=['pendente','ok','divergencia','contestado','sem_vinculo'];
-  return`<select class="audit-select" onchange="updCTE(${id},this.value,'status')">
-    ${opts.map(o=>`<option value="${o}"${cur===o?' selected':''}>${o}</option>`).join('')}
-  </select>`;
-}
-
-function renderCTEmob(ctes){
-  if(!ctes.length)return`<div class="empty"><div class="ei">📭</div><p>Nenhum CTe</p></div>`;
-  return ctes.map(r=>{
-    const div=Number(r.divergencia||0);
-    const divCls=div>0?'div-pos':div<0?'div-neg':'';
-    const nfs=r.notas_fiscais?JSON.parse(typeof r.notas_fiscais==='string'?r.notas_fiscais:JSON.stringify(r.notas_fiscais)):[];
-    return`<div class="cte-card" id="cte-${r.id}">
-      <div class="cte-hdr">
-        <div>
-          <div class="cte-num">CTe ${r.num_cte||'—'}${r.serie_cte?' / Série '+r.serie_cte:''}</div>
-          <div class="cte-sub">${r.nome_transportadora||'—'} · ${D(r.data_emissao)}</div>
-        </div>
-        ${stBadge(r.status_auditoria)}
-      </div>
-      <div class="cte-row"><span class="cte-lbl">Destinatário</span><span style="text-align:right;max-width:55%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${r.nome_destinatario||'—'}</span></div>
-      <div class="cte-row"><span class="cte-lbl">CNPJ Dest.</span><span>${r.cnpj_destinatario||'—'}</span></div>
-      <div class="cte-row"><span class="cte-lbl">Destino</span><span>${r.cidade_destino||'—'}${r.uf_destino?' / '+r.uf_destino:''}</span></div>
-      <div class="cte-row"><span class="cte-lbl">Peso</span><span>${r.peso_kg?N(r.peso_kg)+' kg':'—'}</span></div>
-      <div class="cte-row"><span class="cte-lbl">Vl. Mercadoria</span><span>${R(r.valor_mercadoria)}</span></div>
-      <div class="cte-row"><span class="cte-lbl">Vl. Frete CTe</span><span>${R(r.valor_frete_cte)}</span></div>
-      <div class="cte-row"><span class="cte-lbl">Vl. Frete NF</span><span>${R(r.valor_frete_nf)}</span></div>
-      ${r.valor_pedagio?`<div class="cte-row"><span class="cte-lbl">Pedágio</span><span>${R(r.valor_pedagio)}</span></div>`:''}
-      ${r.valor_gris?`<div class="cte-row"><span class="cte-lbl">GRIS</span><span>${R(r.valor_gris)}</span></div>`:''}
-      <div class="cte-row"><span class="cte-lbl">Vl. Total CTe</span><span style="font-weight:700">${R(r.valor_total_cte)}</span></div>
-      <div class="cte-row"><span class="cte-lbl">Vl. Cotado</span><span>${R(r.valor_cotado)}</span></div>
-      <div class="cte-row"><span class="cte-lbl">Divergência</span><span class="${divCls}" style="font-weight:700">${div!==0?R(div):'—'}</span></div>
-      ${nfs.length?`<div class="cte-row"><span class="cte-lbl">NFs</span><span>${nfs.map(n=>n.num_nf||n.chave_nfe?.slice(-9)||'?').join(', ')}</span></div>`:''}
-      ${stSelect(r.id,r.status_auditoria)}
-      <div class="cte-obs">
-        <textarea id="obs-${r.id}" placeholder="Observação de auditoria..." style="margin-top:6px">${r.observacao_auditoria||''}</textarea>
-        <button class="btn btn-ghost btn-sm" style="margin-top:6px;width:100%" onclick="updCTE(${r.id},document.getElementById('obs-${r.id}').value,'obs')">💾 Salvar observação</button>
-      </div>
-    </div>`;
-  }).join('');
+function filtrarCtesDados(ctes,mes,st,q){
+  return ctes.filter(r=>{
+    const dataCte=r.data_emissao||r.criado_em||'';
+    const matchMes=!mes||dataCte.startsWith(mes);
+    const matchSt=!st||r.status_auditoria===st;
+    const qq=q.toLowerCase();
+    const matchQ=!qq||(r.nome_transportadora||'').toLowerCase().includes(qq)||(r.nome_destinatario||'').toLowerCase().includes(qq)||(r.num_cte||'').includes(qq);
+    return matchMes&&matchSt&&matchQ;
+  });
 }
 
-function renderCTEdesk(ctes){
-  if(!ctes.length)return`<tr><td colspan="10"><div class="empty"><div class="ei">📭</div><p>Nenhum CTe</p></div></td></tr>`;
-  return ctes.map(r=>{
-    const div=Number(r.divergencia||0);
-    const divCls=div>0?'text-red':div<0?'text-green':'';
-    return`<tr id="cte-${r.id}">
-      <td><strong>${r.num_cte||'—'}</strong>${r.serie_cte?`<br><span class="text-muted" style="font-size:10px">s.${r.serie_cte}</span>`:''}</td>
-      <td>${D(r.data_emissao)}</td>
-      <td style="max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${r.nome_transportadora||'—'}</td>
-      <td style="max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${r.nome_destinatario||'—'}</td>
-      <td>${r.uf_destino||'—'}</td>
-      <td>${r.peso_kg?N(r.peso_kg)+' kg':'—'}</td>
-      <td>${R(r.valor_frete_cte)}</td>
-      <td>${R(r.valor_frete_nf)}</td>
-      <td class="${divCls}" style="font-weight:700">${div!==0?R(div):'—'}</td>
-      <td><select style="background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:5px 8px;font-size:12px;color:var(--text)" onchange="updCTE(${r.id},this.value,'status')">
-        ${['pendente','ok','divergencia','contestado','sem_vinculo'].map(o=>`<option value="${o}"${r.status_auditoria===o?' selected':''}>${o}</option>`).join('')}
-      </select></td>
-    </tr>`;
-  }).join('');
+function sortCTE(col){
+  const prev=auditSort;
+  auditSort={col,dir:prev.col===col&&prev.dir==='asc'?'desc':'asc'};
+  // atualiza ícones
+  document.querySelectorAll('[id^="sh-"]').forEach(el=>el.textContent='');
+  const sh=document.getElementById(`sh-${col}`);
+  if(sh)sh.textContent=auditSort.dir==='asc'?'↑':'↓';
+  filtCTE();
 }
 
 function filtCTE(){
   const c=document.getElementById('pg'),ctes=c.__ctes||[];
-  const st=document.getElementById('fst')?.value||'',q=(document.getElementById('ftr')?.value||'').toLowerCase();
-  const f=ctes.filter(r=>(!st||r.status_auditoria===st)&&(!q||(r.nome_transportadora||'').toLowerCase().includes(q)||(r.nome_destinatario||'').toLowerCase().includes(q)));
-  const mob=document.getElementById('cte-mob'),tb=document.getElementById('cte-tb');
-  if(mob)mob.innerHTML=renderCTEmob(f);
+  const mes=document.getElementById('fmes')?.value||'';
+  const st=document.getElementById('fst')?.value||'';
+  const q=document.getElementById('ftr')?.value||'';
+  let f=filtrarCtesDados(ctes,mes,st,q);
+  // ordenação
+  const{col,dir}=auditSort;
+  f=[...f].sort((a,b)=>{
+    let va=a[col]??'',vb=b[col]??'';
+    // numérico
+    const na=parseFloat(va),nb=parseFloat(vb);
+    if(!isNaN(na)&&!isNaN(nb)){va=na;vb=nb;}
+    if(va<vb)return dir==='asc'?-1:1;
+    if(va>vb)return dir==='asc'?1:-1;
+    return 0;
+  });
+  const tb=document.getElementById('cte-tb');
   if(tb)tb.innerHTML=renderCTEdesk(f);
 }
+
+function stBadge(s){
+  const m={pendente:'b-warn',ok:'b-ok',divergencia:'b-red',contestado:'b-blue',sem_vinculo:'b-gray'};
+  return`<span class="badge ${m[s]||'b-gray'}">${s||'—'}</span>`;
+}
+
+function renderCTEdesk(ctes){
+  if(!ctes.length)return`<tr><td colspan="11" style="text-align:center;padding:32px;color:var(--muted)">Nenhum CTe encontrado para este período</td></tr>`;
+  return ctes.map(r=>{
+    const div=Number(r.divergencia||0);
+    const divCls=div>0?'text-red':div<0?'text-green':'';
+    const opts=['pendente','ok','divergencia','contestado','sem_vinculo'];
+    return`<tr id="cte-${r.id}">
+      <td style="white-space:nowrap"><strong>${r.num_cte||'—'}</strong>${r.serie_cte?`<br><span style="font-size:10px;color:var(--muted)">s.${r.serie_cte}</span>`:''}</td>
+      <td style="white-space:nowrap">${D(r.data_emissao)}</td>
+      <td style="max-width:130px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${r.nome_transportadora||''}">${r.nome_transportadora||'—'}</td>
+      <td style="max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${r.nome_destinatario||''}">${r.nome_destinatario||'—'}</td>
+      <td style="text-align:center">${r.uf_destino||'—'}</td>
+      <td style="text-align:right;white-space:nowrap">${r.peso_kg?N(r.peso_kg)+' kg':'—'}</td>
+      <td style="text-align:right;white-space:nowrap">${R(r.valor_frete_cte)}</td>
+      <td style="text-align:right;white-space:nowrap">${R(r.valor_frete_nf)}</td>
+      <td style="text-align:right;white-space:nowrap;font-weight:${div!==0?700:400}" class="${divCls}">${div!==0?R(div):'—'}</td>
+      <td>
+        <select style="background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:4px 8px;font-size:12px;color:var(--text);cursor:pointer;width:100px"
+          onchange="updCTE(${r.id},this.value,'status')">
+          ${opts.map(o=>`<option value="${o}"${r.status_auditoria===o?' selected':''}>${o}</option>`).join('')}
+        </select>
+      </td>
+      <td>
+        <div style="display:flex;gap:4px;align-items:center;min-width:160px">
+          <input type="text" id="obs-${r.id}" value="${(r.observacao_auditoria||'').replace(/"/g,'&quot;')}" 
+            placeholder="Observação..." 
+            style="flex:1;padding:4px 7px;font-size:12px;border-radius:5px;min-width:0"
+            onkeydown="if(event.key==='Enter')updCTE(${r.id},this.value,'obs')"/>
+          <button class="btn btn-ghost btn-sm" style="padding:4px 7px;font-size:12px;flex-shrink:0" 
+            onclick="updCTE(${r.id},document.getElementById('obs-${r.id}').value,'obs')" title="Salvar">💾</button>
+        </div>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
 
 async function updCTE(id,val,campo){
   try{
@@ -710,62 +755,111 @@ async function updCTE(id,val,campo){
 }
 
 // ────────────────────────────────────────────
-// PAGE: HISTÓRICO
+// PAGE: HISTÓRICO com resultados por transportadora
 // ────────────────────────────────────────────
 async function pgHistorico(){
   const c=document.getElementById('pg');
   c.innerHTML=`<div class="loading"><div class="spinner"></div>Carregando...</div>`;
   try{
     if(!locais.length)locais=await db('frt_locais_expedicao?select=id,nome,cidade,uf').catch(()=>[]);
-    const rows=await db('frt_cotacoes?select=*&order=criado_em.desc');
+    // busca cotações + respostas em paralelo
+    const[rows,resps]=await Promise.all([
+      db('frt_cotacoes?select=id,id_local,cep_destino,cidade_destino,uf_destino,valor_nf,peso_total_kg,criado_por,criado_em&order=criado_em.desc'),
+      db('frt_cotacoes_respostas?select=id_cotacao,transportadora,valor_frete,prazo_dias,erro&order=valor_frete.asc.nullslast')
+    ]);
     const lm=Object.fromEntries(locais.map(l=>[l.id,l.nome]));
-    c.__hist=rows;c.__lm=lm;
+    // agrupa respostas por cotacao
+    const rm={};
+    resps.forEach(r=>{
+      if(!rm[r.id_cotacao])rm[r.id_cotacao]=[];
+      rm[r.id_cotacao].push(r);
+    });
+    c.__hist=rows;c.__lm=lm;c.__rm=rm;
+
+    // transportadoras únicas para colunas
+    const transp=['Braspress','Sao Miguel','AGEX','Rodonaves'];
+
     c.innerHTML=`
       <div class="card">
         <div class="flex jb ac mb-3" style="flex-wrap:wrap;gap:8px">
-          <div class="card-title" style="margin:0">📋 Cotações (${rows.length})</div>
-          <input class="fi" id="fh" placeholder="CEP, cidade ou usuário..." oninput="filtHist()" style="max-width:240px"/>
+          <div class="card-title" style="margin:0">📋 Histórico de Cotações (${rows.length})</div>
+          <input class="fi" id="fh" placeholder="CEP, cidade ou usuário..." oninput="filtHist()" style="max-width:220px"/>
         </div>
-        <div class="mobile-only" id="hist-mob">${renderHistMob(rows,lm)}</div>
-        <div class="desktop-only">
-          <div class="table-wrap">
-            <table>
-              <thead><tr><th>#</th><th>Data</th><th>Origem</th><th>CEP</th><th>Cidade/UF</th><th>Valor NF</th><th>Peso</th><th>Usuário</th></tr></thead>
-              <tbody id="hist-tb">${renderHistDesk(rows,lm)}</tbody>
-            </table>
-          </div>
+        <!-- MOBILE: cards -->
+        <div class="mobile-only" id="hist-mob">${renderHistMob(rows,lm,rm)}</div>
+        <!-- DESKTOP: tabela com resultados -->
+        <div class="desktop-only table-wrap">
+          <table id="hist-table">
+            <thead><tr>
+              <th>Data/Hora</th>
+              <th>Origem</th>
+              <th>Destino</th>
+              <th>Valor NF</th>
+              ${transp.map(t=>`<th style="text-align:center">${t}</th>`).join('')}
+              <th>✅ Menor</th>
+              <th>Usuário</th>
+            </tr></thead>
+            <tbody id="hist-tb">${renderHistDesk(rows,lm,rm,transp)}</tbody>
+          </table>
         </div>
       </div>`;
   }catch(e){c.innerHTML=`<div class="empty"><div class="ei">❌</div><p>${e.message}</p></div>`}
 }
-function renderHistMob(rows,lm){
+
+function renderHistMob(rows,lm,rm){
   if(!rows.length)return`<div class="empty"><div class="ei">📭</div><p>Sem cotações</p></div>`;
-  return rows.map(r=>`<div class="hist-card">
-    <div class="hist-row"><span class="hist-lbl">Data</span><strong>${DT(r.criado_em)}</strong></div>
-    <div class="hist-row"><span class="hist-lbl">Origem</span><span>${lm[r.id_local]||r.id_local||'—'}</span></div>
-    <div class="hist-row"><span class="hist-lbl">CEP</span><span>${r.cep_destino||'—'}</span></div>
-    <div class="hist-row"><span class="hist-lbl">Cidade/UF</span><span>${r.cidade_destino||'—'}${r.uf_destino?' / '+r.uf_destino:''}</span></div>
-    <div class="hist-row"><span class="hist-lbl">Valor NF</span><span>${R(r.valor_nf)}</span></div>
-    <div class="hist-row"><span class="hist-lbl">Peso</span><span>${r.peso_total_kg?N(r.peso_total_kg)+' kg':'—'}</span></div>
-    <div class="hist-row"><span class="hist-lbl">Usuário</span><span class="text-muted">${r.criado_por||'—'}</span></div>
-  </div>`).join('');
+  return rows.map(r=>{
+    const res=(rm[r.id]||[]).filter(x=>x.valor_frete);
+    const menor=res.sort((a,b)=>a.valor_frete-b.valor_frete)[0];
+    return`<div class="hist-card">
+      <div class="hist-row"><span class="hist-lbl">Data</span><strong>${DT(r.criado_em)}</strong></div>
+      <div class="hist-row"><span class="hist-lbl">Origem</span><span>${lm[r.id_local]||'—'}</span></div>
+      <div class="hist-row"><span class="hist-lbl">Destino</span><span>${r.cidade_destino||r.cep_destino||'—'}${r.uf_destino?' / '+r.uf_destino:''}</span></div>
+      <div class="hist-row"><span class="hist-lbl">Valor NF</span><span>${R(r.valor_nf)}</span></div>
+      ${res.map(x=>`<div class="hist-row"><span class="hist-lbl">${x.transportadora}</span><span style="font-weight:${menor?.transportadora===x.transportadora?'700':'400'};color:${menor?.transportadora===x.transportadora?'var(--green)':'inherit'}">${R(x.valor_frete)}${x.prazo_dias?' · '+x.prazo_dias+'d':''}</span></div>`).join('')}
+      ${(rm[r.id]||[]).filter(x=>x.erro).map(x=>`<div class="hist-row"><span class="hist-lbl">${x.transportadora}</span><span class="text-muted" style="font-size:11px">Indisponível</span></div>`).join('')}
+      ${menor?`<div class="hist-row" style="margin-top:4px;border-top:1px solid var(--border);padding-top:6px"><span class="hist-lbl">✅ Menor</span><span style="color:var(--green);font-weight:700">${menor.transportadora} — ${R(menor.valor_frete)}</span></div>`:''}
+      <div class="hist-row"><span class="hist-lbl">Usuário</span><span class="text-muted">${r.criado_por||'—'}</span></div>
+    </div>`;
+  }).join('');
 }
-function renderHistDesk(rows,lm){
-  if(!rows.length)return`<tr><td colspan="8"><div class="empty"><div class="ei">📭</div><p>Sem cotações</p></div></td></tr>`;
-  return rows.map(r=>`<tr>
-    <td class="text-muted">${r.id}</td><td>${DT(r.criado_em)}</td>
-    <td>${lm[r.id_local]||r.id_local||'—'}</td><td>${r.cep_destino||'—'}</td>
-    <td>${r.cidade_destino||'—'}${r.uf_destino?' / '+r.uf_destino:''}</td>
-    <td>${R(r.valor_nf)}</td><td>${r.peso_total_kg?N(r.peso_total_kg)+' kg':'—'}</td>
-    <td class="text-muted">${r.criado_por||'—'}</td>
-  </tr>`).join('');
+
+function renderHistDesk(rows,lm,rm,transp){
+  if(!rows.length)return`<tr><td colspan="${5+transp.length+2}"><div class="empty"><div class="ei">📭</div><p>Sem cotações</p></div></td></tr>`;
+  return rows.map(r=>{
+    const res=rm[r.id]||[];
+    const byT={};res.forEach(x=>{byT[x.transportadora]=x});
+    const ok=res.filter(x=>x.valor_frete).sort((a,b)=>a.valor_frete-b.valor_frete);
+    const menor=ok[0];
+    return`<tr>
+      <td style="white-space:nowrap">${DT(r.criado_em)}</td>
+      <td>${lm[r.id_local]||'—'}</td>
+      <td style="white-space:nowrap">${r.cidade_destino||r.cep_destino||'—'}${r.uf_destino?' / '+r.uf_destino:''}</td>
+      <td style="white-space:nowrap">${R(r.valor_nf)}</td>
+      ${transp.map(t=>{
+        const x=byT[t];
+        if(!x)return`<td style="text-align:center;color:var(--muted)">—</td>`;
+        if(x.erro||!x.valor_frete)return`<td style="text-align:center;font-size:11px;color:var(--muted)">Indisp.</td>`;
+        const isMin=menor?.transportadora===t;
+        return`<td style="text-align:center;font-weight:${isMin?700:400};color:${isMin?'var(--green)':'inherit'}">
+          ${R(x.valor_frete)}<br><span style="font-size:10px;color:var(--muted)">${x.prazo_dias?x.prazo_dias+'d':''}</span>
+        </td>`;
+      }).join('')}
+      <td style="white-space:nowrap">${menor?`<span class="badge b-ok">${menor.transportadora}</span>`:'—'}</td>
+      <td class="text-muted">${r.criado_por||'—'}</td>
+    </tr>`;
+  }).join('');
 }
+
 function filtHist(){
-  const c=document.getElementById('pg');const rows=c.__hist||[],lm=c.__lm||{};
+  const c=document.getElementById('pg');
+  const rows=c.__hist||[],lm=c.__lm||{},rm=c.__rm||{};
   const q=(document.getElementById('fh')?.value||'').toLowerCase();
   const f=q?rows.filter(r=>(r.cep_destino||'').includes(q)||(r.cidade_destino||'').toLowerCase().includes(q)||(r.criado_por||'').toLowerCase().includes(q)):rows;
   const mob=document.getElementById('hist-mob'),tb=document.getElementById('hist-tb');
-  if(mob)mob.innerHTML=renderHistMob(f,lm);if(tb)tb.innerHTML=renderHistDesk(f,lm);
+  const transp=['Braspress','Sao Miguel','AGEX','Rodonaves'];
+  if(mob)mob.innerHTML=renderHistMob(f,lm,rm);
+  if(tb)tb.innerHTML=renderHistDesk(f,lm,rm,transp);
 }
 
 // ────────────────────────────────────────────
