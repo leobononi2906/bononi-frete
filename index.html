@@ -311,8 +311,30 @@ const PAGES_COM_MES=['auditoria','historico','logs'];
 function hdrs(t){return{'apikey':KEY,'Authorization':'Bearer '+(t||KEY),'Content-Type':'application/json'}}
 async function db(path,opts={}){
   const url=`${SB}/rest/v1/${path}${path.includes('?')?'&':'?'}limit=9999`;
-  const r=await fetch(url,{headers:hdrs(sess?.access_token),...opts});
-  if(!r.ok){const e=await r.text();throw new Error(`[${r.status}] ${e.slice(0,200)}`)}
+  let r;
+  try{
+    r=await fetch(url,{headers:hdrs(sess?.access_token),...opts});
+  }catch(netErr){
+    // erro de rede — sem resposta do servidor
+    const msg=`Erro de rede: ${netErr.message}`;
+    log('erro',msg,{cat:'banco',d:{query:path.split('?')[0],erro:netErr.message}});
+    throw new Error(msg);
+  }
+  if(!r.ok){
+    const body=await r.text();
+    const msg=`[${r.status}] ${body.slice(0,300)}`;
+    // loga automaticamente todo erro de banco com query e status
+    log('erro',`Erro na query: ${path.split('?')[0]}`,{
+      cat:'banco',
+      d:{
+        tabela: path.split('?')[0],
+        status: r.status,
+        erro:   body.slice(0,500),
+        metodo: opts.method||'GET',
+      }
+    });
+    throw new Error(msg);
+  }
   return r.json();
 }
 const R=v=>v==null?'—':Number(v).toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
@@ -783,11 +805,14 @@ async function updCTE(id,val,campo){
   try{
     const body=campo==='status'?{status_auditoria:val,atualizado_em:new Date().toISOString()}:{observacao_auditoria:val,atualizado_em:new Date().toISOString()};
     const r=await fetch(`${SB}/rest/v1/frt_conhecimentos?id=eq.${id}`,{method:'PATCH',headers:{...hdrs(sess?.access_token),'Prefer':'return=minimal'},body:JSON.stringify(body)});
-    if(!r.ok)throw new Error(`HTTP ${r.status}`);
+    if(!r.ok)throw new Error(`[${r.status}] ${(await r.text()).slice(0,200)}`);
     await log('acao',campo==='status'?`CTe #${id} → ${val}`:`Obs CTe #${id} salva`,{cat:'auditoria'});
     toast(campo==='status'?`Status: ${val}`:'Observação salva','success');
     const c=document.getElementById('pg');if(c.__ctes){const x=c.__ctes.find(x=>x.id===id);if(x){if(campo==='status')x.status_auditoria=val;else x.observacao_auditoria=val;}}
-  }catch(e){toast('Erro: '+e.message,'error')}
+  }catch(e){
+    log('erro',`Falha ao atualizar CTe #${id} (${campo})`,{cat:'auditoria',d:{id,campo,val,erro:e.message}});
+    toast('Erro: '+e.message,'error');
+  }
 }
 
 // ────────────────────────────────────────────
@@ -1002,19 +1027,26 @@ async function salvarDim(){
     // limpa form
     ['nd','nr','np','na','nl','nc'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
     pgDimensoes();
-  }catch(e){toast('Erro: '+e.message,'error')}
+  }catch(e){
+    log('erro',`Falha ao salvar dimensão "${desc}"`,{cat:'dimensoes',d:{desc,ref,peso,erro:e.message}});
+    toast('Erro: '+e.message,'error');
+  }
 }
 
 async function delDim(id){
   if(!confirm('Excluir esta dimensão?'))return;
   try{
-    await fetch(`${SB}/rest/v1/frt_produtos_dimensoes?id=eq.${id}`,{
+    const rd=await fetch(`${SB}/rest/v1/frt_produtos_dimensoes?id=eq.${id}`,{
       method:'PATCH',headers:{...hdrs(sess?.access_token),'Prefer':'return=minimal'},
       body:JSON.stringify({ativo:false})
     });
+    if(!rd.ok)throw new Error(`HTTP ${rd.status}: ${(await rd.text()).slice(0,200)}`);
     await log('acao',`Dimensão #${id} removida`,{cat:'dimensoes'});
     toast('Dimensão removida','success');pgDimensoes();
-  }catch(e){toast('Erro: '+e.message,'error')}
+  }catch(e){
+    log('erro',`Falha ao remover dimensão #${id}`,{cat:'dimensoes',d:{id,erro:e.message}});
+    toast('Erro: '+e.message,'error');
+  }
 }
 
 // ────────────────────────────────────────────
@@ -1079,9 +1111,14 @@ async function limparLogs(){
   if(!confirm('Excluir logs com mais de 30 dias?'))return;
   try{
     const cut=new Date(Date.now()-30*86400000).toISOString();
-    await fetch(`${SB}/rest/v1/frt_logs?criado_em=lt.${cut}`,{method:'DELETE',headers:hdrs(sess?.access_token)});
-    await log('acao','Limpeza de logs',{cat:'sistema'});toast('Logs antigos removidos','success');pgLogs();
-  }catch(e){toast('Erro: '+e.message,'error')}
+    const r=await fetch(`${SB}/rest/v1/frt_logs?criado_em=lt.${cut}`,{method:'DELETE',headers:hdrs(sess?.access_token)});
+    if(!r.ok)throw new Error(`HTTP ${r.status}: ${(await r.text()).slice(0,200)}`);
+    await log('acao','Limpeza de logs antigos',{cat:'sistema'});
+    toast('Logs antigos removidos','success');pgLogs();
+  }catch(e){
+    log('erro','Falha ao limpar logs',{cat:'sistema',d:{erro:e.message}});
+    toast('Erro: '+e.message,'error');
+  }
 }
 
 // ENTER no login
