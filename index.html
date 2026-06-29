@@ -262,9 +262,15 @@ td select{padding:5px 8px;font-size:12px;border-radius:6px}
   <div id="main">
     <div class="topbar">
       <button id="menu-btn" onclick="toggleSb()">☰</button>
-      <div>
+      <div style="flex:1;min-width:0">
         <h1 id="pg-title">Cotar Frete</h1>
         <div class="topbar-sub" id="pg-sub">Comparativo entre transportadoras</div>
+      </div>
+      <div id="mes-filtro-wrap" class="hidden" style="display:flex;align-items:center;gap:8px;flex-shrink:0">
+        <span style="font-size:11px;color:var(--muted);white-space:nowrap">📅 Mês</span>
+        <input type="month" id="mes-global" 
+          style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:6px 10px;font-size:13px;color:var(--text);outline:none;cursor:pointer"
+          onchange="aplicarMesGlobal()"/>
       </div>
     </div>
     <div class="page" id="pg"></div>
@@ -278,6 +284,28 @@ const SB   = 'https://vishxwdxqiygbxmtpfoy.supabase.co';
 const KEY  = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZpc2h4d2R4cWl5Z2J4bXRwZm95Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI0Njg2MjIsImV4cCI6MjA4ODA0NDYyMn0.J647m3ieDHahNQYBWMRESl0aPFXsT_zt_7ZcDvyB-SA';
 const EDGE = SB+'/functions/v1';
 let sess=null, user='', locais=[], volIdx=0;
+
+// Mês global — compartilhado entre auditoria, histórico e logs
+const now = new Date();
+let mesGlobal = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
+
+function iniciarMesGlobal(){
+  const el=document.getElementById('mes-global');
+  if(el) el.value=mesGlobal;
+}
+function aplicarMesGlobal(){
+  const el=document.getElementById('mes-global');
+  if(!el) return;
+  mesGlobal=el.value;
+  // reaplica na página atual
+  const titulo=document.getElementById('pg-title')?.textContent||'';
+  if(titulo.includes('Auditoria')) filtCTE();
+  else if(titulo.includes('Histórico')) pgHistorico();
+  else if(titulo.includes('Logs')) pgLogs();
+}
+
+// Páginas que usam filtro de mês global
+const PAGES_COM_MES=['auditoria','historico','logs'];
 
 // ── UTILS ──
 function hdrs(t){return{'apikey':KEY,'Authorization':'Bearer '+(t||KEY),'Content-Type':'application/json'}}
@@ -347,6 +375,18 @@ function go(p){
   document.getElementById('nav-'+p)?.classList.add('active');
   document.getElementById('pg-title').textContent=PAGES[p].t;
   document.getElementById('pg-sub').textContent=PAGES[p].s;
+  // mostrar/ocultar filtro de mês global
+  const wrap=document.getElementById('mes-filtro-wrap');
+  if(wrap){
+    if(PAGES_COM_MES.includes(p)){
+      wrap.classList.remove('hidden');
+      wrap.style.display='flex';
+      iniciarMesGlobal();
+    } else {
+      wrap.classList.add('hidden');
+      wrap.style.display='none';
+    }
+  }
   closeSb();PAGES[p].fn();
 }
 
@@ -600,12 +640,8 @@ async function pgAuditoria(){
   try{
     const ctes=await db('frt_conhecimentos?select=id,num_cte,serie_cte,data_emissao,nome_transportadora,nome_destinatario,cnpj_destinatario,uf_destino,cidade_destino,nome_vendedor,valor_mercadoria,valor_frete_cte,valor_frete_nf,valor_pedagio,valor_gris,valor_total_cte,valor_cotado,divergencia,status_auditoria,observacao_auditoria,notas_fiscais,criado_em&order=criado_em.desc');
 
-    // filtro padrão: mês corrente
-    const now=new Date();
-    const mesAtual=`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
-
+    // filtro padrão: mês global
     c.__ctes=ctes;
-    c.__mes=mesAtual;
 
     // stats totais (todos, não só mês)
     const tot=ctes.length,pend=ctes.filter(x=>x.status_auditoria==='pendente').length,
@@ -622,7 +658,6 @@ async function pgAuditoria(){
         <div class="flex jb ac mb-3" style="flex-wrap:wrap;gap:8px">
           <div class="card-title" style="margin:0">🧾 Auditoria CTe</div>
           <div class="filters" style="margin:0">
-            <input class="fi" id="fmes" type="month" value="${mesAtual}" onchange="filtCTE()" style="flex:0 0 auto"/>
             <select class="fi" id="fst" onchange="filtCTE()" style="flex:0 0 auto;min-width:120px">
               <option value="">Todos status</option>
               <option value="pendente">Pendente</option>
@@ -649,7 +684,7 @@ async function pgAuditoria(){
               <th class="th-sort" onclick="sortCTE('status_auditoria')">Status <span id="sh-status_auditoria"></span></th>
               <th>Observação</th>
             </tr></thead>
-            <tbody id="cte-tb">${renderCTEdesk(filtrarCtesDados(ctes,mesAtual,'',''))}</tbody>
+            <tbody id="cte-tb">${renderCTEdesk(filtrarCtesDados(ctes,mesGlobal,'',''))}</tbody>
           </table>
         </div>
       </div>`;
@@ -686,15 +721,12 @@ function sortCTE(col){
 
 function filtCTE(){
   const c=document.getElementById('pg'),ctes=c.__ctes||[];
-  const mes=document.getElementById('fmes')?.value||'';
   const st=document.getElementById('fst')?.value||'';
   const q=document.getElementById('ftr')?.value||'';
-  let f=filtrarCtesDados(ctes,mes,st,q);
-  // ordenação
+  let f=filtrarCtesDados(ctes,mesGlobal,st,q);
   const{col,dir}=auditSort;
   f=[...f].sort((a,b)=>{
     let va=a[col]??'',vb=b[col]??'';
-    // numérico
     const na=parseFloat(va),nb=parseFloat(vb);
     if(!isNaN(na)&&!isNaN(nb)){va=na;vb=nb;}
     if(va<vb)return dir==='asc'?-1:1;
@@ -775,31 +807,32 @@ async function pgHistorico(){
     const rm={};
     resps.forEach(r=>{if(!rm[r.id_cotacao])rm[r.id_cotacao]=[];rm[r.id_cotacao].push(r)});
     c.__hist=rows;c.__lm=lm;c.__rm=rm;
-
     const transp=['Braspress','Sao Miguel','AGEX','Rodonaves'];
+    const filtrados=filtrarPorMes(rows,'criado_em',mesGlobal);
     c.innerHTML=`
       <div class="card">
         <div class="flex jb ac mb-3" style="flex-wrap:wrap;gap:8px">
-          <div class="card-title" style="margin:0">📋 Histórico de Cotações (${rows.length})</div>
+          <div class="card-title" style="margin:0">📋 Cotações (${filtrados.length} de ${rows.length})</div>
           <input class="fi" id="fh" placeholder="CEP, cidade ou usuário..." oninput="filtHist()" style="max-width:220px"/>
         </div>
-        <div class="mobile-only" id="hist-mob">${renderHistMob(rows,lm,rm)}</div>
+        <div class="mobile-only" id="hist-mob">${renderHistMob(filtrados,lm,rm)}</div>
         <div class="desktop-only table-wrap">
-          <table id="hist-table">
+          <table>
             <thead><tr>
-              <th>Data/Hora</th>
-              <th>Origem</th>
-              <th>Destino</th>
-              <th>Valor NF</th>
+              <th>Data/Hora</th><th>Origem</th><th>Destino</th><th>Valor NF</th>
               ${transp.map(t=>`<th style="text-align:center">${t}</th>`).join('')}
-              <th>✅ Menor</th>
-              <th>Usuário</th>
+              <th>✅ Menor</th><th>Usuário</th>
             </tr></thead>
-            <tbody id="hist-tb">${renderHistDesk(rows,lm,rm,transp)}</tbody>
+            <tbody id="hist-tb">${renderHistDesk(filtrados,lm,rm,transp)}</tbody>
           </table>
         </div>
       </div>`;
   }catch(e){c.innerHTML=`<div class="empty"><div class="ei">❌</div><p>${e.message}</p></div>`}
+}
+
+function filtrarPorMes(rows,campo,mes){
+  if(!mes) return rows;
+  return rows.filter(r=>(r[campo]||'').startsWith(mes));
 }
 
 function renderHistMob(rows,lm,rm){
@@ -852,7 +885,8 @@ function filtHist(){
   const c=document.getElementById('pg');
   const rows=c.__hist||[],lm=c.__lm||{},rm=c.__rm||{};
   const q=(document.getElementById('fh')?.value||'').toLowerCase();
-  const f=q?rows.filter(r=>(r.cep_destino||'').includes(q)||(r.cidade_destino||'').toLowerCase().includes(q)||(r.criado_por||'').toLowerCase().includes(q)):rows;
+  let f=filtrarPorMes(rows,'criado_em',mesGlobal);
+  if(q) f=f.filter(r=>(r.cep_destino||'').includes(q)||(r.cidade_destino||'').toLowerCase().includes(q)||(r.criado_por||'').toLowerCase().includes(q));
   const transp=['Braspress','Sao Miguel','AGEX','Rodonaves'];
   const mob=document.getElementById('hist-mob'),tb=document.getElementById('hist-tb');
   if(mob)mob.innerHTML=renderHistMob(f,lm,rm);
@@ -991,8 +1025,9 @@ async function pgLogs(){
   c.innerHTML=`<div class="loading"><div class="spinner"></div>Carregando...</div>`;
   try{
     const logs=await db('frt_logs?select=*&order=criado_em.desc');
-    const er=logs.filter(l=>l.tipo==='erro').length,ac=logs.filter(l=>l.tipo==='acao').length,av=logs.filter(l=>l.tipo==='aviso').length;
-    c.__logs=logs;
+    const filtrados=filtrarPorMes(logs,'criado_em',mesGlobal);
+    const er=filtrados.filter(l=>l.tipo==='erro').length,ac=filtrados.filter(l=>l.tipo==='acao').length,av=filtrados.filter(l=>l.tipo==='aviso').length;
+    c.__logs=filtrados;
     c.innerHTML=`
       <div class="stats-grid">
         <div class="stat c-blue"><div class="stat-lbl">Total</div><div class="stat-val">${logs.length}</div></div>
