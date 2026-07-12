@@ -43,12 +43,11 @@ nav{flex:1;padding:10px 8px;overflow-y:auto}
 #overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:49}
 #overlay.open{display:block}
 
-/* AUTH */
-#auth{position:fixed;inset:0;background:var(--bg);display:flex;align-items:center;justify-content:center;z-index:100;padding:16px}
-.auth-box{background:var(--surface);border:1px solid var(--border);border-radius:18px;padding:32px 28px;width:100%;max-width:360px;text-align:center}
-.auth-box h2{font-size:20px;font-weight:700;color:var(--accent);margin:8px 0 3px}
-.auth-box p{font-size:13px;color:var(--muted);margin-bottom:24px}
-.err{color:var(--danger);font-size:13px;margin-bottom:10px;min-height:18px}
+/* CONFIRM MODAL */
+.confirm-overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:200;display:flex;align-items:center;justify-content:center;padding:16px}
+.confirm-box{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:24px;width:100%;max-width:360px;text-align:center}
+.confirm-box p{font-size:14px;margin-bottom:20px;line-height:1.5}
+.confirm-btns{display:flex;gap:10px;justify-content:center}
 
 /* INPUTS */
 input,select,textarea{font-family:inherit;font-size:16px;color:var(--text);background:var(--surface2);border:1px solid var(--border);border-radius:9px;padding:11px 12px;outline:none;-webkit-appearance:none;width:100%}
@@ -226,17 +225,7 @@ td select{padding:5px 8px;font-size:12px;border-radius:6px}
 </head>
 <body>
 
-<div id="auth">
-  <div class="auth-box">
-    <div style="font-size:40px">🚚</div>
-    <h2>App de Frete</h2>
-    <p>Grupo Bononi Acessórios</p>
-    <input id="ae" type="email" placeholder="E-mail" autocomplete="email" style="margin-bottom:10px"/>
-    <input id="ap" type="password" placeholder="Senha" autocomplete="current-password" style="margin-bottom:12px"/>
-    <div class="err" id="aerr"></div>
-    <button class="btn btn-primary btn-full" onclick="fazerLogin()">Entrar</button>
-  </div>
-</div>
+<!-- Auth removido — acesso direto -->
 
 <div id="overlay" onclick="closeSb()"></div>
 
@@ -253,10 +242,7 @@ td select{padding:5px 8px;font-size:12px;border-radius:6px}
       <div class="nav-item" id="nav-dimensoes" onclick="go('dimensoes')"><span class="nav-icon">📦</span>Dimensões</div>
       <div class="nav-item" id="nav-logs" onclick="go('logs')"><span class="nav-icon">🔍</span>Logs</div>
     </nav>
-    <div class="sb-footer">
-      <div id="sb-user"></div>
-      <div class="btn-sair" onclick="logout()">Sair →</div>
-    </div>
+    <!-- footer removido — sem login -->
   </div>
 
   <div id="main">
@@ -308,12 +294,12 @@ function aplicarMesGlobal(){
 const PAGES_COM_MES=['auditoria','historico','logs'];
 
 // ── UTILS ──
-function hdrs(t){return{'apikey':KEY,'Authorization':'Bearer '+(t||KEY),'Content-Type':'application/json'}}
+function hdrs(){return{'apikey':KEY,'Authorization':'Bearer '+KEY,'Content-Type':'application/json'}}
 async function db(path,opts={}){
   const url=`${SB}/rest/v1/${path}${path.includes('?')?'&':'?'}limit=9999`;
   let r;
   try{
-    r=await fetch(url,{headers:hdrs(sess?.access_token),...opts});
+    r=await fetch(url,{headers:hdrs(),...opts});
   }catch(netErr){
     // erro de rede — sem resposta do servidor
     const msg=`Erro de rede: ${netErr.message}`;
@@ -348,37 +334,29 @@ function toast(msg,t='info'){
 }
 async function log(tipo,desc,extra={}){
   try{await fetch(`${SB}/rest/v1/frt_logs`,{method:'POST',
-    headers:{...hdrs(sess?.access_token),'Prefer':'return=minimal'},
+    headers:{...hdrs(),'Prefer':'return=minimal'},
     body:JSON.stringify({tipo,descricao:desc,categoria:extra.cat||null,detalhe:extra.d||null,usuario:user||'—'})
   })}catch(e){console.warn('log:',e.message)}
 }
 
-// ── AUTH ──
-async function fazerLogin(){
-  const em=document.getElementById('ae').value.trim(),pw=document.getElementById('ap').value;
-  const er=document.getElementById('aerr');er.textContent='';
-  if(!em||!pw){er.textContent='Preencha e-mail e senha';return}
-  try{
-    const r=await fetch(`${SB}/auth/v1/token?grant_type=password`,{
-      method:'POST',headers:{'apikey':KEY,'Content-Type':'application/json'},
-      body:JSON.stringify({email:em,password:pw})
-    });
-    const d=await r.json();
-    if(!r.ok)throw new Error(d.error_description||d.message||'Erro no login');
-    const m=d.user?.user_metadata||{};
-    const isAdmin=m.admin===true||m.admin==='true';
-    // modulos pode vir como array ou como string JSON
-    let modulos=m.modulos||[];
-    if(typeof modulos==='string'){try{modulos=JSON.parse(modulos)}catch{modulos=[modulos]}}
-    if(!isAdmin&&!modulos.includes('frete'))throw new Error('Sem acesso ao módulo Frete');
-    sess=d;user=m.nome||em.split('@')[0];
-    document.getElementById('sb-user').textContent=user;
-    document.getElementById('auth').classList.add('hidden');
-    go('cotar'); // primeiro navega, depois loga — log() não pode travar o fluxo
-    log('acao','Login',{cat:'sistema'}); // sem await — falha silenciosa
-  }catch(e){document.getElementById('aerr').textContent=e.message}
+// ── CONFIRM MODAL (substitui confirm() nativo — funciona no Safari iOS) ──
+function confirmar(msg){
+  return new Promise(resolve=>{
+    const ov=document.createElement('div');ov.className='confirm-overlay';
+    ov.innerHTML=`<div class="confirm-box"><p>${msg}</p><div class="confirm-btns">
+      <button class="btn btn-ghost" id="_cn">Cancelar</button>
+      <button class="btn btn-danger" id="_cy">Confirmar</button>
+    </div></div>`;
+    document.body.appendChild(ov);
+    ov.querySelector('#_cy').onclick=()=>{ov.remove();resolve(true)};
+    ov.querySelector('#_cn').onclick=()=>{ov.remove();resolve(false)};
+  });
 }
-function logout(){sess=null;document.getElementById('auth').classList.remove('hidden');document.getElementById('ap').value='';closeSb()}
+
+// ── INIT (sem login — acesso direto) ──
+user='Usuário';
+go('cotar');
+log('acao','Acesso direto',{cat:'sistema'});
 
 // ── SIDEBAR ──
 function toggleSb(){document.getElementById('sidebar').classList.toggle('open');document.getElementById('overlay').classList.toggle('open')}
@@ -613,11 +591,24 @@ async function cotar(){
   rd.innerHTML=`<div class="loading"><div class="spinner"></div>Consultando transportadoras...</div>`;
   rd.scrollIntoView({behavior:'smooth',block:'nearest'});
   try{
-    const r=await fetch(`${EDGE}/cotar-frete`,{method:'POST',
-      headers:{'Content-Type':'application/json','Authorization':`Bearer ${sess?.access_token||KEY}`},
+    const r=await fetch(`${EDGE}/cotar-frete-index`,{method:'POST',
+      headers:{'Content-Type':'application/json','apikey':KEY,'Authorization':`Bearer ${KEY}`},
       body:JSON.stringify({id_local,cep_destino:cep,cnpj_destinatario:cnpj||undefined,tipo_destinatario:tipo_dest,valor_nf,pacotes})});
     if(!r.ok)throw new Error(`HTTP ${r.status}: ${(await r.text()).slice(0,200)}`);
-    const data=await r.json();
+    // Trata resposta NDJSON (streaming) ou JSON normal
+    const txt=await r.text();
+    let data;
+    try{data=JSON.parse(txt)}catch{
+      // NDJSON: cada linha é um JSON separado
+      const lines=txt.split('\n').filter(l=>l.trim());
+      const chunks=lines.map(l=>{try{return JSON.parse(l)}catch{return null}}).filter(Boolean);
+      const resultados=[];let meta={};
+      for(const c of chunks){
+        if(c.transportadora) resultados.push(c);
+        else Object.assign(meta,c);
+      }
+      data={...meta,resultados};
+    }
     await log('acao','Cotação realizada',{cat:'cotacao',d:{cep,tipo_dest,n:pacotes.length,res:data?.resultados?.length}});
     renderResult(data,rd,tipo_dest);
   }catch(e){
@@ -804,7 +795,7 @@ function renderCTEdesk(ctes){
 async function updCTE(id,val,campo){
   try{
     const body=campo==='status'?{status_auditoria:val,atualizado_em:new Date().toISOString()}:{observacao_auditoria:val,atualizado_em:new Date().toISOString()};
-    const r=await fetch(`${SB}/rest/v1/frt_conhecimentos?id=eq.${id}`,{method:'PATCH',headers:{...hdrs(sess?.access_token),'Prefer':'return=minimal'},body:JSON.stringify(body)});
+    const r=await fetch(`${SB}/rest/v1/frt_conhecimentos?id=eq.${id}`,{method:'PATCH',headers:{...hdrs(),'Prefer':'return=minimal'},body:JSON.stringify(body)});
     if(!r.ok)throw new Error(`[${r.status}] ${(await r.text()).slice(0,200)}`);
     await log('acao',campo==='status'?`CTe #${id} → ${val}`:`Obs CTe #${id} salva`,{cat:'auditoria'});
     toast(campo==='status'?`Status: ${val}`:'Observação salva','success');
@@ -1018,7 +1009,7 @@ async function salvarDim(){
   try{
     const r=await fetch(`${SB}/rest/v1/frt_produtos_dimensoes`,{
       method:'POST',
-      headers:{...hdrs(sess?.access_token),'Prefer':'return=representation'},
+      headers:{...hdrs(),'Prefer':'return=representation'},
       body:JSON.stringify({descricao:desc,referencia:ref||null,peso_kg:peso,altura_cm:alt,largura_cm:lar,comprimento_cm:com,ativo:true,atualizado_em:new Date().toISOString()})
     });
     if(!r.ok)throw new Error(`HTTP ${r.status}: ${(await r.text()).slice(0,200)}`);
@@ -1034,10 +1025,10 @@ async function salvarDim(){
 }
 
 async function delDim(id){
-  if(!confirm('Excluir esta dimensão?'))return;
+  if(!await confirmar('Excluir esta dimensão?'))return;
   try{
     const rd=await fetch(`${SB}/rest/v1/frt_produtos_dimensoes?id=eq.${id}`,{
-      method:'PATCH',headers:{...hdrs(sess?.access_token),'Prefer':'return=minimal'},
+      method:'PATCH',headers:{...hdrs(),'Prefer':'return=minimal'},
       body:JSON.stringify({ativo:false})
     });
     if(!rd.ok)throw new Error(`HTTP ${rd.status}: ${(await rd.text()).slice(0,200)}`);
@@ -1108,10 +1099,10 @@ function filtLog(){
   document.getElementById('logs-list').innerHTML=renderLogs(f);
 }
 async function limparLogs(){
-  if(!confirm('Excluir logs com mais de 30 dias?'))return;
+  if(!await confirmar('Excluir logs com mais de 30 dias?'))return;
   try{
     const cut=new Date(Date.now()-30*86400000).toISOString();
-    const r=await fetch(`${SB}/rest/v1/frt_logs?criado_em=lt.${cut}`,{method:'DELETE',headers:hdrs(sess?.access_token)});
+    const r=await fetch(`${SB}/rest/v1/frt_logs?criado_em=lt.${cut}`,{method:'DELETE',headers:hdrs()});
     if(!r.ok)throw new Error(`HTTP ${r.status}: ${(await r.text()).slice(0,200)}`);
     await log('acao','Limpeza de logs antigos',{cat:'sistema'});
     toast('Logs antigos removidos','success');pgLogs();
@@ -1121,10 +1112,8 @@ async function limparLogs(){
   }
 }
 
-// ENTER no login
-['ae','ap'].forEach(id=>document.getElementById(id).addEventListener('keydown',e=>{
-  if(e.key==='Enter'){if(id==='ae')document.getElementById('ap').focus();else fazerLogin();}
-}));
+// Auth removido — sem listeners de login
 </script>
 </body>
 </html>
+
