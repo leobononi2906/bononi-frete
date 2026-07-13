@@ -90,21 +90,14 @@ textarea{resize:vertical;min-height:72px}
 .vol-lbl{font-size:11.5px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px}
 
 /* PRODUTOS */
-.prod-search-wrap{position:relative;margin-bottom:10px}
-.prod-search-wrap input{padding-right:80px}
-.prod-search-badge{position:absolute;right:10px;top:50%;transform:translateY(-50%);font-size:11px;color:var(--muted)}
-.prod-dropdown{
-  position:absolute;top:100%;left:0;right:0;z-index:20;
-  background:var(--surface);border:1px solid var(--border);border-radius:9px;
-  max-height:220px;overflow-y:auto;box-shadow:0 8px 24px rgba(0,0,0,.4);
-  display:none;margin-top:3px;
-}
-.prod-dropdown.open{display:block}
-.prod-opt{padding:10px 14px;cursor:pointer;font-size:13px;border-bottom:1px solid var(--border)}
-.prod-opt:last-child{border-bottom:none}
-.prod-opt:hover,.prod-opt:active{background:var(--surface2)}
-.prod-opt .ref{font-size:11px;color:var(--muted);margin-top:2px}
-.prod-opt .dims{font-size:11px;color:var(--blue);margin-top:2px}
+.prod-search-wrap{margin-bottom:10px}
+.prod-search-wrap input{width:100%}
+.prod-table-wrap{max-height:220px;overflow-y:auto;border:1px solid var(--border);border-radius:8px;margin-top:6px;background:var(--surface)}
+.prod-table{width:100%;border-collapse:collapse;font-size:12px}
+.prod-table th{position:sticky;top:0;background:var(--surface2);padding:6px 8px;text-align:left;font-size:11px;color:var(--muted);border-bottom:1px solid var(--border);white-space:nowrap}
+.prod-table td{padding:6px 8px;border-bottom:1px solid var(--border);vertical-align:middle}
+.prod-table tr:last-child td{border-bottom:none}
+.prod-table .btn-sel{padding:4px 10px;font-size:11px;white-space:nowrap}
 .prod-list{margin-top:8px}
 .prod-item{
   background:var(--surface2);border:1px solid var(--border);border-radius:8px;
@@ -467,42 +460,53 @@ async function pgCotar(){
   addVol();
 }
 
-// Busca produto — combina catálogo + dimensões cadastradas
-let prodTimer=null;
-async function buscaProd(i,q){
-  clearTimeout(prodTimer);
-  const dd=document.getElementById(`pd-${i}`);
-  if(!dd)return;
-  if(q.length<2){dd.classList.remove('open');dd.innerHTML='';return}
-  prodTimer=setTimeout(async()=>{
-    try{
-      // busca em paralelo: catálogo (portal representantes) + dimensões manuais
-      const [cat,dim]=await Promise.all([
-        db(`frt_catalogo_produtos?select=id,nome,referencia,peso_kg,altura_cm,largura_cm,comprimento_cm,volume_m3&ativo=eq.true&or=(nome.ilike.*${encodeURIComponent(q)}*,referencia.ilike.*${encodeURIComponent(q)}*)`).catch(()=>[]),
-        db(`frt_produtos_dimensoes?select=id,id_produto,descricao,referencia,peso_kg,altura_cm,largura_cm,comprimento_cm&ativo=eq.true&or=(descricao.ilike.*${encodeURIComponent(q)}*,referencia.ilike.*${encodeURIComponent(q)}*)`).catch(()=>[])
-      ]);
-      const todos=[
-        ...cat.slice(0,8).map(p=>({...p,_src:'catalogo'})),
-        ...dim.filter(d=>!cat.find(c=>c.referencia===d.referencia)).slice(0,5).map(p=>({...p,nome:p.descricao,_src:'dim'}))
-      ];
-      if(!todos.length){dd.innerHTML=`<div class="prod-opt text-muted">Nenhum produto encontrado</div>`;dd.classList.add('open');return}
-      dd.innerHTML=todos.map(p=>{
-        const hasDim=p.peso_kg&&p.altura_cm&&p.largura_cm&&p.comprimento_cm;
-        return`<div class="prod-opt" onclick="selProd(${i},${JSON.stringify(JSON.stringify(p))})">
-          <div style="font-weight:600;font-size:13px">${p.nome||p.descricao||'—'}</div>
-          ${p.referencia?`<div class="ref">Ref: ${p.referencia}</div>`:''}
-          ${hasDim?`<div class="dims">📐 ${p.peso_kg}kg · ${p.altura_cm}×${p.largura_cm}×${p.comprimento_cm}cm</div>`:`<div class="dims" style="color:var(--warn)">⚠️ Sem dimensões — preencha manualmente</div>`}
-          <span class="badge ${p._src==='catalogo'?'b-blue':'b-purple'}" style="margin-top:3px">${p._src==='catalogo'?'Portal Rep.':'Cadastro manual'}</span>
-        </div>`;
-      }).join('');
-      dd.classList.add('open');
-    }catch(e){dd.classList.remove('open')}
-  },300);
+// Cache de produtos — carrega 1x e filtra local
+let _prodCache=null;
+async function carregarProdutos(){
+  if(_prodCache) return _prodCache;
+  const [cat,dim]=await Promise.all([
+    db('frt_catalogo_produtos?select=id,nome,referencia,peso_kg,altura_cm,largura_cm,comprimento_cm&ativo=eq.true&order=nome').catch(()=>[]),
+    db('frt_produtos_dimensoes?select=id,id_produto,descricao,referencia,peso_kg,altura_cm,largura_cm,comprimento_cm&ativo=eq.true&order=descricao').catch(()=>[])
+  ]);
+  _prodCache=[
+    ...cat.map(p=>({...p,_src:'catalogo'})),
+    ...dim.filter(d=>!cat.find(c=>c.referencia===d.referencia)).map(p=>({...p,nome:p.descricao,_src:'dim'}))
+  ];
+  return _prodCache;
+}
+
+function filtrarProdutos(i,q){
+  if(!_prodCache)return;
+  const termo=(q||'').toLowerCase();
+  const lista=termo
+    ? _prodCache.filter(p=>(p.nome||'').toLowerCase().includes(termo)||(p.referencia||'').toLowerCase().includes(termo))
+    : _prodCache;
+  renderProdTable(i,lista);
+}
+
+function renderProdTable(i,lista){
+  const wrap=document.getElementById(`pt-${i}`);
+  if(!wrap)return;
+  if(!lista.length){wrap.innerHTML=`<div style="padding:16px;text-align:center;color:var(--muted);font-size:13px">Nenhum produto encontrado</div>`;return}
+  wrap.innerHTML=`<table class="prod-table">
+    <thead><tr><th>Produto</th><th>Ref.</th><th>Peso</th><th>A×L×C</th><th></th></tr></thead>
+    <tbody>${lista.map(p=>{
+      const dims=p.altura_cm&&p.largura_cm&&p.comprimento_cm?`${p.altura_cm}×${p.largura_cm}×${p.comprimento_cm}`:'—';
+      // escapa aspas no nome pra não quebrar o onclick
+      const safe=JSON.stringify(p).replace(/'/g,"\\'");
+      return`<tr>
+        <td style="font-weight:600;max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${(p.nome||'').replace(/"/g,'&quot;')}">${p.nome||'—'}</td>
+        <td style="color:var(--muted)">${p.referencia||'—'}</td>
+        <td style="white-space:nowrap">${p.peso_kg?p.peso_kg+'kg':'—'}</td>
+        <td style="white-space:nowrap;color:var(--blue);font-size:11px">${dims}</td>
+        <td><button class="btn btn-primary btn-sel" onclick='selProd(${i},${JSON.stringify(safe)})'>Usar</button></td>
+      </tr>`}).join('')}
+    </tbody>
+  </table>`;
 }
 
 function selProd(i,pJson){
   const p=JSON.parse(pJson);
-  // preenche campos do volume
   const peso=document.getElementById(`p-${i}`);
   const alt=document.getElementById(`a-${i}`);
   const lar=document.getElementById(`l-${i}`);
@@ -511,16 +515,17 @@ function selProd(i,pJson){
   if(alt&&p.altura_cm) alt.value=p.altura_cm;
   if(lar&&p.largura_cm) lar.value=p.largura_cm;
   if(com&&p.comprimento_cm) com.value=p.comprimento_cm;
-  // mostra nome selecionado
-  const box=document.getElementById(`vol-${i}`);
-  const tag=box?.querySelector('.prod-sel-tag');
+  // mostra nome selecionado e esconde tabela
+  const tag=document.getElementById(`vol-${i}`)?.querySelector('.prod-sel-tag');
   if(tag) tag.innerHTML=`<span class="badge b-ok">✅ ${p.nome||p.descricao||p.referencia}</span>`;
-  document.getElementById(`pi-${i}`).value='';
-  document.getElementById(`pd-${i}`)?.classList.remove('open');
-  document.getElementById(`pd-${i}`).innerHTML='';
+  const wrap=document.getElementById(`pt-${i}`);
+  if(wrap) wrap.style.display='none';
+  const search=document.getElementById(`pi-${i}`);
+  if(search){search.value='';search.placeholder='Produto selecionado — busque outro se quiser';}
+  toast(`${p.nome||p.referencia} adicionado`,'success');
 }
 
-function addVol(){
+async function addVol(){
   volIdx++;const i=volIdx;
   const vols=document.getElementById('vols');if(!vols)return;
   const d=document.createElement('div');d.className='vol-box';d.id=`vol-${i}`;
@@ -531,9 +536,10 @@ function addVol(){
     </div>
     <div class="prod-sel-tag mb-2"></div>
     <div class="prod-search-wrap">
-      <input id="pi-${i}" placeholder="Buscar produto por nome ou referência..." oninput="buscaProd(${i},this.value)" autocomplete="off"/>
-      <span class="prod-search-badge">🔍 Catálogo</span>
-      <div class="prod-dropdown" id="pd-${i}"></div>
+      <input id="pi-${i}" placeholder="Buscar produto por nome ou código..." oninput="filtrarProdutos(${i},this.value)" onfocus="document.getElementById('pt-${i}').style.display=''" autocomplete="off"/>
+    </div>
+    <div class="prod-table-wrap" id="pt-${i}">
+      <div style="padding:16px;text-align:center;color:var(--muted);font-size:13px"><div class="spinner" style="margin:0 auto 8px"></div>Carregando produtos...</div>
     </div>
     <div class="grid g2" style="margin-top:10px">
       <div class="field"><label>Qtd volumes</label><input id="q-${i}" type="number" value="1" min="1" inputmode="numeric"/></div>
@@ -543,11 +549,9 @@ function addVol(){
       <div class="field full"><label>Comprimento (cm)</label><input id="co-${i}" type="number" placeholder="0" min="0" inputmode="numeric"/></div>
     </div>`;
   vols.appendChild(d);
-  // fecha dropdown ao clicar fora
-  document.addEventListener('click',e=>{
-    const dd=document.getElementById(`pd-${i}`);
-    if(dd&&!dd.contains(e.target)&&e.target.id!==`pi-${i}`) dd.classList.remove('open');
-  },{once:false});
+  // Carrega produtos e renderiza tabela
+  const prods=await carregarProdutos();
+  renderProdTable(i,prods);
 }
 
 function mCEP(el){let v=el.value.replace(/\D/g,'');if(v.length>5)v=v.slice(0,5)+'-'+v.slice(5,8);el.value=v}
