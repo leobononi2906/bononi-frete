@@ -52,7 +52,7 @@ nav{flex:1;padding:10px 8px;overflow-y:auto}
 .confirm-box{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:24px;width:100%;max-width:360px;text-align:center;box-shadow:0 8px 32px rgba(15,29,53,.15)}
 
 /* BOTÃO COTAR FIXO */
-#sticky-cotar{position:fixed;bottom:0;left:0;right:0;padding:10px 16px calc(10px + env(safe-area-inset-bottom));background:linear-gradient(transparent,var(--bg) 30%);z-index:40}
+#sticky-cotar{position:fixed;bottom:0;left:0;right:0;padding:10px 16px calc(10px + env(safe-area-inset-bottom));background:linear-gradient(transparent,var(--bg) 30%);z-index:40;display:flex;gap:8px}
 @media(min-width:768px){#sticky-cotar{left:220px}}
 .confirm-box p{font-size:14px;margin-bottom:20px;line-height:1.5}
 .confirm-btns{display:flex;gap:10px;justify-content:center}
@@ -470,10 +470,12 @@ async function pgCotar(){
 
   <div id="result"></div>
   <div style="height:90px"></div>`;
-  // Botão FIXED — sticky é bugado no Safari iOS
+  // Barra fixa: + Volume e Cotar Frete sempre visíveis
   document.getElementById('sticky-cotar')?.remove();
   const stickyBtn=document.createElement('div');stickyBtn.id='sticky-cotar';
-  stickyBtn.innerHTML=`<button class="btn btn-primary" onclick="cotar()" style="width:100%;box-shadow:0 -4px 16px rgba(15,29,53,.15);font-size:15px;padding:14px">🔍 Cotar Frete</button>`;
+  stickyBtn.innerHTML=`
+    <button class="btn btn-ghost" onclick="addVol()" style="flex-shrink:0;background:var(--surface);box-shadow:0 -4px 16px rgba(15,29,53,.1);padding:14px 16px;font-size:14px">＋ Volume</button>
+    <button class="btn btn-primary" onclick="cotar()" style="flex:1;box-shadow:0 -4px 16px rgba(15,29,53,.15);font-size:15px;padding:14px">🔍 Cotar Frete</button>`;
   document.body.appendChild(stickyBtn);
   addVol();
 }
@@ -700,7 +702,7 @@ async function salvarCotacao({id_local,cep,cnpj,tipo_dest,valor_nf,pacotes,data}
       id_cotacao:saved.id,
       transportadora:r.transportadora||'—',
       valor_frete:r.valor_frete||null,
-      valor_total:r.valor_total||null,
+      valor_total:r.valor_total??r.valor_frete??null,
       prazo_dias:r.prazo_dias||null,
       erro:r.erro||null
     }));
@@ -718,7 +720,9 @@ async function salvarCotacao({id_local,cep,cnpj,tipo_dest,valor_nf,pacotes,data}
 function renderResult(data,c,tipo_dest){
   const res=data?.resultados||[];
   if(!res.length){c.innerHTML=`<div class="card"><div class="empty"><div class="ei">🔍</div><p>Nenhuma cotação retornada.<br>Verifique o CEP e local de expedição.</p></div></div>`;return}
-  const ok=res.filter(r=>!r.erro).sort((a,b)=>(a.valor_total||0)-(b.valor_total||0));
+  // valor_total pode não vir no stream NDJSON — fallback pro valor_frete
+  const vTot=r=>Number(r.valor_total??r.valor_frete)||0;
+  const ok=res.filter(r=>!r.erro).sort((a,b)=>vTot(a)-vTot(b));
   const er=res.filter(r=>r.erro);
   let html=`<div class="card"><div class="card-title">🏆 Cotações</div>`;
   if(data.cidade_destino||data.uf_destino)
@@ -731,8 +735,8 @@ function renderResult(data,c,tipo_dest){
       ${w?'<span class="r-winner-badge">✅ Menor Preço</span>':''}
       <div class="r-transp">${r.transportadora}</div>
       <div class="r-prazo">⏱️ ${r.prazo_dias??'?'} dia(s) úteis</div>
-      <div class="r-preco">${R(r.valor_total)}</div>
-      ${r.valor_frete?`<div class="r-detail">Frete: ${R(r.valor_frete)}</div>`:''}
+      <div class="r-preco">${R(vTot(r))}</div>
+      ${r.valor_total&&r.valor_frete&&Number(r.valor_total)!==Number(r.valor_frete)?`<div class="r-detail">Frete: ${R(r.valor_frete)}</div>`:''}
       ${r.valor_pedagio?`<div class="r-detail">Pedágio: ${R(r.valor_pedagio)}</div>`:''}
       ${r.valor_gris?`<div class="r-detail">GRIS: ${R(r.valor_gris)}</div>`:''}
     </div>`;
