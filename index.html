@@ -106,6 +106,17 @@ textarea{resize:vertical;min-height:72px}
 .prod-table th{position:sticky;top:0;background:var(--surface2);padding:6px 8px;text-align:left;font-size:11px;color:var(--muted);border-bottom:1px solid var(--border);white-space:nowrap}
 .prod-table td{padding:8px;border-bottom:1px solid var(--border);vertical-align:middle}
 .prod-table tbody tr:hover td,.prod-table tbody tr:active td{background:var(--blue-pale)}
+
+/* TABS */
+.tabs{display:inline-flex;background:var(--surface2);border:1px solid var(--border);border-radius:9px;padding:3px;gap:2px}
+.tab{border:none;background:transparent;padding:8px 16px;border-radius:7px;font-size:13px;font-weight:600;color:var(--muted);cursor:pointer;font-family:inherit}
+.tab.active{background:var(--surface);color:var(--accent);box-shadow:0 1px 3px rgba(15,29,53,.08)}
+
+/* VOL TABLE (resumo) */
+.vol-table{width:100%;border-collapse:collapse;font-size:12.5px}
+.vol-table th{padding:8px;text-align:left;font-size:10.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;border-bottom:1px solid var(--border);white-space:nowrap}
+.vol-table td{padding:8px;border-bottom:1px solid var(--border);vertical-align:middle}
+.vol-table tfoot td{border-bottom:none;padding-top:10px}
 .prod-table tr:last-child td{border-bottom:none}
 .prod-table .btn-sel{padding:4px 10px;font-size:11px;white-space:nowrap}
 .prod-list{margin-top:8px}
@@ -272,7 +283,7 @@ td select{padding:5px 8px;font-size:12px;border-radius:6px}
 const SB   = 'https://vishxwdxqiygbxmtpfoy.supabase.co';
 const KEY  = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZpc2h4d2R4cWl5Z2J4bXRwZm95Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI0Njg2MjIsImV4cCI6MjA4ODA0NDYyMn0.J647m3ieDHahNQYBWMRESl0aPFXsT_zt_7ZcDvyB-SA';
 const EDGE = SB+'/functions/v1';
-let user='', locais=[], volIdx=0;
+let user='', locais=[];
 
 // Mês global — compartilhado entre auditoria, histórico e logs
 const now = new Date();
@@ -438,7 +449,7 @@ async function pgCotar(){
   c.innerHTML=`<div class="loading"><div class="spinner"></div>Carregando locais...</div>`;
   try{locais=await db('frt_locais_expedicao?select=id,nome,cidade,uf&ativo=eq.true&order=nome')}
   catch(e){bononiLog('ERRO','ERRO_CARREGAR_LOCAIS',{modulo:'cotacao',erro:e});c.innerHTML=`<div class="empty"><div class="ei">⚠️</div><p>${e.message}</p></div>`;return}
-  volIdx=0;
+
   c.innerHTML=`
   <div class="card">
     <div class="card-title">📍 Embarque</div>
@@ -462,22 +473,53 @@ async function pgCotar(){
   </div>
 
   <div class="card">
-    <div class="card-title">📦 Volumes / Produtos</div>
-    <p class="text-muted mb-3" style="font-size:12px">Adicione produtos pelo catálogo ou insira as medidas manualmente</p>
-    <div id="vols"></div>
-    <button class="btn btn-ghost btn-sm btn-full" onclick="addVol()" style="margin-top:4px">+ Adicionar Volume</button>
+    <div class="card-title">📦 Adicionar volume</div>
+    <div class="tabs mb-3">
+      <button class="tab active" id="tab-cat" onclick="trocarTab('cat')">Catálogo</button>
+      <button class="tab" id="tab-man" onclick="trocarTab('man')">Manual</button>
+    </div>
+    <div id="pane-cat">
+      <input id="prod-busca" placeholder="🔍 Buscar por nome ou referência..." oninput="filtrarProdutos(this.value)" autocomplete="off" class="mb-2"/>
+      <div class="prod-table-wrap" id="prod-tabela">
+        <div style="padding:16px;text-align:center;color:var(--muted);font-size:13px"><div class="spinner" style="margin:0 auto 8px"></div>Carregando produtos...</div>
+      </div>
+      <p class="text-muted mt-2" style="font-size:11.5px">Toque no produto para adicionar à cotação</p>
+    </div>
+    <div id="pane-man" style="display:none">
+      <div class="grid g2">
+        <div class="field"><label>Qtd volumes</label><input id="m-q" type="number" value="1" min="1" inputmode="numeric"/></div>
+        <div class="field"><label>Peso unitário (kg)</label><input id="m-p" type="number" placeholder="0.000" step="0.001" min="0" inputmode="decimal"/></div>
+        <div class="field"><label>Altura (cm)</label><input id="m-a" type="number" placeholder="0" min="0" inputmode="numeric"/></div>
+        <div class="field"><label>Largura (cm)</label><input id="m-l" type="number" placeholder="0" min="0" inputmode="numeric"/></div>
+        <div class="field full"><label>Comprimento (cm)</label><input id="m-c" type="number" placeholder="0" min="0" inputmode="numeric"/></div>
+      </div>
+      <button class="btn btn-success btn-full mt-2" onclick="addVolManual()">＋ Adicionar volume manual</button>
+    </div>
+  </div>
+
+  <div class="card" id="card-volumes" style="display:none">
+    <div class="card-title">📋 Volumes adicionados (<span id="vol-count">0</span>)</div>
+    <div style="overflow-x:auto"><table class="vol-table" id="vol-tabela"></table></div>
   </div>
 
   <div id="result"></div>
   <div style="height:90px"></div>`;
-  // Barra fixa: + Volume e Cotar Frete sempre visíveis
+  // Barra fixa: Limpar e Cotar Frete
   document.getElementById('sticky-cotar')?.remove();
   const stickyBtn=document.createElement('div');stickyBtn.id='sticky-cotar';
   stickyBtn.innerHTML=`
-    <button class="btn btn-ghost" onclick="addVol()" style="flex-shrink:0;background:var(--surface);box-shadow:0 -4px 16px rgba(15,29,53,.1);padding:14px 16px;font-size:14px">＋ Volume</button>
+    <button class="btn btn-ghost" onclick="limparVolumes()" style="flex-shrink:0;background:var(--surface);box-shadow:0 -4px 16px rgba(15,29,53,.1);padding:14px 16px;font-size:14px">Limpar</button>
     <button class="btn btn-primary" onclick="cotar()" style="flex:1;box-shadow:0 -4px 16px rgba(15,29,53,.15);font-size:15px;padding:14px">🔍 Cotar Frete</button>`;
   document.body.appendChild(stickyBtn);
-  addVol();
+  volumes=[];
+  carregarProdutos().then(prods=>renderProdTable(prods));
+}
+
+function trocarTab(t){
+  document.getElementById('tab-cat').classList.toggle('active',t==='cat');
+  document.getElementById('tab-man').classList.toggle('active',t==='man');
+  document.getElementById('pane-cat').style.display=t==='cat'?'':'none';
+  document.getElementById('pane-man').style.display=t==='man'?'':'none';
 }
 
 // Cache de produtos — carrega 1x e filtra local
@@ -495,28 +537,29 @@ async function carregarProdutos(){
   return _prodCache;
 }
 
-function filtrarProdutos(i,q){
+// ── VOLUMES: estado central ──
+let volumes=[];
+let _prodLista=[];
+
+function filtrarProdutos(q){
   if(!_prodCache)return;
   const termo=(q||'').toLowerCase();
   const lista=termo
     ? _prodCache.filter(p=>(p.nome||'').toLowerCase().includes(termo)||(p.referencia||'').toLowerCase().includes(termo))
     : _prodCache;
-  renderProdTable(i,lista);
+  renderProdTable(lista);
 }
 
-let _prodListaPorVol={}; // lista por volume — evita conflito entre volumes
-
-function renderProdTable(i,lista){
-  const wrap=document.getElementById(`pt-${i}`);
+function renderProdTable(lista){
+  const wrap=document.getElementById('prod-tabela');
   if(!wrap)return;
-  wrap.style.display='';
   if(!lista.length){wrap.innerHTML=`<div style="padding:16px;text-align:center;color:var(--muted);font-size:13px">Nenhum produto encontrado</div>`;return}
-  _prodListaPorVol[i]=lista;
+  _prodLista=lista;
   wrap.innerHTML=`<table class="prod-table">
     <thead><tr><th>Produto</th><th>Peso</th><th>A×L×C</th></tr></thead>
     <tbody>${lista.map((p,idx)=>{
       const dims=p.altura_cm&&p.largura_cm&&p.comprimento_cm?`${p.altura_cm}×${p.largura_cm}×${p.comprimento_cm}`:'—';
-      return`<tr onclick="selProd(${i},${idx})" style="cursor:pointer">
+      return`<tr onclick="addVolCatalogo(${idx})" style="cursor:pointer">
         <td><div style="font-weight:600;font-size:12px;line-height:1.3">${p.nome||'—'}</div>${p.referencia?`<div style="font-size:10.5px;color:var(--muted)">Ref: ${p.referencia}</div>`:''}</td>
         <td style="white-space:nowrap;font-size:11.5px">${p.peso_kg?Number(p.peso_kg)+'kg':'—'}</td>
         <td style="white-space:nowrap;color:var(--blue);font-size:11px">${dims}</td>
@@ -525,53 +568,86 @@ function renderProdTable(i,lista){
   </table>`;
 }
 
-function selProd(i,idx){
-  const p=(_prodListaPorVol[i]||[])[idx];
-  if(!p){toast('Erro ao selecionar produto','error');return}
-  const peso=document.getElementById(`p-${i}`);
-  const alt=document.getElementById(`a-${i}`);
-  const lar=document.getElementById(`l-${i}`);
-  const com=document.getElementById(`co-${i}`);
-  if(peso) peso.value=Number(p.peso_kg)||'';
-  if(alt) alt.value=Number(p.altura_cm)||'';
-  if(lar) lar.value=Number(p.largura_cm)||'';
-  if(com) com.value=Number(p.comprimento_cm)||'';
-  const tag=document.getElementById(`vol-${i}`)?.querySelector('.prod-sel-tag');
-  if(tag) tag.innerHTML=`<span class="badge b-ok">✅ ${p.nome||p.descricao||p.referencia}</span>`;
-  const wrap=document.getElementById(`pt-${i}`);
-  if(wrap) wrap.style.display='none';
-  const search=document.getElementById(`pi-${i}`);
-  if(search){search.value='';search.placeholder='Produto selecionado — toque p/ trocar';}
+function addVolCatalogo(idx){
+  const p=_prodLista[idx];
+  if(!p){toast('Erro ao adicionar produto','error');return}
+  volumes.push({
+    nome:p.nome||p.descricao||p.referencia||'Produto',
+    quantidade:1,
+    peso_kg:Number(p.peso_kg)||0,
+    altura_cm:Number(p.altura_cm)||0,
+    largura_cm:Number(p.largura_cm)||0,
+    comprimento_cm:Number(p.comprimento_cm)||0
+  });
+  renderVolumes();
   toast(`${p.nome||p.referencia} adicionado`,'success');
 }
 
-async function addVol(){
-  volIdx++;const i=volIdx;
-  const vols=document.getElementById('vols');if(!vols)return;
-  const d=document.createElement('div');d.className='vol-box';d.id=`vol-${i}`;
-  d.innerHTML=`
-    <div class="vol-hdr">
-      <span class="vol-lbl">Volume ${i}</span>
-      ${i>1?`<button class="btn btn-danger btn-sm" onclick="document.getElementById('vol-${i}').remove()">Remover</button>`:''}
-    </div>
-    <div class="prod-sel-tag mb-2"></div>
-    <div class="prod-search-wrap">
-      <input id="pi-${i}" placeholder="Buscar produto por nome ou código..." oninput="filtrarProdutos(${i},this.value)" onfocus="document.getElementById('pt-${i}').style.display=''" autocomplete="off"/>
-    </div>
-    <div class="prod-table-wrap" id="pt-${i}">
-      <div style="padding:16px;text-align:center;color:var(--muted);font-size:13px"><div class="spinner" style="margin:0 auto 8px"></div>Carregando produtos...</div>
-    </div>
-    <div class="grid g2" style="margin-top:10px">
-      <div class="field"><label>Qtd volumes</label><input id="q-${i}" type="number" value="1" min="1" inputmode="numeric"/></div>
-      <div class="field"><label>Peso unitário (kg)</label><input id="p-${i}" type="number" placeholder="0.000" step="0.001" min="0" inputmode="decimal"/></div>
-      <div class="field"><label>Altura (cm)</label><input id="a-${i}" type="number" placeholder="0" min="0" inputmode="numeric"/></div>
-      <div class="field"><label>Largura (cm)</label><input id="l-${i}" type="number" placeholder="0" min="0" inputmode="numeric"/></div>
-      <div class="field full"><label>Comprimento (cm)</label><input id="co-${i}" type="number" placeholder="0" min="0" inputmode="numeric"/></div>
-    </div>`;
-  vols.appendChild(d);
-  // Carrega produtos e renderiza tabela
-  const prods=await carregarProdutos();
-  renderProdTable(i,prods);
+function addVolManual(){
+  const q=parseInt(document.getElementById('m-q')?.value)||1;
+  const peso=parseFloat(document.getElementById('m-p')?.value)||0;
+  const a=parseFloat(document.getElementById('m-a')?.value)||0;
+  const l=parseFloat(document.getElementById('m-l')?.value)||0;
+  const c=parseFloat(document.getElementById('m-c')?.value)||0;
+  if(peso<=0){toast('Informe o peso','error');return}
+  volumes.push({nome:'Volume manual',quantidade:q,peso_kg:peso,altura_cm:a,largura_cm:l,comprimento_cm:c});
+  ['m-p','m-a','m-l','m-c'].forEach(id=>{const el=document.getElementById(id);if(el)el.value=''});
+  const mq=document.getElementById('m-q');if(mq)mq.value='1';
+  renderVolumes();
+  toast('Volume adicionado','success');
+}
+
+function setQtdVol(i,v){
+  const q=Math.max(1,parseInt(v)||1);
+  if(volumes[i]){volumes[i].quantidade=q;renderVolumes()}
+}
+
+function removerVolume(i){
+  volumes.splice(i,1);
+  renderVolumes();
+}
+
+function limparVolumes(){
+  volumes=[];
+  renderVolumes();
+  const r=document.getElementById('result');if(r)r.innerHTML='';
+  toast('Formulário limpo','success');
+}
+
+function renderVolumes(){
+  const card=document.getElementById('card-volumes');
+  const tb=document.getElementById('vol-tabela');
+  const cnt=document.getElementById('vol-count');
+  if(!card||!tb)return;
+  if(cnt)cnt.textContent=volumes.length;
+  if(!volumes.length){card.style.display='none';return}
+  card.style.display='';
+  let pesoTotal=0,volTotal=0;
+  const rows=volumes.map((v,i)=>{
+    const pt=v.quantidade*v.peso_kg;
+    const m3=(v.altura_cm*v.largura_cm*v.comprimento_cm/1e6)*v.quantidade;
+    pesoTotal+=pt;volTotal+=m3;
+    return`<tr>
+      <td style="font-weight:600;font-size:12px">${v.nome}</td>
+      <td><input type="number" value="${v.quantidade}" min="1" onchange="setQtdVol(${i},this.value)" style="width:56px;padding:6px;text-align:center;font-size:13px" inputmode="numeric"/></td>
+      <td style="white-space:nowrap">${N(v.peso_kg)}</td>
+      <td style="white-space:nowrap;font-weight:600">${N(pt)}</td>
+      <td style="white-space:nowrap;color:var(--blue);font-size:11px">${v.altura_cm}×${v.largura_cm}×${v.comprimento_cm}</td>
+      <td style="white-space:nowrap;font-family:'DM Mono',monospace;font-size:11.5px">${m3.toFixed(4)}</td>
+      <td><button class="btn btn-danger btn-sm" onclick="removerVolume(${i})" style="padding:5px 9px">🗑️</button></td>
+    </tr>`;
+  }).join('');
+  const cubado=volTotal*300; // fator rodoviário 300kg/m³
+  tb.innerHTML=`
+    <thead><tr><th>Descrição</th><th>Qtd</th><th>Peso un.</th><th>Peso total</th><th>A×L×C (cm)</th><th>Vol. m³</th><th></th></tr></thead>
+    <tbody>${rows}</tbody>
+    <tfoot><tr style="border-top:2px solid var(--border)">
+      <td colspan="3" style="font-weight:700">Totais</td>
+      <td style="font-weight:700;white-space:nowrap">${N(pesoTotal)} kg</td>
+      <td style="color:var(--muted);font-size:11px;white-space:nowrap">Cubado: ${N(cubado)} kg</td>
+      <td style="font-weight:700;font-family:'DM Mono',monospace;font-size:11.5px">${volTotal.toFixed(4)}</td>
+      <td></td>
+    </tr></tfoot>`;
 }
 
 function mCEP(el){let v=el.value.replace(/\D/g,'');if(v.length>5)v=v.slice(0,5)+'-'+v.slice(5,8);el.value=v}
@@ -634,17 +710,12 @@ async function cotar(){
   // valida tamanho do documento se informado
   if(cnpj&&cnpj.length!==11&&cnpj.length!==14){toast('CPF deve ter 11 dígitos ou CNPJ 14 dígitos','error');return}
   const tipo_dest=cnpj.length===11?'PF':cnpj.length===14?'PJ':null;
-  const pacotes=[];
-  for(let i=1;i<=volIdx;i++){
-    if(!document.getElementById(`vol-${i}`))continue;
-    const peso=parseFloat(document.getElementById(`p-${i}`)?.value)||0;
-    if(peso<=0){toast(`Volume ${i}: informe o peso`,'error');return}
-    pacotes.push({quantidade:parseInt(document.getElementById(`q-${i}`)?.value)||1,peso_kg:peso,
-      altura_cm:parseFloat(document.getElementById(`a-${i}`)?.value)||0,
-      largura_cm:parseFloat(document.getElementById(`l-${i}`)?.value)||0,
-      comprimento_cm:parseFloat(document.getElementById(`co-${i}`)?.value)||0});
-  }
+  const pacotes=volumes.map(v=>({
+    quantidade:v.quantidade,peso_kg:v.peso_kg,
+    altura_cm:v.altura_cm,largura_cm:v.largura_cm,comprimento_cm:v.comprimento_cm
+  }));
   if(!pacotes.length){toast('Adicione ao menos um volume','error');return}
+  if(pacotes.some(p=>p.peso_kg<=0)){toast('Há volume sem peso informado','error');return}
   const rd=document.getElementById('result');
   rd.innerHTML=`<div class="loading"><div class="spinner"></div>Consultando transportadoras...</div>`;
   rd.scrollIntoView({behavior:'smooth',block:'nearest'});
