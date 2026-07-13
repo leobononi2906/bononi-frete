@@ -50,6 +50,10 @@ nav{flex:1;padding:10px 8px;overflow-y:auto}
 /* CONFIRM MODAL */
 .confirm-overlay{position:fixed;inset:0;background:rgba(15,29,53,.5);z-index:200;display:flex;align-items:center;justify-content:center;padding:16px}
 .confirm-box{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:24px;width:100%;max-width:360px;text-align:center;box-shadow:0 8px 32px rgba(15,29,53,.15)}
+
+/* BOTÃO COTAR FIXO */
+#sticky-cotar{position:fixed;bottom:0;left:0;right:0;padding:10px 16px calc(10px + env(safe-area-inset-bottom));background:linear-gradient(transparent,var(--bg) 30%);z-index:40}
+@media(min-width:768px){#sticky-cotar{left:220px}}
 .confirm-box p{font-size:14px;margin-bottom:20px;line-height:1.5}
 .confirm-btns{display:flex;gap:10px;justify-content:center}
 
@@ -100,7 +104,8 @@ textarea{resize:vertical;min-height:72px}
 .prod-table-wrap{max-height:220px;overflow-y:auto;border:1px solid var(--border);border-radius:8px;margin-top:6px;background:var(--surface)}
 .prod-table{width:100%;border-collapse:collapse;font-size:12px}
 .prod-table th{position:sticky;top:0;background:var(--surface2);padding:6px 8px;text-align:left;font-size:11px;color:var(--muted);border-bottom:1px solid var(--border);white-space:nowrap}
-.prod-table td{padding:6px 8px;border-bottom:1px solid var(--border);vertical-align:middle}
+.prod-table td{padding:8px;border-bottom:1px solid var(--border);vertical-align:middle}
+.prod-table tbody tr:hover td,.prod-table tbody tr:active td{background:var(--blue-pale)}
 .prod-table tr:last-child td{border-bottom:none}
 .prod-table .btn-sel{padding:4px 10px;font-size:11px;white-space:nowrap}
 .prod-list{margin-top:8px}
@@ -323,7 +328,8 @@ async function db(path,opts={}){
 }
 const R=v=>v==null?'—':Number(v).toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
 const N=v=>v==null?'—':Number(v).toLocaleString('pt-BR',{minimumFractionDigits:2});
-const D=d=>d?new Date(d).toLocaleDateString('pt-BR'):'—';
+// date-only ('2026-07-10') é parseado como local — evita bug de -1 dia no iOS
+const D=d=>{if(!d)return'—';const s=String(d).slice(0,10).split('-');return s.length===3?`${s[2]}/${s[1]}/${s[0]}`:new Date(d).toLocaleDateString('pt-BR')};
 const DT=d=>d?new Date(d).toLocaleString('pt-BR'):'—';
 function toast(msg,t='info'){
   const e=document.createElement('div');e.className=`toast ${t}`;
@@ -414,7 +420,9 @@ function go(p){
       wrap.style.display='none';
     }
   }
-  closeSb();PAGES[p].fn();
+  closeSb();
+  if(p!=='cotar')document.getElementById('sticky-cotar')?.remove();
+  PAGES[p].fn();
 }
 
 // ── INIT (sem login — acesso direto) ──
@@ -461,21 +469,17 @@ async function pgCotar(){
   </div>
 
   <div id="result"></div>
-  <div style="height:80px"></div>`;
-  // Botão fixo no mobile
-  let stickyBtn=document.getElementById('sticky-cotar');
-  if(!stickyBtn){
-    stickyBtn=document.createElement('div');stickyBtn.id='sticky-cotar';
-    stickyBtn.style.cssText='position:sticky;bottom:0;left:0;right:0;padding:12px 16px;background:linear-gradient(transparent,var(--bg) 20%);z-index:10;pointer-events:none';
-    stickyBtn.innerHTML=`<button class="btn btn-primary btn-full" onclick="cotar()" style="pointer-events:auto;box-shadow:0 -4px 16px rgba(15,29,53,.12);font-size:15px;padding:14px">🔍 Cotar Frete</button>`;
-    document.getElementById('pg').appendChild(stickyBtn);
-  }
+  <div style="height:90px"></div>`;
+  // Botão FIXED — sticky é bugado no Safari iOS
+  document.getElementById('sticky-cotar')?.remove();
+  const stickyBtn=document.createElement('div');stickyBtn.id='sticky-cotar';
+  stickyBtn.innerHTML=`<button class="btn btn-primary" onclick="cotar()" style="width:100%;box-shadow:0 -4px 16px rgba(15,29,53,.15);font-size:15px;padding:14px">🔍 Cotar Frete</button>`;
+  document.body.appendChild(stickyBtn);
   addVol();
 }
 
 // Cache de produtos — carrega 1x e filtra local
 let _prodCache=null;
-let _prodLista=[]; // array global pra evitar JSON no onclick
 async function carregarProdutos(){
   if(_prodCache) return _prodCache;
   const [cat,dim]=await Promise.all([
@@ -498,46 +502,44 @@ function filtrarProdutos(i,q){
   renderProdTable(i,lista);
 }
 
+let _prodListaPorVol={}; // lista por volume — evita conflito entre volumes
+
 function renderProdTable(i,lista){
   const wrap=document.getElementById(`pt-${i}`);
   if(!wrap)return;
   wrap.style.display='';
   if(!lista.length){wrap.innerHTML=`<div style="padding:16px;text-align:center;color:var(--muted);font-size:13px">Nenhum produto encontrado</div>`;return}
-  // guarda no array global
-  _prodLista=lista;
+  _prodListaPorVol[i]=lista;
   wrap.innerHTML=`<table class="prod-table">
-    <thead><tr><th>Produto</th><th>Ref.</th><th>Peso</th><th>A×L×C</th><th></th></tr></thead>
+    <thead><tr><th>Produto</th><th>Peso</th><th>A×L×C</th></tr></thead>
     <tbody>${lista.map((p,idx)=>{
       const dims=p.altura_cm&&p.largura_cm&&p.comprimento_cm?`${p.altura_cm}×${p.largura_cm}×${p.comprimento_cm}`:'—';
-      return`<tr>
-        <td style="font-weight:600;max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${(p.nome||'').replace(/"/g,'&quot;')}">${p.nome||'—'}</td>
-        <td style="color:var(--muted)">${p.referencia||'—'}</td>
-        <td style="white-space:nowrap">${p.peso_kg?p.peso_kg+'kg':'—'}</td>
+      return`<tr onclick="selProd(${i},${idx})" style="cursor:pointer">
+        <td><div style="font-weight:600;font-size:12px;line-height:1.3">${p.nome||'—'}</div>${p.referencia?`<div style="font-size:10.5px;color:var(--muted)">Ref: ${p.referencia}</div>`:''}</td>
+        <td style="white-space:nowrap;font-size:11.5px">${p.peso_kg?Number(p.peso_kg)+'kg':'—'}</td>
         <td style="white-space:nowrap;color:var(--blue);font-size:11px">${dims}</td>
-        <td><button class="btn btn-primary btn-sel" onclick="selProd(${i},${idx})">Usar</button></td>
       </tr>`}).join('')}
     </tbody>
   </table>`;
 }
 
 function selProd(i,idx){
-  const p=_prodLista[idx];
-  if(!p) return;
+  const p=(_prodListaPorVol[i]||[])[idx];
+  if(!p){toast('Erro ao selecionar produto','error');return}
   const peso=document.getElementById(`p-${i}`);
   const alt=document.getElementById(`a-${i}`);
   const lar=document.getElementById(`l-${i}`);
   const com=document.getElementById(`co-${i}`);
-  if(peso) peso.value=Number(p.peso_kg)||0;
-  if(alt) alt.value=Number(p.altura_cm)||0;
-  if(lar) lar.value=Number(p.largura_cm)||0;
-  if(com) com.value=Number(p.comprimento_cm)||0;
-  // mostra nome selecionado e esconde tabela
+  if(peso) peso.value=Number(p.peso_kg)||'';
+  if(alt) alt.value=Number(p.altura_cm)||'';
+  if(lar) lar.value=Number(p.largura_cm)||'';
+  if(com) com.value=Number(p.comprimento_cm)||'';
   const tag=document.getElementById(`vol-${i}`)?.querySelector('.prod-sel-tag');
   if(tag) tag.innerHTML=`<span class="badge b-ok">✅ ${p.nome||p.descricao||p.referencia}</span>`;
   const wrap=document.getElementById(`pt-${i}`);
   if(wrap) wrap.style.display='none';
   const search=document.getElementById(`pi-${i}`);
-  if(search){search.value='';search.placeholder='Produto selecionado — busque outro se quiser';}
+  if(search){search.value='';search.placeholder='Produto selecionado — toque p/ trocar';}
   toast(`${p.nome||p.referencia} adicionado`,'success');
 }
 
@@ -1217,5 +1219,6 @@ async function limparLogs(){
 </script>
 </body>
 </html>
+
 
 
