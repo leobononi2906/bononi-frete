@@ -830,8 +830,8 @@ async function cotar(){
     }
     bononiLog('ACAO','COTACAO_REALIZADA',{modulo:'cotacao',contexto:{cep,tipo_dest,volumes:pacotes.length,resultados:data?.resultados?.length}});
     renderResult(data,rd,tipo_dest);
-    // Salva cotação no histórico (async, não bloqueia render)
-    salvarCotacao({id_local,cep,cnpj,tipo_dest,valor_nf,pacotes,data}).catch(()=>{});
+    // A Edge Function cotar-frete-index já grava a cotação (frt_cotacoes + pacotes + respostas).
+    // NÃO gravar de novo aqui — o salvarCotacao antigo criava uma cotação duplicada e vazia.
   }catch(e){
     bononiLog('ERRO','ERRO_COTACAO',{modulo:'cotacao',erro:e,contexto:{cep}});
     const em=msgErroFrete(e.message);
@@ -1139,7 +1139,7 @@ function renderHistMob(rows,lm,rm){
     const res=(rm[r.id]||[]).filter(x=>x.valor_frete);
     const menor=res.sort((a,b)=>(a.valor_frete||0)-(b.valor_frete||0))[0];
     return`<div class="hist-card">
-      <div class="hist-row"><span class="hist-lbl">Código</span><strong style="font-family:'DM Mono',monospace">${r.codigo||'—'}</strong></div>
+      <div class="hist-row"><span class="hist-lbl">Código</span><strong style="font-family:'DM Mono',monospace">${r.codigo||'—'}${r.id?` · ID ${r.id}`:''}</strong></div>
       <div class="hist-row"><span class="hist-lbl">Data</span><strong>${DT(r.criado_em)}</strong></div>
       <div class="hist-row"><span class="hist-lbl">Origem</span><span>${lm[r.id_local]||'—'}</span></div>
       <div class="hist-row"><span class="hist-lbl">Destino</span><span>${r.cidade_destino||r.cep_destino||'—'}${r.uf_destino?' / '+r.uf_destino:''}</span></div>
@@ -1160,7 +1160,7 @@ function renderHistDesk(rows,lm,rm,transp){
     const ok=res.filter(x=>x.valor_frete).sort((a,b)=>(a.valor_frete||0)-(b.valor_frete||0));
     const menor=ok[0];
     return`<tr>
-      <td style="white-space:nowrap;font-family:'DM Mono',monospace;font-size:12px">${r.codigo||'—'}</td>
+      <td style="white-space:nowrap;font-family:'DM Mono',monospace;font-size:12px">${r.codigo||'—'}${r.id?`<br><span style="font-size:10px;color:var(--muted)">ID ${r.id}</span>`:''}</td>
       <td style="white-space:nowrap">${DT(r.criado_em)}</td>
       <td>${lm[r.id_local]||'—'}</td>
       <td style="white-space:nowrap">${r.cidade_destino||r.cep_destino||'—'}${r.uf_destino?' / '+r.uf_destino:''}</td>
