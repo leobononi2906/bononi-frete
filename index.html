@@ -259,6 +259,7 @@ td select{padding:5px 8px;font-size:12px;border-radius:6px}
     <nav>
       <div class="nav-item active" id="nav-cotar" onclick="go('cotar')"><span class="nav-icon">💰</span>Cotar Frete</div>
       <div class="nav-item" id="nav-auditoria" onclick="go('auditoria')"><span class="nav-icon">🧾</span>Auditoria CTe</div>
+      <div class="nav-item" id="nav-conferencia" onclick="go('conferencia')"><span class="nav-icon">💸</span>Conferência</div>
       <div class="nav-item" id="nav-historico" onclick="go('historico')"><span class="nav-icon">📋</span>Histórico</div>
       <div class="nav-item" id="nav-dimensoes" onclick="go('dimensoes')"><span class="nav-icon">📦</span>Dimensões</div>
       <div class="nav-item" id="nav-logs" onclick="go('logs')"><span class="nav-icon">🔍</span>Logs</div>
@@ -312,7 +313,7 @@ function aplicarMesGlobal(){
 }
 
 // Páginas que usam filtro de mês global
-const PAGES_COM_MES=['auditoria','historico','logs'];
+const PAGES_COM_MES=['auditoria','conferencia','historico','logs'];
 
 // ── UTILS ──
 function hdrs(){return{'apikey':KEY,'Authorization':'Bearer '+KEY,'Content-Type':'application/json'}}
@@ -419,6 +420,7 @@ function closeSb(){document.getElementById('sidebar').classList.remove('open');d
 const PAGES={
   cotar:{t:'Cotar Frete',s:'Comparativo entre transportadoras',fn:pgCotar},
   auditoria:{t:'Auditoria CTe',s:'Conferência de conhecimentos de transporte',fn:pgAuditoria},
+  conferencia:{t:'Conferência de Frete',s:'CTes para lançar no contas a pagar (por transportadora)',fn:pgConferencia},
   historico:{t:'Histórico',s:'Cotações realizadas',fn:pgHistorico},
   dimensoes:{t:'Dimensões de Produtos',s:'Cadastro e consulta de medidas',fn:pgDimensoes},
   logs:{t:'Logs do Sistema',s:'Ações e erros em tempo real',fn:pgLogs},
@@ -1083,6 +1085,166 @@ async function updCTE(id,val,campo){
     const c=document.getElementById('pg');if(c.__ctes){const x=c.__ctes.find(x=>x.id===id);if(x){if(campo==='status')x.status_auditoria=val;else x.observacao_auditoria=val;}}
   }catch(e){
     bononiLog('ERRO','ERRO_ATUALIZAR_CTE',{modulo:'auditoria',entidade:'cte',id_entidade:id,erro:e,contexto:{campo,val}});
+    toast('Erro: '+e.message,'error');
+  }
+}
+
+// ────────────────────────────────────────────
+// PAGE: CONFERÊNCIA DE FRETE — CTes para lançar no contas a pagar
+// ────────────────────────────────────────────
+let confFiltro={transp:'',status:'',q:''};
+
+async function pgConferencia(){
+  const c=document.getElementById('pg');
+  c.innerHTML=`<div class="loading"><div class="spinner"></div>Carregando CTes...</div>`;
+  try{
+    const ctes=await db('frt_conhecimentos?select=id,num_cte,data_emissao,nome_transportadora,cnpj_transportadora,nome_destinatario,uf_destino,nome_vendedor,valor_frete_cte,valor_total_cte,notas_fiscais,status_auditoria,frete_lancado,frete_lancado_em,frete_lancado_por,criado_em&order=nome_transportadora.asc,data_emissao.asc');
+    c.__conf=ctes;
+    confFiltro={transp:'',status:'',q:''};
+
+    // transportadoras do mês (pra montar o filtro)
+    const doMes=ctes.filter(x=>(x.data_emissao||x.criado_em||'').startsWith(mesGlobal));
+    const transp=[...new Set(doMes.map(x=>x.nome_transportadora).filter(Boolean))].sort();
+
+    c.innerHTML=`
+      <div class="card" style="border-left:3px solid var(--blue-light)">
+        <div style="font-size:12.5px;color:var(--muted)">💸 Cada <b>CTe</b> é um frete que vira <b>conta a pagar</b> amarrada na venda. Confira aqui, lance no ERP e marque como <b>lançado</b> — o que já foi lançado sai da lista de pendentes. A NF e o vendedor te levam direto à venda.</div>
+      </div>
+      <div class="stats-grid" id="conf-stats"></div>
+      <div class="card">
+        <div class="flex jb ac mb-3" style="flex-wrap:wrap;gap:8px">
+          <div class="card-title" style="margin:0">Frete a lançar — ${mesGlobal.split('-').reverse().join('/')}</div>
+          <div class="filters" style="margin:0">
+            <select class="fi" id="cf-transp" onchange="confSet('transp',this.value)" style="flex:0 0 auto;min-width:150px">
+              <option value="">Todas transportadoras</option>
+              ${transp.map(t=>`<option value="${t.replace(/"/g,'&quot;')}">${t}</option>`).join('')}
+            </select>
+            <select class="fi" id="cf-status" onchange="confSet('status',this.value)" style="flex:0 0 auto;min-width:120px">
+              <option value="">Todos</option>
+              <option value="a_lancar">A lançar</option>
+              <option value="lancado">Lançados</option>
+            </select>
+            <input class="fi" id="cf-q" placeholder="CTe, NF, cliente..." oninput="confSet('q',this.value)"/>
+          </div>
+        </div>
+        <div id="conf-groups"></div>
+      </div>`;
+    aplicarConf();
+  }catch(e){
+    bononiLog('ERRO','ERRO_CONFERENCIA',{modulo:'conferencia',erro:e});
+    c.innerHTML=`<div class="empty"><div class="ei">❌</div><p>${e.message}</p></div>`;
+    toast('Erro: '+e.message,'error');
+  }
+}
+
+function confSet(k,v){confFiltro[k]=v;aplicarConf();}
+
+function confNFs(r){return((r.notas_fiscais||[]).map(n=>n&&n.num_nf).filter(Boolean).join(', '))||'—';}
+
+function confFiltrar(){
+  const c=document.getElementById('pg'),ctes=c.__conf||[];
+  const{transp,status,q}=confFiltro,qq=(q||'').toLowerCase();
+  return ctes.filter(r=>{
+    if(!(r.data_emissao||r.criado_em||'').startsWith(mesGlobal))return false;
+    if(transp&&r.nome_transportadora!==transp)return false;
+    if(status==='a_lancar'&&r.frete_lancado)return false;
+    if(status==='lancado'&&!r.frete_lancado)return false;
+    if(qq){
+      const alvo=`${r.num_cte||''} ${confNFs(r)} ${r.nome_destinatario||''} ${r.nome_vendedor||''}`.toLowerCase();
+      if(!alvo.includes(qq))return false;
+    }
+    return true;
+  });
+}
+
+function aplicarConf(){
+  const f=confFiltrar();
+  // stats
+  const aLancar=f.filter(x=>!x.frete_lancado),lancados=f.filter(x=>x.frete_lancado);
+  const vlAlancar=aLancar.reduce((s,x)=>s+Number(x.valor_total_cte||x.valor_frete_cte||0),0);
+  const st=document.getElementById('conf-stats');
+  if(st)st.innerHTML=`
+    <div class="stat c-blue"><div class="stat-lbl">CTes no mês</div><div class="stat-val">${f.length}</div></div>
+    <div class="stat c-warn"><div class="stat-lbl">A lançar</div><div class="stat-val">${aLancar.length}</div></div>
+    <div class="stat c-green"><div class="stat-lbl">Lançados</div><div class="stat-val">${lancados.length}</div></div>
+    <div class="stat c-red"><div class="stat-lbl">R$ a lançar</div><div class="stat-val" style="font-size:18px">${R(vlAlancar)}</div></div>`;
+  // agrupa por transportadora
+  const g={};
+  f.forEach(r=>{const k=r.nome_transportadora||'(sem transportadora)';(g[k]=g[k]||[]).push(r);});
+  const box=document.getElementById('conf-groups');
+  if(!box)return;
+  const chaves=Object.keys(g).sort();
+  if(!chaves.length){box.innerHTML=`<div class="empty"><div class="ei">✅</div><p>Nada a conferir neste filtro.</p></div>`;return;}
+  box.innerHTML=chaves.map(k=>{
+    const rows=g[k];
+    const pend=rows.filter(x=>!x.frete_lancado);
+    const somaP=pend.reduce((s,x)=>s+Number(x.valor_total_cte||x.valor_frete_cte||0),0);
+    return`
+    <div style="margin-bottom:18px">
+      <div class="flex jb ac" style="flex-wrap:wrap;gap:8px;margin-bottom:6px">
+        <div style="font-weight:700;font-size:13.5px">${k}
+          <span class="badge ${pend.length?'b-warn':'b-ok'}" style="margin-left:6px">${pend.length} a lançar</span>
+          <span class="badge b-gray" style="margin-left:2px">${R(somaP)}</span>
+        </div>
+        ${pend.length?`<button class="btn btn-ghost btn-sm" onclick="confMarcarGrupo('${k.replace(/'/g,"\\'")}')">✓ Marcar grupo como lançado</button>`:''}
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr>
+            <th style="width:44px;text-align:center">Lançado</th>
+            <th>CTe</th><th>Data</th><th>NF</th><th>Cliente</th><th>UF</th><th>Vendedor</th>
+            <th style="text-align:right">Vl. Frete</th>
+          </tr></thead>
+          <tbody>
+            ${rows.map(r=>{
+              const done=!!r.frete_lancado;
+              return`<tr id="conf-${r.id}" style="${done?'opacity:.5':''}">
+                <td style="text-align:center"><input type="checkbox" ${done?'checked':''} onchange="confToggle('${r.id}',this.checked)" style="width:17px;height:17px;cursor:pointer" title="${done?('Lançado '+DT(r.frete_lancado_em)):'Marcar como lançado'}"/></td>
+                <td class="mono">${r.num_cte||'—'}</td>
+                <td style="white-space:nowrap">${(r.data_emissao||r.criado_em||'').slice(0,10).split('-').reverse().join('/')||'—'}</td>
+                <td class="mono">${confNFs(r)}</td>
+                <td>${r.nome_destinatario||'—'}</td>
+                <td>${r.uf_destino||'—'}</td>
+                <td>${r.nome_vendedor||`<span class="badge b-gray">sem vínculo</span>`}</td>
+                <td class="mono" style="text-align:right;white-space:nowrap">${R(r.valor_total_cte||r.valor_frete_cte)}</td>
+              </tr>`;
+            }).join('')}
+          </tbody>
+        </table>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+async function confToggle(id,checked){
+  const c=document.getElementById('pg'),item=(c.__conf||[]).find(x=>x.id==id);
+  const body={frete_lancado:checked,frete_lancado_em:checked?new Date().toISOString():null,frete_lancado_por:checked?user:null};
+  try{
+    const r=await fetch(`${SB}/rest/v1/frt_conhecimentos?id=eq.${id}`,{method:'PATCH',headers:{...hdrs(),'Prefer':'return=minimal'},body:JSON.stringify(body)});
+    if(!r.ok)throw new Error('HTTP '+r.status);
+    if(item)Object.assign(item,body);
+    aplicarConf();
+    toast(checked?'CTe marcado como lançado':'Desmarcado','success');
+  }catch(e){
+    bononiLog('ERRO','ERRO_CONF_TOGGLE',{modulo:'conferencia',entidade:'cte',id_entidade:id,erro:e});
+    toast('Erro ao salvar: '+e.message,'error');
+    aplicarConf();
+  }
+}
+
+async function confMarcarGrupo(transp){
+  const c=document.getElementById('pg');
+  const alvo=confFiltrar().filter(x=>x.nome_transportadora===transp&&!x.frete_lancado);
+  if(!alvo.length)return;
+  if(!confirm(`Marcar ${alvo.length} CTe(s) de ${transp} como lançados?`))return;
+  const agora=new Date().toISOString();
+  try{
+    await Promise.all(alvo.map(x=>fetch(`${SB}/rest/v1/frt_conhecimentos?id=eq.${x.id}`,{method:'PATCH',headers:{...hdrs(),'Prefer':'return=minimal'},body:JSON.stringify({frete_lancado:true,frete_lancado_em:agora,frete_lancado_por:user})})));
+    alvo.forEach(x=>{x.frete_lancado=true;x.frete_lancado_em=agora;x.frete_lancado_por=user;});
+    aplicarConf();
+    toast(`${alvo.length} CTe(s) marcados como lançados`,'success');
+  }catch(e){
+    bononiLog('ERRO','ERRO_CONF_GRUPO',{modulo:'conferencia',erro:e,contexto:{transp}});
     toast('Erro: '+e.message,'error');
   }
 }
