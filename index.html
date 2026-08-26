@@ -1100,7 +1100,7 @@ async function pgConferencia(){
   try{
     const [ctes,faturas]=await Promise.all([
       db('frt_conhecimentos?select=id,num_cte,data_emissao,nome_transportadora,cnpj_transportadora,nome_destinatario,uf_destino,nome_vendedor,valor_frete_cte,valor_total_cte,notas_fiscais,status_auditoria,frete_lancado,frete_lancado_em,frete_lancado_por,frete_vencimento,num_fatura,criado_em&order=nome_transportadora.asc,data_emissao.asc'),
-      db('frt_faturas?select=id,transportadora,empresa,id_empresa,num_fatura,vencimento,valor_total,status,origem&order=vencimento.desc.nullslast').catch(()=>[])
+      db('frt_faturas?select=id,transportadora,empresa,id_empresa,num_fatura,vencimento,valor_total,status,origem,link_fatura&order=vencimento.desc.nullslast').catch(()=>[])
     ]);
     c.__conf=ctes; c.__faturas=faturas;
     confFiltro={transp:'',status:'',q:''};
@@ -1244,7 +1244,7 @@ function pintarModal(){
       <div class="card-title" style="margin:0">Vincular fatura ${f.num_fatura} <span class="faint" style="font-weight:400">${f.empresa||''} · vence ${fmtVenc(f.vencimento)}</span></div>
       <button class="btn btn-ghost btn-sm" onclick="fecharModal()">✕</button>
     </div>
-    <div class="faint" style="font-size:12px;margin-bottom:8px">Marque os CTes desta fatura. O total é <b>referência</b> (a fatura inclui impostos/ajustes — pode não bater exato). Ao vincular, o vencimento <b>${fmtVenc(f.vencimento)}</b> cola em cada CTe.</div>
+    <div class="faint" style="font-size:12px;margin-bottom:8px">Marque os CTes desta fatura. O total é <b>referência</b> (a fatura inclui impostos/ajustes — pode não bater exato). Ao vincular, o vencimento <b>${fmtVenc(f.vencimento)}</b> cola em cada CTe.${f.link_fatura?` · <a href="${f.link_fatura}" target="_blank" rel="noopener" style="color:var(--accent)">abrir fatura no portal ↗</a> (confere a lista oficial de CTes)`:''}</div>
     <div class="table-wrap" style="max-height:46vh;overflow:auto">
       <table><thead><tr><th style="width:34px"></th><th>CTe</th><th>Data</th><th>NF</th><th>Cliente</th><th style="text-align:right">Valor</th></tr></thead>
       <tbody>${linhas}</tbody></table>
