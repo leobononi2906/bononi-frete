@@ -1167,7 +1167,9 @@ function pintarFaturas(){
   if(box)box.innerHTML=renderFaturasPanel(c.__faturas||[],c.__conf||[]);
 }
 function renderFaturasPanel(faturas,ctes){
-  if(!faturas||!faturas.length)return '';
+  // só faturas com dado de verdade (vencimento captado)
+  faturas=(faturas||[]).filter(f=>f.vencimento);
+  if(!faturas.length)return '';
   const soma=faturas.reduce((s,f)=>s+Number(f.valor_total||0),0);
   const hoje=new Date();hoje.setHours(0,0,0,0);
   const aVencer=faturas.filter(f=>f.vencimento&&new Date(f.vencimento+'T00:00:00')>=hoje).length;
