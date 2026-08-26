@@ -1098,8 +1098,11 @@ async function pgConferencia(){
   const c=document.getElementById('pg');
   c.innerHTML=`<div class="loading"><div class="spinner"></div>Carregando CTes...</div>`;
   try{
-    const ctes=await db('frt_conhecimentos?select=id,num_cte,data_emissao,nome_transportadora,cnpj_transportadora,nome_destinatario,uf_destino,nome_vendedor,valor_frete_cte,valor_total_cte,notas_fiscais,status_auditoria,frete_lancado,frete_lancado_em,frete_lancado_por,criado_em&order=nome_transportadora.asc,data_emissao.asc');
-    c.__conf=ctes;
+    const [ctes,faturas]=await Promise.all([
+      db('frt_conhecimentos?select=id,num_cte,data_emissao,nome_transportadora,cnpj_transportadora,nome_destinatario,uf_destino,nome_vendedor,valor_frete_cte,valor_total_cte,notas_fiscais,status_auditoria,frete_lancado,frete_lancado_em,frete_lancado_por,frete_vencimento,num_fatura,criado_em&order=nome_transportadora.asc,data_emissao.asc'),
+      db('frt_faturas?select=transportadora,empresa,id_empresa,num_fatura,vencimento,valor_total,status,origem&order=vencimento.desc.nullslast').catch(()=>[])
+    ]);
+    c.__conf=ctes; c.__faturas=faturas;
     confFiltro={transp:'',status:'',q:''};
 
     // transportadoras do mês (pra montar o filtro)
@@ -1111,6 +1114,7 @@ async function pgConferencia(){
         <div style="font-size:12.5px;color:var(--muted)">💸 Cada <b>CTe</b> é um frete que vira <b>conta a pagar</b> amarrada na venda. Confira aqui, lance no ERP e marque como <b>lançado</b> — o que já foi lançado sai da lista de pendentes. A NF e o vendedor te levam direto à venda.</div>
       </div>
       <div class="stats-grid" id="conf-stats"></div>
+      ${renderFaturasPanel(faturas)}
       <div class="card">
         <div class="flex jb ac mb-3" style="flex-wrap:wrap;gap:8px">
           <div class="card-title" style="margin:0">Frete a lançar — ${mesGlobal.split('-').reverse().join('/')}</div>
@@ -1140,6 +1144,42 @@ async function pgConferencia(){
 function confSet(k,v){confFiltro[k]=v;aplicarConf();}
 
 function confNFs(r){return((r.notas_fiscais||[]).map(n=>n&&n.num_nf).filter(Boolean).join(', '))||'—';}
+function fmtVenc(iso){return iso?String(iso).slice(0,10).split('-').reverse().join('/'):'—';}
+function vencCls(iso){
+  if(!iso)return 'b-gray';
+  const hoje=new Date();hoje.setHours(0,0,0,0);
+  const dias=Math.round((new Date(iso+'T00:00:00')-hoje)/86400000);
+  if(dias<0)return 'b-red';        // vencido
+  if(dias<=5)return 'b-warn';      // vence já
+  return 'b-ok';
+}
+function transpCurto(n){n=(n||'').toUpperCase();if(n.includes('MIGUEL'))return 'São Miguel';if(n.includes('RODONAVES')||n.includes('RTE'))return 'Rodonaves';if(n.includes('BRASPRESS'))return 'Braspress';return (n.split(' ')[0]||'—');}
+function renderFaturasPanel(faturas){
+  if(!faturas||!faturas.length)return '';
+  const soma=faturas.reduce((s,f)=>s+Number(f.valor_total||0),0);
+  const hoje=new Date();hoje.setHours(0,0,0,0);
+  const aVencer=faturas.filter(f=>f.vencimento&&new Date(f.vencimento+'T00:00:00')>=hoje).length;
+  const rows=faturas.slice(0,80).map(f=>`<tr>
+     <td>${transpCurto(f.transportadora)}</td>
+     <td>${f.empresa||'—'}</td>
+     <td class="mono">${f.num_fatura||'—'}</td>
+     <td class="mono"><span class="badge ${vencCls(f.vencimento)}">${fmtVenc(f.vencimento)}</span></td>
+     <td class="mono" style="text-align:right;white-space:nowrap">${R(f.valor_total)}</td>
+   </tr>`).join('');
+  return `<div class="card">
+    <div class="flex jb ac mb-3" style="flex-wrap:wrap;gap:8px">
+      <div class="card-title" style="margin:0">📅 Faturas de frete — vencimentos <span class="badge b-blue">${faturas.length}</span></div>
+      <div class="faint" style="font-size:12px">Captadas do e-mail automaticamente · total ${R(soma)} · ${aVencer} a vencer</div>
+    </div>
+    <div class="faint" style="font-size:12px;margin-bottom:8px">Hoje só o <b>São Miguel</b> manda o vencimento por e-mail (entra sozinho). Braspress/RTE ainda vêm pelo lançamento manual.</div>
+    <div class="table-wrap" style="max-height:300px;overflow-y:auto">
+      <table>
+        <thead><tr><th>Transportadora</th><th>Empresa</th><th>Fatura</th><th>Vencimento</th><th style="text-align:right">Valor</th></tr></thead>
+        <tbody>${rows}</tbody>
+      </table>
+    </div>
+  </div>`;
+}
 
 function confFiltrar(){
   const c=document.getElementById('pg'),ctes=c.__conf||[];
@@ -1193,7 +1233,7 @@ function aplicarConf(){
           <thead><tr>
             <th style="width:44px;text-align:center">Lançado</th>
             <th>CTe</th><th>Data</th><th>NF</th><th>Cliente</th><th>UF</th><th>Vendedor</th>
-            <th style="text-align:right">Vl. Frete</th>
+            <th>Venc.</th><th style="text-align:right">Vl. Frete</th>
           </tr></thead>
           <tbody>
             ${rows.map(r=>{
@@ -1206,6 +1246,7 @@ function aplicarConf(){
                 <td>${r.nome_destinatario||'—'}</td>
                 <td>${r.uf_destino||'—'}</td>
                 <td>${r.nome_vendedor||`<span class="badge b-gray">sem vínculo</span>`}</td>
+                <td class="mono">${r.frete_vencimento?`<span class="badge ${vencCls(r.frete_vencimento)}">${fmtVenc(r.frete_vencimento)}</span>`:'<span class="faint">—</span>'}</td>
                 <td class="mono" style="text-align:right;white-space:nowrap">${R(r.valor_total_cte||r.valor_frete_cte)}</td>
               </tr>`;
             }).join('')}
