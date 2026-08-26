@@ -1100,7 +1100,7 @@ async function pgConferencia(){
   try{
     const [ctes,faturas]=await Promise.all([
       db('frt_conhecimentos?select=id,num_cte,data_emissao,nome_transportadora,cnpj_transportadora,nome_destinatario,uf_destino,nome_vendedor,valor_frete_cte,valor_total_cte,notas_fiscais,status_auditoria,frete_lancado,frete_lancado_em,frete_lancado_por,frete_vencimento,num_fatura,criado_em&order=nome_transportadora.asc,data_emissao.asc'),
-      db('frt_faturas?select=transportadora,empresa,id_empresa,num_fatura,vencimento,valor_total,status,origem&order=vencimento.desc.nullslast').catch(()=>[])
+      db('frt_faturas?select=id,transportadora,empresa,id_empresa,num_fatura,vencimento,valor_total,status,origem&order=vencimento.desc.nullslast').catch(()=>[])
     ]);
     c.__conf=ctes; c.__faturas=faturas;
     confFiltro={transp:'',status:'',q:''};
@@ -1114,7 +1114,7 @@ async function pgConferencia(){
         <div style="font-size:12.5px;color:var(--muted)">💸 Cada <b>CTe</b> é um frete que vira <b>conta a pagar</b> amarrada na venda. Confira aqui, lance no ERP e marque como <b>lançado</b> — o que já foi lançado sai da lista de pendentes. A NF e o vendedor te levam direto à venda.</div>
       </div>
       <div class="stats-grid" id="conf-stats"></div>
-      ${renderFaturasPanel(faturas)}
+      <div id="conf-faturas"></div>
       <div class="card">
         <div class="flex jb ac mb-3" style="flex-wrap:wrap;gap:8px">
           <div class="card-title" style="margin:0">Frete a lançar — ${mesGlobal.split('-').reverse().join('/')}</div>
@@ -1134,6 +1134,7 @@ async function pgConferencia(){
         <div id="conf-groups"></div>
       </div>`;
     aplicarConf();
+    pintarFaturas();
   }catch(e){
     bononiLog('ERRO','ERRO_CONFERENCIA',{modulo:'conferencia',erro:e});
     c.innerHTML=`<div class="empty"><div class="ei">❌</div><p>${e.message}</p></div>`;
@@ -1154,31 +1155,138 @@ function vencCls(iso){
   return 'b-ok';
 }
 function transpCurto(n){n=(n||'').toUpperCase();if(n.includes('MIGUEL'))return 'São Miguel';if(n.includes('RODONAVES')||n.includes('RTE'))return 'Rodonaves';if(n.includes('BRASPRESS'))return 'Braspress';return (n.split(' ')[0]||'—');}
-function renderFaturasPanel(faturas){
+const EMP_CNPJ={"57129987000166":1,"05864790000177":2,"05864790000258":3,"05864790000339":4,"73403826000175":5,"51054503000180":6,"15090647000200":8,"15090647000119":7,"15090647000129":7};
+function saoMiguel(r){return (r.nome_transportadora||'').toUpperCase().includes('MIGUEL');}
+function empresaCte(r){
+  const ch=r.notas_fiscais&&r.notas_fiscais[0]&&r.notas_fiscais[0].chave_nfe;
+  if(!ch||String(ch).length<20)return null;
+  return EMP_CNPJ[String(ch).substring(6,20)]??null;
+}
+function pintarFaturas(){
+  const c=document.getElementById('pg'),box=document.getElementById('conf-faturas');
+  if(box)box.innerHTML=renderFaturasPanel(c.__faturas||[],c.__conf||[]);
+}
+function renderFaturasPanel(faturas,ctes){
   if(!faturas||!faturas.length)return '';
   const soma=faturas.reduce((s,f)=>s+Number(f.valor_total||0),0);
   const hoje=new Date();hoje.setHours(0,0,0,0);
   const aVencer=faturas.filter(f=>f.vencimento&&new Date(f.vencimento+'T00:00:00')>=hoje).length;
-  const rows=faturas.slice(0,80).map(f=>`<tr>
+  const vinc={};(ctes||[]).forEach(r=>{if(r.num_fatura)vinc[r.num_fatura]=(vinc[r.num_fatura]||0)+1;});
+  const rows=faturas.slice(0,120).map(f=>{
+    const sm=(f.transportadora||'').toUpperCase().includes('MIGUEL');
+    const n=vinc[f.num_fatura]||0;
+    const acao=sm
+      ?`<button class="btn btn-ghost btn-sm" onclick="abrirVincular('${(f.num_fatura||'').replace(/'/g,'')}')">${n?('✓ '+n+' CTe'+(n>1?'s':'')):'Vincular CTes'}</button>`
+      :`<span class="faint" style="font-size:11px">manual</span>`;
+    return `<tr>
      <td>${transpCurto(f.transportadora)}</td>
      <td>${f.empresa||'—'}</td>
      <td class="mono">${f.num_fatura||'—'}</td>
      <td class="mono"><span class="badge ${vencCls(f.vencimento)}">${fmtVenc(f.vencimento)}</span></td>
      <td class="mono" style="text-align:right;white-space:nowrap">${R(f.valor_total)}</td>
-   </tr>`).join('');
+     <td style="text-align:right">${acao}</td>
+   </tr>`;}).join('');
   return `<div class="card">
     <div class="flex jb ac mb-3" style="flex-wrap:wrap;gap:8px">
       <div class="card-title" style="margin:0">📅 Faturas de frete — vencimentos <span class="badge b-blue">${faturas.length}</span></div>
-      <div class="faint" style="font-size:12px">Captadas do e-mail automaticamente · total ${R(soma)} · ${aVencer} a vencer</div>
+      <div class="faint" style="font-size:12px">Captadas do e-mail · total ${R(soma)} · ${aVencer} a vencer</div>
     </div>
-    <div class="faint" style="font-size:12px;margin-bottom:8px">Hoje só o <b>São Miguel</b> manda o vencimento por e-mail (entra sozinho). Braspress/RTE ainda vêm pelo lançamento manual.</div>
+    <div class="faint" style="font-size:12px;margin-bottom:8px">Só o <b>São Miguel</b> traz o vencimento por e-mail. Clique em <b>Vincular CTes</b> pra amarrar a fatura aos CTes — o vencimento cola em cada um.</div>
     <div class="table-wrap" style="max-height:300px;overflow-y:auto">
       <table>
-        <thead><tr><th>Transportadora</th><th>Empresa</th><th>Fatura</th><th>Vencimento</th><th style="text-align:right">Valor</th></tr></thead>
+        <thead><tr><th>Transp.</th><th>Empresa</th><th>Fatura</th><th>Vencimento</th><th style="text-align:right">Valor</th><th></th></tr></thead>
         <tbody>${rows}</tbody>
       </table>
     </div>
   </div>`;
+}
+
+// ---- Vínculo assistido: fatura São Miguel -> CTes ----
+let _vinc=null;
+function vincVal(r){return Number(r.valor_total_cte||r.valor_frete_cte||0);}
+function abrirVincular(numFatura){
+  const c=document.getElementById('pg');
+  const f=(c.__faturas||[]).find(x=>String(x.num_fatura)===String(numFatura)&&(x.transportadora||'').toUpperCase().includes('MIGUEL'));
+  if(!f){toast('Fatura não encontrada','error');return;}
+  // janela: CTes emitidos até ~70 dias antes do vencimento (a fatura fecha antes de vencer)
+  const vd=f.vencimento?new Date(f.vencimento+'T00:00:00'):null;
+  const ini=vd?new Date(vd.getTime()-70*86400000):null, fim=vd?new Date(vd.getTime()+5*86400000):null;
+  const cand=(c.__conf||[]).filter(r=>{
+    if(!saoMiguel(r)||empresaCte(r)!==f.id_empresa)return false;
+    if(r.num_fatura&&String(r.num_fatura)!==String(f.num_fatura))return false;
+    if(vd&&r.data_emissao){const d=new Date(String(r.data_emissao).slice(0,10)+'T00:00:00');if(d<ini||d>fim)return false;}
+    return true;
+  }).sort((a,b)=>String(a.data_emissao||'').localeCompare(String(b.data_emissao||'')));
+  const sel=new Set(cand.filter(r=>String(r.num_fatura)===String(f.num_fatura)).map(r=>r.id));
+  _vinc={f,cand,sel};
+  pintarModal();
+}
+function pintarModal(){
+  const {f,cand,sel}=_vinc;
+  const total=Number(f.valor_total||0);
+  const somaSel=cand.filter(r=>sel.has(r.id)).reduce((s,r)=>s+vincVal(r),0);
+  const bate=Math.abs(somaSel-total)<0.01;
+  let m=document.getElementById('conf-modal');
+  if(!m){m=document.createElement('div');m.id='conf-modal';document.body.appendChild(m);}
+  m.setAttribute('style','position:fixed;inset:0;background:rgba(8,15,30,.55);display:flex;align-items:center;justify-content:center;z-index:9999;padding:16px');
+  const linhas=cand.map(r=>{
+    const on=sel.has(r.id);
+    return `<tr onclick="vincToggle('${r.id}')" style="cursor:pointer;${on?'background:var(--blue-pale)':''}">
+      <td style="text-align:center"><input type="checkbox" ${on?'checked':''} onclick="event.stopPropagation();vincToggle('${r.id}')" style="width:16px;height:16px"/></td>
+      <td class="mono">${r.num_cte||'—'}</td>
+      <td>${(r.data_emissao||'').slice(0,10).split('-').reverse().join('/')}</td>
+      <td class="mono">${confNFs(r)}</td>
+      <td>${r.nome_destinatario||'—'}</td>
+      <td class="mono" style="text-align:right">${R(vincVal(r))}</td>
+    </tr>`;}).join('')||`<tr><td colspan="6" style="text-align:center;padding:20px;color:var(--muted)">Nenhum CTe do São Miguel dessa empresa disponível.</td></tr>`;
+  m.innerHTML=`<div class="card" style="max-width:760px;width:100%;max-height:88vh;overflow:auto;margin:0">
+    <div class="flex jb ac mb-3" style="gap:8px">
+      <div class="card-title" style="margin:0">Vincular fatura ${f.num_fatura} <span class="faint" style="font-weight:400">${f.empresa||''} · vence ${fmtVenc(f.vencimento)}</span></div>
+      <button class="btn btn-ghost btn-sm" onclick="fecharModal()">✕</button>
+    </div>
+    <div class="faint" style="font-size:12px;margin-bottom:8px">Marque os CTes desta fatura. O total é <b>referência</b> (a fatura inclui impostos/ajustes — pode não bater exato). Ao vincular, o vencimento <b>${fmtVenc(f.vencimento)}</b> cola em cada CTe.</div>
+    <div class="table-wrap" style="max-height:46vh;overflow:auto">
+      <table><thead><tr><th style="width:34px"></th><th>CTe</th><th>Data</th><th>NF</th><th>Cliente</th><th style="text-align:right">Valor</th></tr></thead>
+      <tbody>${linhas}</tbody></table>
+    </div>
+    <div class="flex jb ac" style="gap:10px;flex-wrap:wrap;margin-top:12px">
+      <div style="font-size:13px">Selecionado <b class="mono">${R(somaSel)}</b> / total <b class="mono">${R(total)}</b>
+        <span class="badge ${bate?'b-ok':'b-warn'}" style="margin-left:6px">${bate?'bate ✓':'dif. '+R(Math.abs(somaSel-total))}</span></div>
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-ghost btn-sm" onclick="vincSugerir()">Sugerir seleção</button>
+        <button class="btn btn-sm" style="background:var(--accent);color:#fff;border:none" onclick="vincSalvar()">Vincular ${sel.size} CTe(s)</button>
+      </div>
+    </div>
+  </div>`;
+}
+function vincToggle(id){if(_vinc.sel.has(id))_vinc.sel.delete(id);else _vinc.sel.add(id);pintarModal();}
+function vincSugerir(){
+  const {f,cand}=_vinc,total=Number(f.valor_total||0);
+  const ord=[...cand].sort((a,b)=>vincVal(b)-vincVal(a));
+  const sel=new Set();let s=0;
+  for(const r of ord){const v=vincVal(r);if(s+v<=total+0.005){sel.add(r.id);s+=v;}}
+  _vinc.sel=sel;pintarModal();
+}
+function fecharModal(){const m=document.getElementById('conf-modal');if(m)m.remove();_vinc=null;}
+async function vincSalvar(){
+  const {f,cand,sel}=_vinc,venc=f.vencimento,upd=[];
+  for(const r of cand){
+    const quer=sel.has(r.id),ja=String(r.num_fatura)===String(f.num_fatura);
+    if(quer&&!ja)upd.push({r,body:{id_fatura:f.id||null,num_fatura:f.num_fatura,frete_vencimento:venc}});
+    else if(!quer&&ja)upd.push({r,body:{id_fatura:null,num_fatura:null,frete_vencimento:null}});
+  }
+  if(!upd.length){toast('Nada mudou','info');fecharModal();return;}
+  try{
+    await Promise.all(upd.map(u=>fetch(`${SB}/rest/v1/frt_conhecimentos?id=eq.${u.r.id}`,{method:'PATCH',headers:{...hdrs(),'Prefer':'return=minimal'},body:JSON.stringify(u.body)})));
+    upd.forEach(u=>Object.assign(u.r,u.body));
+    if(f.id)await fetch(`${SB}/rest/v1/frt_faturas?id=eq.${f.id}`,{method:'PATCH',headers:{...hdrs(),'Prefer':'return=minimal'},body:JSON.stringify({status:'conferida'})}).catch(()=>{});
+    f.status='conferida';
+    toast(`${upd.length} CTe(s) · vencimento ${fmtVenc(venc)}`,'success');
+    fecharModal();aplicarConf();pintarFaturas();
+  }catch(e){
+    bononiLog('ERRO','ERRO_VINCULAR_FATURA',{modulo:'conferencia',erro:e,contexto:{fatura:f.num_fatura}});
+    toast('Erro ao vincular: '+e.message,'error');
+  }
 }
 
 function confFiltrar(){
