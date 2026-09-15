@@ -1,0 +1,203 @@
+/* Design System Bononi Acessorios - sistemas internos.
+   GERADO: tokens/{colors,typography,spacing,radius,elevation,motion,base}.css do pacote da skill
+   bononi-design, concatenados. NAO editar a mao - regerar do pacote.
+   As fontes saem daqui e viram <link> no <head> (evita @import encadeado). */
+
+/* ===== colors ===== */
+:root{
+  /* ---- Brand ---- */
+  --bnn-red-50:#fdecec;
+  --bnn-red-100:#fad4d5;
+  --bnn-red-300:#e8565c;
+  --bnn-red-400:#ed1d26;   /* reverse / dark-surface red, from logo on dark */
+  --bnn-red-500:#c11f25;   /* primary brand red, sampled from the wordmark mark */
+  --bnn-red-600:#9e171c;
+  --bnn-red-700:#7a1115;
+
+  /* ---- Ink & neutrals (cool graphite, matches the black wordmark) ---- */
+  --bnn-ink-900:#14161a;
+  --bnn-ink-800:#1f232b;
+  --bnn-ink-700:#2c313b;
+  --bnn-gray-600:#4a5160;
+  --bnn-gray-500:#6b7382;
+  --bnn-gray-400:#98a0ae;
+  --bnn-gray-300:#c6ccd6;
+  --bnn-gray-200:#e0e4ea;
+  --bnn-gray-100:#eef1f5;
+  --bnn-gray-50:#f6f8fa;
+  --bnn-white:#ffffff;
+
+  /* ---- Semantic status (workshop / stock states) ---- */
+  --bnn-green-500:#157f4a;
+  --bnn-green-50:#e6f4ec;
+  --bnn-amber-500:#b7791f;
+  --bnn-amber-50:#fdf3e3;
+  --bnn-blue-500:#1d4e89;
+  --bnn-blue-50:#e8eff8;
+
+  /* ---- Semantic aliases ---- */
+  --text-strong:var(--bnn-ink-900);
+  --text-body:var(--bnn-ink-800);
+  --text-muted:var(--bnn-gray-500);
+  --text-faint:var(--bnn-gray-400);
+  --text-inverse:var(--bnn-white);
+  --text-accent:var(--bnn-red-500);
+  --text-link:var(--bnn-red-600);
+  --text-link-hover:var(--bnn-red-700);
+
+  --surface-page:var(--bnn-gray-50);
+  --surface-card:var(--bnn-white);
+  --surface-sunken:var(--bnn-gray-100);
+  --surface-hover:var(--bnn-gray-100);
+  --surface-selected:var(--bnn-red-50);
+  --surface-inverse:var(--bnn-ink-900);
+  --surface-nav:var(--bnn-ink-900);
+
+  --border-subtle:var(--bnn-gray-200);
+  --border-default:var(--bnn-gray-300);
+  --border-strong:var(--bnn-gray-600);
+  --border-accent:var(--bnn-red-500);
+  --border-focus:var(--bnn-ink-900);
+
+  --action-primary:var(--bnn-ink-900);
+  --action-primary-hover:var(--bnn-ink-700);
+  --action-primary-active:#0b0d10;
+  --action-accent:var(--bnn-red-500);
+  --action-accent-hover:var(--bnn-red-600);
+  --action-accent-active:var(--bnn-red-700);
+  --action-danger:var(--bnn-red-600);
+  --action-disabled-bg:var(--bnn-gray-200);
+  --action-disabled-text:var(--bnn-gray-400);
+
+  --status-ok-text:var(--bnn-green-500);
+  --status-ok-bg:var(--bnn-green-50);
+  --status-warn-text:var(--bnn-amber-500);
+  --status-warn-bg:var(--bnn-amber-50);
+  --status-info-text:var(--bnn-blue-500);
+  --status-info-bg:var(--bnn-blue-50);
+  --status-crit-text:var(--bnn-red-600);
+  --status-crit-bg:var(--bnn-red-50);
+
+  --focus-ring:0 0 0 2px var(--bnn-white),0 0 0 4px var(--bnn-ink-900);
+}
+
+/* ===== typography ===== */
+:root{
+  --font-display:"Archivo","Arial Narrow",Helvetica,sans-serif;
+  --font-ui:"Barlow","Helvetica Neue",Arial,sans-serif;
+  --font-mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+
+  --fw-regular:400; /* @kind font */
+  --fw-medium:500; /* @kind font */
+  --fw-semibold:600; /* @kind font */
+  --fw-bold:700; /* @kind font */
+  --fw-black:800; /* @kind font */
+
+  --fs-11:11px; --fs-12:12px; --fs-13:13px; --fs-14:14px; --fs-16:16px;
+  --fs-18:18px; --fs-20:20px; --fs-24:24px; --fs-30:30px; --fs-38:38px; --fs-48:48px;
+
+  --lh-tight:1.1; /* @kind font */
+  --lh-snug:1.25; /* @kind font */
+  --lh-normal:1.45; /* @kind font */
+  --lh-loose:1.6; /* @kind font */
+
+  --ls-tight:-0.02em; /* @kind font */
+  --ls-normal:0; /* @kind font */
+  --ls-wide:0.04em; /* @kind font */
+  --ls-caps:0.08em; /* @kind font */
+
+  /* Composed roles */
+  --type-display:var(--fw-black) var(--fs-38)/var(--lh-tight) var(--font-display);
+  --type-h1:var(--fw-bold) var(--fs-24)/var(--lh-snug) var(--font-display);
+  --type-h2:var(--fw-bold) var(--fs-18)/var(--lh-snug) var(--font-display);
+  --type-h3:var(--fw-semibold) var(--fs-16)/var(--lh-snug) var(--font-ui);
+  --type-body:var(--fw-regular) var(--fs-14)/var(--lh-normal) var(--font-ui);
+  --type-body-strong:var(--fw-semibold) var(--fs-14)/var(--lh-normal) var(--font-ui);
+  --type-small:var(--fw-regular) var(--fs-13)/var(--lh-normal) var(--font-ui);
+  --type-label:var(--fw-semibold) var(--fs-12)/var(--lh-snug) var(--font-ui);
+  --type-overline:var(--fw-bold) var(--fs-11)/var(--lh-snug) var(--font-ui);
+  --type-numeric:var(--fw-medium) var(--fs-14)/var(--lh-normal) var(--font-mono);
+}
+
+/* ===== spacing ===== */
+:root{
+  --space-0:0px;
+  --space-1:2px;
+  --space-2:4px;
+  --space-3:6px;
+  --space-4:8px;
+  --space-5:12px;
+  --space-6:16px;
+  --space-7:20px;
+  --space-8:24px;
+  --space-9:32px;
+  --space-10:40px;
+  --space-11:48px;
+  --space-12:64px;
+
+  --control-h-sm:28px;
+  --control-h-md:36px;
+  --control-h-lg:44px;
+  --control-pad-x-sm:10px;
+  --control-pad-x-md:14px;
+  --control-pad-x-lg:18px;
+
+  --row-h-compact:34px;
+  --row-h-default:44px;
+
+  --sidebar-w:232px;
+  --sidebar-w-collapsed:60px;
+  --topbar-h:56px;
+  --page-max:1440px;
+  --gutter:24px;
+}
+
+/* ===== radius ===== */
+:root{
+  --radius-0:0px;
+  --radius-sm:3px;
+  --radius-md:5px;
+  --radius-lg:8px;
+  --radius-xl:12px;
+  --radius-pill:999px;
+}
+
+/* ===== elevation ===== */
+:root{
+  --shadow-none:none;
+  --shadow-hairline:inset 0 0 0 1px var(--border-subtle);
+  --shadow-card:0 1px 2px rgba(20,22,26,.06),0 1px 1px rgba(20,22,26,.04);
+  --shadow-raised:0 2px 6px rgba(20,22,26,.08),0 1px 2px rgba(20,22,26,.06);
+  --shadow-overlay:0 12px 32px rgba(20,22,26,.18),0 2px 6px rgba(20,22,26,.10);
+  --shadow-sticky:0 1px 0 var(--border-subtle),0 4px 10px rgba(20,22,26,.05);
+  --scrim:rgba(20,22,26,.55);
+}
+
+/* ===== motion ===== */
+:root{
+  --dur-instant:80ms; /* @kind other */
+  --dur-fast:120ms; /* @kind other */
+  --dur-base:180ms; /* @kind other */
+  --dur-slow:260ms; /* @kind other */
+  --ease-standard:cubic-bezier(.2,.6,.25,1); /* @kind other */
+  --ease-out:cubic-bezier(0,.55,.45,1); /* @kind other */
+  --ease-in:cubic-bezier(.5,0,1,.5); /* @kind other */
+  --transition-control:background-color var(--dur-fast) var(--ease-standard),border-color var(--dur-fast) var(--ease-standard),color var(--dur-fast) var(--ease-standard),box-shadow var(--dur-fast) var(--ease-standard); /* @kind other */
+}
+@media (prefers-reduced-motion:reduce){:root{
+  --dur-instant:0ms; /* @kind other */
+  --dur-fast:0ms; /* @kind other */
+  --dur-base:0ms; /* @kind other */
+  --dur-slow:0ms; /* @kind other */
+}}
+
+/* ===== base ===== */
+*,*::before,*::after{box-sizing:border-box}
+body{margin:0;font:var(--type-body);color:var(--text-body);background:var(--surface-page);-webkit-font-smoothing:antialiased}
+h1,h2,h3,h4,p{margin:0}
+a{color:var(--text-link);text-decoration:none;border-bottom:1px solid transparent;transition:var(--transition-control)}
+a:hover{color:var(--text-link-hover);border-bottom-color:currentColor}
+table{border-collapse:collapse}
+.bnn-num{font:var(--type-numeric);font-variant-numeric:tabular-nums}
+.bnn-overline{font:var(--type-overline);letter-spacing:var(--ls-caps);text-transform:uppercase;color:var(--text-muted)}
+:focus-visible{outline:none;box-shadow:var(--focus-ring)}

@@ -2,87 +2,150 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <title>Frete — Bononi</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:ital,wght@0,400..800;1,400..800&family=Barlow:ital,wght@0,400;0,500;0,600;0,700;1,500;1,600&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="ds/bononi-ds.css?v=20260915a">
 <style>
-@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500;600&display=swap');
+/* ── PONTE DE VARIÁVEIS ───────────────────────────────────────────────────────
+   Cada nome antigo aponta para o token semântico do Design System Bononi. É o que
+   faz os 157 `style=` inline herdarem a paleta sem reescrever um por um.
+   CÓDIGO NOVO usa o token do DS direto, não a ponte. */
 :root{
-  --bg:#F0F3F8;--surface:#FFFFFF;--surface2:#F7F9FC;--border:#E2E8F2;
-  --accent:#1A3A8F;--green:#0F9D6E;--danger:#D93025;--warn:#E07B00;
-  --text:#0F1D35;--muted:#5A6A85;--blue:#0077CC;--purple:#8b5cf6;
-  --blue-light:#00AAEE;--blue-pale:#E8F4FD;
-  --success-bg:#E8F8F3;--warning-bg:#FEF5E7;--destructive-bg:#FEF0EF;
-  --sidebar-bg:#1A3A8F;
+  --bg:var(--surface-page);          /* #f6f8fa */
+  --surface:var(--surface-card);     /* #ffffff */
+  --surface2:var(--surface-sunken);  /* #eef1f5 */
+  --border:var(--border-subtle);     /* #e0e4ea */
+  --text:var(--text-strong);         /* tinta #14161a */
+  --muted:var(--text-muted);         /* #6b7382 */
+
+  /* A virada que importa: ação primária é TINTA, não o azul-marinho de antes.
+     O vermelho #c11f25 passa a ser acento — no máximo um por tela. */
+  --accent:var(--action-primary);
+  --sidebar-bg:var(--surface-nav);   /* tinta #14161a */
+
+  --green:var(--status-ok-text);     --success-bg:var(--status-ok-bg);
+  --warn:var(--status-warn-text);    --warning-bg:var(--status-warn-bg);
+  --danger:var(--status-crit-text);  --destructive-bg:var(--status-crit-bg);
+  --blue:var(--status-info-text);    --blue-pale:var(--status-info-bg);
+
+  /* --blue-light era o azul-claro do realce. Sobre superfície clara vira o acento
+     vermelho do DS; o realce da sidebar escura está em .nav-item.active. */
+  --blue-light:var(--border-accent);
+  /* --purple não existe no DS. Carregava informação em dois pares (PF×PJ,
+     Manual×Portal), então foi para a rampa base como neutro forte — distinguível
+     de --blue (categoria) e de --muted (ausência), sem inventar uma segunda cor. */
+  --purple:var(--bnn-ink-900);
 }
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 html,body{height:100%;overflow:hidden}
-body{font-family:'DM Sans',system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--text)}
+body{font-family:var(--font-ui);background:var(--bg);color:var(--text)}
 #app{display:flex;height:100vh;overflow:hidden}
 
+/* ÍCONES — Lucide (set substituto do DS) como CSS mask, pra herdar currentColor.
+   Uso: <i class="ic" data-ic="truck"></i> — hidratado pelo MutationObserver. */
+.ic{display:inline-block;width:16px;height:16px;flex:0 0 auto;background-color:currentColor;
+  -webkit-mask:var(--ic) no-repeat center / contain;mask:var(--ic) no-repeat center / contain;vertical-align:-3px}
+.ic-sm{width:14px;height:14px;vertical-align:-2px}
+.ic-lg{width:20px;height:20px;vertical-align:-4px}
+.ic-xl{width:24px;height:24px;vertical-align:-5px}
+
 /* SIDEBAR */
-#sidebar{width:220px;min-width:220px;background:var(--sidebar-bg);border-right:none;display:flex;flex-direction:column;transition:transform .25s;z-index:50}
-.sb-logo{padding:18px 16px 14px;border-bottom:1px solid rgba(255,255,255,.15)}
-.sb-brand{font-size:10px;text-transform:uppercase;letter-spacing:2px;color:rgba(255,255,255,.45);display:block;margin-bottom:2px}
-.sb-title{font-size:16px;font-weight:700;color:#fff}
+#sidebar{width:var(--sidebar-w);min-width:var(--sidebar-w);background:var(--sidebar-bg);border-right:none;display:flex;flex-direction:column;transition:transform var(--dur-slow) var(--ease-standard);z-index:50}
+.sb-logo{padding:18px 16px 14px;border-bottom:1px solid rgba(255,255,255,.08)}
+.sb-logo img{display:block;height:22px;width:auto;margin-bottom:8px}
+.sb-brand{font:var(--type-overline);letter-spacing:var(--ls-caps);text-transform:uppercase;color:rgba(255,255,255,.45);display:block;margin-bottom:2px}
+.sb-title{font:var(--type-h3);color:var(--text-inverse)}
 nav{flex:1;padding:10px 8px;overflow-y:auto}
-.nav-item{display:flex;align-items:center;gap:9px;padding:10px 12px;border-radius:9px;cursor:pointer;font-size:13.5px;color:rgba(255,255,255,.65);margin-bottom:2px;transition:all .15s;border:1px solid transparent;user-select:none}
-.nav-item:active{opacity:.7}
-.nav-item.active{background:rgba(0,170,238,.18);color:var(--blue-light);border-color:rgba(0,170,238,.25);border-left:3px solid var(--blue-light)}
-.nav-icon{font-size:16px;width:20px;text-align:center;flex-shrink:0}
-.sb-footer{padding:12px 16px;border-top:1px solid rgba(255,255,255,.15)}
-#sb-user{font-weight:600;color:#fff;margin-bottom:4px;font-size:13px}
-.btn-sair{color:rgba(255,255,255,.5);cursor:pointer;font-size:12px}
+.nav-item{display:flex;align-items:center;gap:9px;padding:10px 12px;border-radius:var(--radius-md);cursor:pointer;font:var(--type-small);color:rgba(255,255,255,.65);margin-bottom:2px;transition:var(--transition-control);border:1px solid transparent;border-left:3px solid transparent;user-select:none;width:100%;min-height:var(--control-h-lg);text-align:left;background:transparent}
+/* press = deslocamento de 1px (DS). Nunca opacidade, nunca escala. */
+.nav-item:active{transform:translateY(1px)}
+.nav-item:hover{background:rgba(255,255,255,.04);color:var(--text-inverse)}
+/* realce da sidebar escura: texto em branco cheio e o rule vermelho do acento.
+   O azul-claro de antes dava 3,04:1 — menos legível que os itens inativos. */
+.nav-item.active{background:rgba(255,255,255,.08);color:var(--text-inverse);border-left-color:var(--bnn-red-400)}
+.nav-icon{width:20px;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0}
+.sb-footer{padding:12px 16px;border-top:1px solid rgba(255,255,255,.08)}
+#sb-user{font:var(--type-body-strong);color:var(--text-inverse);margin-bottom:4px}
+.btn-sair{color:rgba(255,255,255,.55);cursor:pointer;font:var(--type-label)}
 
 /* MAIN */
 #main{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0}
-.topbar{background:var(--surface);border-bottom:1px solid var(--border);padding:0 16px;display:flex;align-items:center;min-height:56px;flex-shrink:0;gap:10px;box-shadow:0 1px 3px rgba(15,29,53,0.04)}
-#menu-btn{display:none;background:none;border:none;color:var(--text);font-size:22px;cursor:pointer;padding:6px;border-radius:6px;flex-shrink:0}
-.topbar h1{font-size:15px;font-weight:600;color:var(--accent)}
-.topbar-sub{font-size:11px;color:var(--muted);margin-top:1px}
+.topbar{background:var(--surface);border-bottom:1px solid var(--border);padding:0 16px;display:flex;align-items:center;min-height:var(--topbar-h);flex-shrink:0;gap:10px;box-shadow:var(--shadow-sticky)}
+#menu-btn{display:none;background:none;border:none;color:var(--text);cursor:pointer;padding:6px;border-radius:var(--radius-md);flex-shrink:0;min-width:var(--control-h-lg);min-height:var(--control-h-lg);align-items:center;justify-content:center}
+.topbar h1{font:var(--type-h3);color:var(--text-strong)}
+.topbar-sub{font:var(--type-overline);text-transform:none;letter-spacing:var(--ls-normal);color:var(--muted);margin-top:1px}
+/* título trunca em vez de quebrar em 5 linhas quando o filtro de mês disputa a largura */
+.topbar h1,.topbar-sub{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#mes-filtro-wrap{min-width:0}
+#mes-filtro-wrap #mes-global{min-width:0;max-width:180px}
 .page{flex:1;overflow-y:auto;padding:16px;-webkit-overflow-scrolling:touch}
+/* o DS limita o conteúdo a 1440px; sem isso o campo de CPF/CNPJ esticava
+   para ~1000px em monitor largo, para caber 18 caracteres */
+.page>*{max-width:var(--page-max);margin-inline:auto}
+/* folga para a barra fixa, só na tela que realmente a tem */
+body:has(#sticky-cotar) .page{padding-bottom:96px}
 
 /* OVERLAY */
-#overlay{display:none;position:fixed;inset:0;background:rgba(15,29,53,.4);z-index:49}
+#overlay{display:none;position:fixed;inset:0;background:var(--scrim);z-index:49}
 #overlay.open{display:block}
 
 /* CONFIRM MODAL */
-.confirm-overlay{position:fixed;inset:0;background:rgba(15,29,53,.5);z-index:200;display:flex;align-items:center;justify-content:center;padding:16px}
-.confirm-box{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:24px;width:100%;max-width:360px;text-align:center;box-shadow:0 8px 32px rgba(15,29,53,.15)}
+.confirm-overlay{position:fixed;inset:0;background:var(--scrim);z-index:200;display:flex;align-items:center;justify-content:center;padding:16px}
+.confirm-box{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:24px;width:100%;max-width:360px;text-align:center;box-shadow:var(--shadow-overlay)}
 
-/* BOTÃO COTAR FIXO */
-#sticky-cotar{position:fixed;bottom:0;left:0;right:0;padding:10px 16px calc(10px + env(safe-area-inset-bottom));background:linear-gradient(transparent,var(--bg) 30%);z-index:40;display:flex;gap:8px}
-@media(min-width:768px){#sticky-cotar{left:220px}}
-.confirm-box p{font-size:14px;margin-bottom:20px;line-height:1.5}
+/* BOTÃO COTAR FIXO — fundo sólido + hairline no topo. O DS proíbe gradiente
+   nos sistemas internos, e o gradiente antigo esmaecia para a cor da página
+   enquanto passava por cima de cartões brancos, deixando uma emenda visível. */
+#sticky-cotar{position:fixed;bottom:0;left:0;right:0;padding:10px 16px calc(10px + env(safe-area-inset-bottom));background:var(--surface-page);border-top:1px solid var(--border);z-index:40;display:flex;gap:8px}
+#sticky-cotar .btn:focus-visible{box-shadow:var(--focus-ring)}
+@media(min-width:769px){#sticky-cotar{left:var(--sidebar-w)}}
+.confirm-box p{font:var(--type-body);margin-bottom:20px}
 .confirm-btns{display:flex;gap:10px;justify-content:center}
 
 /* INPUTS */
-input,select,textarea{font-family:'DM Sans',inherit;font-size:16px;color:var(--text);background:var(--surface2);border:1px solid var(--border);border-radius:9px;padding:11px 12px;outline:none;-webkit-appearance:none;width:100%;transition:border-color .15s}
-input:focus,select:focus,textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(26,58,143,.1)}
-input:focus,select:focus{border-color:var(--accent)}
+input,select,textarea{font-family:var(--font-ui);font-size:var(--fs-16);color:var(--text);background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-md);padding:11px 12px;outline:none;-webkit-appearance:none;width:100%;min-height:var(--control-h-lg);transition:var(--transition-control)}
+/* campo em foco: borda tinta + halo, como manda o DS (nunca azul) */
+input:focus,select:focus,textarea:focus{border-color:var(--border-focus);box-shadow:0 0 0 3px rgba(20,22,26,.08)}
+
+/* FOCO DE TECLADO — anel em tinta. Duplo (outline + box-shadow) porque webview
+   de preview sobrescreve outline; em navegador normal os dois coincidem. */
+:focus-visible{outline:2px solid var(--border-focus);outline-offset:2px;box-shadow:var(--focus-ring)}
+.nav-item:focus-visible{outline-color:var(--bnn-white);box-shadow:0 0 0 2px var(--surface-nav),0 0 0 4px var(--bnn-white)}
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
 input::placeholder{color:var(--muted)}
 select option{background:var(--surface2)}
 textarea{resize:vertical;min-height:72px}
 
 /* BTNS */
-.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:11px 18px;border-radius:9px;font-size:14px;font-weight:600;cursor:pointer;border:none;transition:all .15s;user-select:none;font-family:inherit}
-.btn:active{opacity:.75;transform:scale(.98)}
-.btn-primary{background:var(--accent);color:#fff}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:11px var(--control-pad-x-lg);border-radius:var(--radius-md);font:var(--type-body-strong);cursor:pointer;border:none;transition:var(--transition-control);user-select:none;min-height:var(--control-h-lg)}
+/* press = 1px para baixo + o degrau "active" da própria cor. Sem escala, sem opacidade. */
+.btn:active{transform:translateY(1px)}
+.btn-primary{background:var(--action-primary);color:var(--text-inverse)}
+.btn-primary:hover{background:var(--action-primary-hover)}
+.btn-primary:active{background:var(--action-primary-active)}
+/* o único vermelho da tela, quando houver: acento */
+.btn-accent{background:var(--action-accent);color:var(--text-inverse)}
+.btn-accent:hover{background:var(--action-accent-hover)}
 .btn-ghost{background:transparent;color:var(--muted);border:1px solid var(--border)}
-.btn-danger{background:var(--destructive-bg);color:var(--danger);border:1px solid rgba(217,48,37,.3)}
-.btn-success{background:var(--success-bg);color:var(--green);border:1px solid rgba(15,157,110,.3)}
-.btn-purple{background:rgba(139,92,246,.12);color:var(--purple);border:1px solid rgba(139,92,246,.3)}
+.btn-ghost:hover{background:var(--surface-hover);color:var(--text)}
+.btn-danger{background:transparent;color:var(--action-danger);border:1px solid var(--action-danger)}
+.btn-danger:hover{background:var(--status-crit-bg)}
+.btn-success{background:var(--success-bg);color:var(--green);border:1px solid var(--green)}
 .btn-full{width:100%}
-.btn-sm{padding:7px 13px;font-size:12.5px}
+.btn-sm{padding:7px var(--control-pad-x-sm);font:var(--type-label);min-height:var(--control-h-md)}
 
 /* CARDS */
-.card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:14px;box-shadow:0 1px 3px rgba(15,29,53,0.04)}
-.card-title{font-size:11.5px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);margin-bottom:14px;display:flex;align-items:center;gap:7px}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:16px;margin-bottom:14px;box-shadow:var(--shadow-card)}
+.card-title{font:var(--type-overline);letter-spacing:var(--ls-caps);text-transform:uppercase;color:var(--muted);margin-bottom:14px;display:flex;align-items:center;gap:7px}
 .stats-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-bottom:14px}
-.stat{background:var(--surface);border:1px solid var(--border);border-radius:11px;padding:14px;box-shadow:0 1px 3px rgba(15,29,53,0.04)}
-.stat-lbl{font-size:10.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.7px;margin-bottom:5px;font-weight:600}
-.stat-val{font-size:24px;font-weight:700;font-family:'DM Mono',monospace}
+.stat{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:14px;box-shadow:var(--shadow-card)}
+.stat-lbl{font:var(--type-overline);letter-spacing:var(--ls-caps);color:var(--muted);text-transform:uppercase;margin-bottom:5px}
+.stat-val{font:var(--fw-bold) var(--fs-24)/var(--lh-tight) var(--font-mono);font-variant-numeric:tabular-nums}
 .c-green .stat-val{color:var(--green)}.c-warn .stat-val{color:var(--warn)}.c-red .stat-val{color:var(--danger)}.c-blue .stat-val{color:var(--blue)}
 
 /* FORM */
@@ -90,145 +153,178 @@ textarea{resize:vertical;min-height:72px}
 .g2{grid-template-columns:1fr 1fr}
 .g1{grid-template-columns:1fr}
 .field{display:flex;flex-direction:column;gap:5px}
-.field label{font-size:11.5px;color:var(--muted);font-weight:500}
+.field label{font:var(--type-label);color:var(--muted)}
 .field.full{grid-column:1/-1}
 
 /* VOLUME BOX */
-.vol-box{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:10px}
+.vol-box{background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:14px;margin-bottom:10px}
 .vol-hdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
-.vol-lbl{font-size:11.5px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px}
+.vol-lbl{font:var(--type-overline);letter-spacing:var(--ls-caps);color:var(--muted);text-transform:uppercase}
 
 /* PRODUTOS */
 .prod-search-wrap{margin-bottom:10px}
 .prod-search-wrap input{width:100%}
-.prod-table-wrap{max-height:220px;overflow-y:auto;border:1px solid var(--border);border-radius:8px;margin-top:6px;background:var(--surface)}
-.prod-table{width:100%;border-collapse:collapse;font-size:12px}
-.prod-table th{position:sticky;top:0;background:var(--surface2);padding:6px 8px;text-align:left;font-size:11px;color:var(--muted);border-bottom:1px solid var(--border);white-space:nowrap}
+.prod-table-wrap{max-height:220px;overflow-y:auto;border:1px solid var(--border);border-radius:var(--radius-lg);margin-top:6px;background:var(--surface)}
+.prod-table{width:100%;border-collapse:collapse;font-size:var(--fs-12)}
+.prod-table th{position:sticky;top:0;background:var(--surface2);padding:6px 8px;text-align:left;font:var(--type-overline);letter-spacing:var(--ls-caps);text-transform:uppercase;color:var(--muted);border-bottom:1px solid var(--border);white-space:nowrap}
 .prod-table td{padding:8px;border-bottom:1px solid var(--border);vertical-align:middle}
-.prod-table tbody tr:hover td,.prod-table tbody tr:active td{background:var(--blue-pale)}
+.prod-table tbody tr:hover td,.prod-table tbody tr:active td{background:var(--surface-hover)}
 
 /* TABS */
-.tabs{display:inline-flex;background:var(--surface2);border:1px solid var(--border);border-radius:9px;padding:3px;gap:2px}
-.tab{border:none;background:transparent;padding:8px 16px;border-radius:7px;font-size:13px;font-weight:600;color:var(--muted);cursor:pointer;font-family:inherit}
-.tab.active{background:var(--surface);color:var(--accent);box-shadow:0 1px 3px rgba(15,29,53,.08)}
+.tabs{display:inline-flex;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-md);padding:3px;gap:2px}
+.tab{border:none;background:transparent;padding:8px 16px;border-radius:var(--radius-sm);font:var(--type-body-strong);color:var(--muted);cursor:pointer;min-height:var(--control-h-md)}
+.tab.active{background:var(--surface);color:var(--text-strong);box-shadow:var(--shadow-card)}
 
 /* VOL TABLE (resumo) */
-.vol-table{width:100%;border-collapse:collapse;font-size:12.5px}
-.vol-table th{padding:8px;text-align:left;font-size:10.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;border-bottom:1px solid var(--border);white-space:nowrap}
+.vol-table{width:100%;border-collapse:collapse;font-size:var(--fs-13)}
+.vol-table th{padding:8px;text-align:left;font:var(--type-overline);letter-spacing:var(--ls-caps);color:var(--muted);text-transform:uppercase;border-bottom:1px solid var(--border);white-space:nowrap}
 .vol-table td{padding:8px;border-bottom:1px solid var(--border);vertical-align:middle}
 .vol-table tfoot td{border-bottom:none;padding-top:10px}
 .prod-table tr:last-child td{border-bottom:none}
-.prod-table .btn-sel{padding:4px 10px;font-size:11px;white-space:nowrap}
+.prod-table .btn-sel{padding:4px 10px;font:var(--type-overline);white-space:nowrap;min-height:var(--control-h-sm)}
 .prod-list{margin-top:8px}
 .prod-item{
-  background:var(--surface2);border:1px solid var(--border);border-radius:8px;
+  background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-lg);
   padding:10px 12px;margin-bottom:8px;
 }
 .prod-item-hdr{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;margin-bottom:6px}
-.prod-item-nome{font-size:13px;font-weight:600;line-height:1.3}
-.prod-item-dims{font-size:11.5px;color:var(--muted);margin-top:2px}
+.prod-item-nome{font:var(--type-body-strong);line-height:var(--lh-snug)}
+.prod-item-dims{font:var(--type-label);font-weight:var(--fw-regular);color:var(--muted);margin-top:2px}
 .prod-item-row{display:flex;align-items:center;gap:8px;margin-top:6px}
-.prod-item-row label{font-size:11.5px;color:var(--muted);flex-shrink:0}
-.prod-item-row input{max-width:80px;padding:6px 8px;font-size:13px;text-align:center}
-.badge-novo{background:rgba(139,92,246,.15);color:var(--purple);font-size:10px;font-weight:700;padding:1px 6px;border-radius:4px;flex-shrink:0}
-.badge-catalogo{background:rgba(59,130,246,.15);color:var(--blue);font-size:10px;font-weight:700;padding:1px 6px;border-radius:4px;flex-shrink:0}
-.badge-dim{background:rgba(16,185,129,.15);color:var(--green);font-size:10px;font-weight:700;padding:1px 6px;border-radius:4px;flex-shrink:0}
+.prod-item-row label{font:var(--type-label);color:var(--muted);flex-shrink:0}
+.prod-item-row input{max-width:92px;padding:6px 8px;font-size:var(--fs-16);text-align:center}
+/* Três etiquetas que carregam informação distinta — puxadas da rampa base do DS
+   para continuarem distinguíveis sem inventar matiz fora da paleta. */
+.badge-novo{background:var(--bnn-gray-200);--badge-dot:var(--bnn-ink-900);flex-shrink:0}
+.badge-catalogo{background:var(--status-info-bg);--badge-dot:var(--status-info-text);flex-shrink:0}
+.badge-dim{background:var(--status-ok-bg);--badge-dot:var(--status-ok-text);flex-shrink:0}
 
 /* RESULTADO COTAÇÃO */
 .result-grid{display:grid;gap:12px}
-.r-card{background:var(--surface2);border:1px solid var(--border);border-radius:11px;padding:16px;position:relative}
+.r-card{background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:16px;position:relative}
 .r-card.winner{border-color:var(--green);background:var(--success-bg)}
-.r-winner-badge{position:absolute;top:-9px;right:12px;background:var(--green);color:#fff;font-size:10px;font-weight:700;padding:2px 9px;border-radius:20px}
-.r-transp{font-size:14px;font-weight:700;margin-bottom:3px}
-.r-prazo{font-size:12px;color:var(--muted);margin-bottom:10px}
-.r-preco{font-size:26px;font-weight:800}
+.r-winner-badge{position:absolute;top:-9px;right:12px;background:var(--green);color:var(--text-inverse);font:var(--type-overline);padding:2px 9px;border-radius:var(--radius-pill)}
+.r-transp{font:var(--type-h3);margin-bottom:3px}
+.r-prazo{font:var(--type-label);font-weight:var(--fw-regular);color:var(--muted);margin-bottom:10px}
+.r-preco{font:var(--fw-black) var(--fs-24)/var(--lh-tight) var(--font-mono);font-variant-numeric:tabular-nums}
 .r-card.winner .r-preco{color:var(--green)}
-.r-detail{font-size:12px;color:var(--muted);margin-top:4px}
-.r-error .r-preco{color:var(--danger);font-size:15px;font-weight:700;line-height:1.25}
+.r-detail{font:var(--type-label);font-weight:var(--fw-regular);color:var(--muted);margin-top:4px}
+.r-error .r-preco{color:var(--danger);font:var(--type-body-strong);line-height:var(--lh-snug)}
 .err-box{display:flex;gap:12px;align-items:flex-start;border-left:3px solid var(--danger);background:var(--surface)}
-.err-ic{font-size:22px;line-height:1}
-.err-tit{font-size:14px;font-weight:700;color:var(--danger);margin-bottom:3px}
-.err-det{font-size:12.5px;color:var(--muted);line-height:1.4}
+.err-ic{color:var(--danger);flex-shrink:0}
+.err-tit{font:var(--type-body-strong);color:var(--danger);margin-bottom:3px}
+.err-det{font:var(--type-small);color:var(--muted)}
 .err-tec{margin-top:8px}
-.err-tec summary{font-size:10.5px;color:var(--muted);cursor:pointer;text-transform:uppercase;letter-spacing:.5px;font-weight:700}
-.err-tec code{display:block;margin-top:5px;font-family:'DM Mono',monospace;font-size:10.5px;color:var(--muted);background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:6px 8px;word-break:break-all;white-space:pre-wrap}
-.r-error{border-color:rgba(239,68,68,.25)}
+.err-tec summary{font:var(--type-overline);letter-spacing:var(--ls-caps);color:var(--muted);cursor:pointer;text-transform:uppercase}
+.err-tec code{display:block;margin-top:5px;font-family:var(--font-mono);font-size:var(--fs-11);color:var(--muted);background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-md);padding:6px 8px;word-break:break-all;white-space:pre-wrap}
+.r-error{border-color:var(--status-crit-text)}
 
 /* AUDITORIA */
-.cte-card{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:10px}
+/* CARTÃO DE LINHA (mobile) — mesma casca para Auditoria, Conferência, Dimensões
+   e Histórico. O vocabulário .cte-* já existia no CSS sem nenhum uso no JS;
+   virou a base das quatro telas em vez de inventar um quinto. */
+.cte-card,.hist-card{background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:14px;margin-bottom:10px}
 .cte-hdr{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;margin-bottom:10px}
-.cte-num{font-size:14px;font-weight:700}
-.cte-sub{font-size:12px;color:var(--muted);margin-top:2px}
-.cte-row{display:flex;justify-content:space-between;align-items:center;padding:4px 0;font-size:13px;border-bottom:1px solid rgba(42,47,63,.6)}
+.cte-num{font:var(--fw-bold) var(--fs-14)/var(--lh-snug) var(--font-mono);font-variant-numeric:tabular-nums}
+.cte-sub{font:var(--type-label);font-weight:var(--fw-regular);color:var(--muted);margin-top:2px}
+.cte-row,.hist-row{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:4px 0;font-size:var(--fs-13)}
+.cte-row{border-bottom:1px solid var(--border)}
 .cte-row:last-of-type{border-bottom:none}
-.cte-lbl{color:var(--muted);font-size:11.5px}
-.div-pos{color:var(--danger);font-weight:700}
-.div-neg{color:var(--green);font-weight:700}
+.cte-lbl,.hist-lbl{color:var(--muted);font:var(--type-label);flex-shrink:0}
+/* o lado direito quebra em vez de estourar o cartão */
+.cte-val{text-align:right;min-width:0;overflow-wrap:anywhere}
+.cte-campo{display:block;margin-top:10px;margin-bottom:4px}
+.div-pos{color:var(--danger);font-weight:var(--fw-bold)}
+.div-neg{color:var(--green);font-weight:var(--fw-bold)}
 .cte-obs{margin-top:10px}
-.cte-obs textarea{font-size:13px;padding:8px 10px;min-height:56px}
+.cte-obs textarea{font-size:var(--fs-16);padding:8px 10px;min-height:56px}
 .cte-actions{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
-.audit-select{width:100%;margin-top:8px;padding:9px 12px;font-size:14px}
+.audit-select{width:100%;margin-top:8px;padding:9px 12px;font-size:var(--fs-16)}
 
 /* DESKTOP TABLE */
 .table-wrap{overflow-x:auto}
-table{width:100%;border-collapse:collapse;font-size:13px}
-thead th{text-align:left;padding:9px 12px;background:var(--surface2);color:var(--muted);font-size:10.5px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;border-bottom:1px solid var(--border);white-space:nowrap}
-tbody tr{border-bottom:1px solid var(--border);transition:background .1s}
-tbody tr:hover{background:var(--surface2)}
+table{width:100%;border-collapse:collapse;font-size:var(--fs-13)}
+thead th{text-align:left;padding:9px 12px;background:var(--surface2);color:var(--muted);font:var(--type-overline);letter-spacing:var(--ls-caps);text-transform:uppercase;border-bottom:1px solid var(--border);white-space:nowrap}
+tbody tr{border-bottom:1px solid var(--border);transition:background-color var(--dur-instant) var(--ease-standard)}
+tbody tr:hover{background:var(--surface-hover)}
 tbody td{padding:9px 12px;vertical-align:middle}
-td select{padding:5px 8px;font-size:12px;border-radius:6px}
+td select{padding:5px 8px;font-size:var(--fs-16);border-radius:var(--radius-md)}
+/* no desktop a densidade da tabela manda; no toque, os 44px mandam */
+@media(min-width:769px){td select{min-height:var(--row-h-compact)}}
 
-/* HIST CARD mobile */
-.hist-card{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:13px;margin-bottom:10px}
-.hist-row{display:flex;justify-content:space-between;align-items:center;padding:3px 0;font-size:13px}
-.hist-lbl{color:var(--muted);font-size:11.5px}
+/* (.hist-card / .hist-row / .hist-lbl estão definidos junto com .cte-* acima) */
 
 /* LOGS */
-.log-item{background:var(--surface2);border:1px solid var(--border);border-radius:9px;padding:12px 14px;margin-bottom:8px;display:flex;align-items:flex-start;gap:10px;cursor:pointer}
+.log-item{background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:12px 14px;margin-bottom:8px;display:flex;align-items:flex-start;gap:10px;cursor:pointer}
 .log-item.log-ERRO{border-left:3px solid var(--danger)}
 .log-item.log-ACAO{border-left:3px solid var(--green)}
-.log-item.log-INFO{border-left:3px solid var(--warn)}
-.log-icon{font-size:17px;flex-shrink:0}
+/* INFO era âmbar — cor de aviso em evento rotineiro treina o operador a ignorar
+   âmbar justamente quando ele importa. Passou para o azul de informação. */
+.log-item.log-INFO{border-left:3px solid var(--blue)}
+.log-icon{flex-shrink:0;margin-top:1px}
+.log-item.log-ERRO .log-icon{color:var(--danger)}
+.log-item.log-ACAO .log-icon{color:var(--green)}
+.log-item.log-INFO .log-icon{color:var(--blue)}
 .log-body{flex:1;min-width:0}
-.log-desc{font-size:13.5px;margin-bottom:4px;word-break:break-word}
-.log-meta{font-size:11.5px;color:var(--muted);display:flex;gap:10px;flex-wrap:wrap}
-.log-detail{margin-top:8px;background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:10px;font-family:monospace;font-size:11px;color:#a5b4fc;white-space:pre-wrap;display:none;max-height:180px;overflow-y:auto}
+.log-desc{font:var(--type-small);margin-bottom:4px;word-break:break-word}
+.log-meta{font:var(--type-label);font-weight:var(--fw-regular);color:var(--muted);display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.log-detail{margin-top:8px;background:var(--bg);border:1px solid var(--border);border-radius:var(--radius-md);padding:10px;font-family:var(--font-mono);font-size:var(--fs-12);color:var(--text);white-space:pre-wrap;display:none;max-height:180px;overflow-y:auto}
 .log-detail.open{display:block}
 
 /* BADGES */
-.badge{display:inline-flex;align-items:center;padding:2px 8px;border-radius:4px;font-size:10.5px;font-weight:700;white-space:nowrap;text-transform:uppercase;letter-spacing:.05em}
-.b-ok{background:var(--success-bg);color:var(--green)}
-.b-warn{background:var(--warning-bg);color:var(--warn)}
-.b-red{background:var(--destructive-bg);color:var(--danger)}
-.b-gray{background:var(--surface2);color:var(--muted)}
-.b-blue{background:var(--blue-pale);color:var(--blue)}
-.b-purple{background:rgba(139,92,246,.12);color:var(--purple)}
-.tag{display:inline-block;padding:2px 8px;border-radius:5px;font-size:11px;background:var(--surface2);border:1px solid var(--border);color:var(--muted);margin:2px}
+/* Texto de estado em TINTA + ponto colorido, como manda 05-acessibilidade:
+   "Badge sempre traz o texto do estado, e o dot é reforço, não a informação."
+   Texto colorido sobre o tint não fecha 4,5:1 em 4 dos 6 variantes — o âmbar dá
+   3,3:1 (o 03-visual.md do pacote afirma ~4,6:1; a conta não bate). Em tinta,
+   todos passam de 12:1 e a cor continua distinguindo, pelo ponto. */
+.badge,.badge-novo,.badge-catalogo,.badge-dim{display:inline-flex;align-items:center;gap:5px;padding:2px 8px;border-radius:var(--radius-sm);font:var(--type-overline);letter-spacing:var(--ls-caps);white-space:nowrap;text-transform:uppercase;color:var(--text-body);background:var(--surface2)}
+.badge::before,.badge-novo::before,.badge-catalogo::before,.badge-dim::before{content:'';width:6px;height:6px;border-radius:var(--radius-pill);background:var(--badge-dot,var(--text-faint));flex:0 0 auto}
+/* etiqueta que já traz ícone não leva ponto também */
+.badge:has(.ic)::before{display:none}
+.b-ok{background:var(--status-ok-bg);--badge-dot:var(--status-ok-text)}
+.b-warn{background:var(--status-warn-bg);--badge-dot:var(--status-warn-text)}
+.b-red{background:var(--status-crit-bg);--badge-dot:var(--status-crit-text)}
+.b-gray{background:var(--surface2);--badge-dot:var(--bnn-gray-400)}
+.b-blue{background:var(--status-info-bg);--badge-dot:var(--status-info-text)}
+.b-purple{background:var(--bnn-gray-200);--badge-dot:var(--bnn-ink-900)}
+.tag{display:inline-block;padding:2px 8px;border-radius:var(--radius-sm);font-size:var(--fs-11);background:var(--surface2);border:1px solid var(--border);color:var(--muted);margin:2px}
 
 /* MISC */
-.spinner{display:inline-block;width:20px;height:20px;border:2px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite}
+.spinner{display:inline-block;width:20px;height:20px;border:2px solid var(--border);border-top-color:var(--accent);border-radius:var(--radius-pill);animation:spin .7s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
-.loading{display:flex;align-items:center;gap:12px;padding:24px;color:var(--muted);font-size:13px}
+.loading{display:flex;align-items:center;gap:12px;padding:24px;color:var(--muted);font-size:var(--fs-13)}
 #toasts{position:fixed;bottom:76px;right:12px;display:flex;flex-direction:column;gap:8px;z-index:200;max-width:calc(100vw - 24px)}
-.toast{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:11px 16px;font-size:13px;display:flex;align-items:center;gap:9px;box-shadow:0 4px 20px rgba(15,29,53,.15);animation:si .2s ease}
+.toast{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:11px 16px;font-size:var(--fs-13);display:flex;align-items:center;gap:9px;box-shadow:var(--shadow-overlay);animation:si var(--dur-base) var(--ease-standard)}
+.toast-ic{display:inline-flex;flex-shrink:0}
+.toast.success .toast-ic{color:var(--green)}.toast.error .toast-ic{color:var(--danger)}.toast.info .toast-ic{color:var(--blue)}
 .toast.success{border-left:3px solid var(--green)}.toast.error{border-left:3px solid var(--danger)}.toast.info{border-left:3px solid var(--blue)}
 @keyframes si{from{opacity:0;transform:translateX(20px)}to{opacity:1;transform:translateX(0)}}
+/* o DS zera toda duração em prefers-reduced-motion; as animações próprias também */
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
 .hidden{display:none!important}
 .flex{display:flex}.gap-2{gap:8px}.ac{align-items:center}.jb{justify-content:space-between}
 .mb-2{margin-bottom:8px}.mb-3{margin-bottom:12px}.mb-4{margin-bottom:16px}
 .empty{text-align:center;padding:40px 16px;color:var(--muted)}
-.empty .ei{font-size:40px;margin-bottom:10px}
+.empty .ei{display:block;margin:0 auto 10px;color:var(--text-faint)}
 .divider{border:none;border-top:1px solid var(--border);margin:14px 0}
-.section-lbl{font-size:10.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;font-weight:700;margin:14px 0 8px;padding-left:2px}
+.section-lbl{font:var(--type-overline);letter-spacing:var(--ls-caps);color:var(--muted);text-transform:uppercase;margin:14px 0 8px;padding-left:2px}
 .text-muted{color:var(--muted)}.text-red{color:var(--danger)}.text-green{color:var(--green)}
+/* .mono era usada em 12 pontos da Conferência e nunca foi definida: número de
+   CTe, NF e valor saíam na fonte proporcional. O DS pede mono tabular aí. */
+.mono{font-family:var(--font-mono);font-variant-numeric:tabular-nums}
 .filters{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;align-items:center}
-.fi{flex:1;min-width:120px;padding:9px 12px;font-size:14px}
+.fi{flex:1;min-width:120px;padding:9px 12px;font-size:var(--fs-16)}
 
 /* RESPONSIVE */
 @media(max-width:768px){
   #sidebar{position:fixed;top:0;left:0;bottom:0;transform:translateX(-100%)}
   #sidebar.open{transform:translateX(0)}
-  #menu-btn{display:block}
+  #menu-btn{display:flex;align-items:center;justify-content:center}
+  /* no toque, todo alvo vai a 44px e o filtro de mês para de disputar a barra */
+  .btn-sm,.tab,.prod-table .btn-sel{min-height:44px}
+  .prod-table td{padding:14px 8px}
+  .mes-lbl{display:none}
+  #mes-filtro-wrap #mes-global{max-width:150px}
   .g2{grid-template-columns:1fr}
   .stats-grid{grid-template-columns:1fr 1fr}
   .result-grid{grid-template-columns:1fr}
@@ -253,31 +349,32 @@ td select{padding:5px 8px;font-size:12px;border-radius:6px}
 <div id="app">
   <div id="sidebar">
     <div class="sb-logo">
-      <span class="sb-brand">Bononi Acessórios</span>
-      <div class="sb-title">🚚 Frete</div>
+      <img src="assets/logo-bononi-reverse.png?v=20260915a" alt="Bononi Acessórios">
+      <div class="sb-title">Frete</div>
     </div>
-    <nav>
-      <div class="nav-item active" id="nav-cotar" onclick="go('cotar')"><span class="nav-icon">💰</span>Cotar Frete</div>
-      <div class="nav-item" id="nav-auditoria" onclick="go('auditoria')"><span class="nav-icon">🧾</span>Auditoria CTe</div>
-      <div class="nav-item" id="nav-conferencia" onclick="go('conferencia')"><span class="nav-icon">💸</span>Conferência</div>
-      <div class="nav-item" id="nav-historico" onclick="go('historico')"><span class="nav-icon">📋</span>Histórico</div>
-      <div class="nav-item" id="nav-dimensoes" onclick="go('dimensoes')"><span class="nav-icon">📦</span>Dimensões</div>
-      <div class="nav-item" id="nav-logs" onclick="go('logs')"><span class="nav-icon">🔍</span>Logs</div>
+    <nav aria-label="Módulos do Frete">
+      <button type="button" class="nav-item active" id="nav-cotar" aria-current="page" onclick="go('cotar')"><span class="nav-icon" aria-hidden="true"><i class="ic" data-ic="calculator"></i></span>Cotar Frete</button>
+      <button type="button" class="nav-item" id="nav-auditoria" onclick="go('auditoria')"><span class="nav-icon" aria-hidden="true"><i class="ic" data-ic="receipt-text"></i></span>Auditoria CTe</button>
+      <button type="button" class="nav-item" id="nav-conferencia" onclick="go('conferencia')"><span class="nav-icon" aria-hidden="true"><i class="ic" data-ic="wallet"></i></span>Conferência</button>
+      <button type="button" class="nav-item" id="nav-historico" onclick="go('historico')"><span class="nav-icon" aria-hidden="true"><i class="ic" data-ic="clipboard-list"></i></span>Histórico</button>
+      <button type="button" class="nav-item" id="nav-dimensoes" onclick="go('dimensoes')"><span class="nav-icon" aria-hidden="true"><i class="ic" data-ic="package"></i></span>Dimensões</button>
+      <button type="button" class="nav-item" id="nav-logs" onclick="go('logs')"><span class="nav-icon" aria-hidden="true"><i class="ic" data-ic="scroll-text"></i></span>Logs</button>
     </nav>
     <!-- footer removido — sem login -->
   </div>
 
   <div id="main">
     <div class="topbar">
-      <button id="menu-btn" onclick="toggleSb()">☰</button>
+      <button id="menu-btn" onclick="toggleSb()" aria-label="Abrir menu" aria-controls="sidebar" aria-expanded="false"><i class="ic ic-lg" data-ic="menu"></i></button>
       <div style="flex:1;min-width:0">
         <h1 id="pg-title">Cotar Frete</h1>
         <div class="topbar-sub" id="pg-sub">Comparativo entre transportadoras</div>
       </div>
-      <div id="mes-filtro-wrap" class="hidden" style="display:flex;align-items:center;gap:8px;flex-shrink:0">
-        <span style="font-size:11px;color:var(--muted);white-space:nowrap">📅 Mês</span>
-        <input type="month" id="mes-global" 
-          style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:6px 10px;font-size:13px;color:var(--text);outline:none;cursor:pointer"
+      <div id="mes-filtro-wrap" class="hidden" style="display:flex;align-items:center;gap:8px">
+        <span class="mes-lbl" style="font:var(--type-overline);color:var(--muted);white-space:nowrap;display:inline-flex;align-items:center;gap:4px"><i class="ic ic-sm" data-ic="calendar"></i>Mês</span>
+        <label class="sr-only" for="mes-global">Mês de referência</label>
+        <input type="month" id="mes-global"
+          style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:6px 10px;font-size:var(--fs-16);color:var(--text);cursor:pointer"
           onchange="aplicarMesGlobal()"/>
       </div>
     </div>
@@ -288,6 +385,30 @@ td select{padding:5px 8px;font-size:12px;border-radius:6px}
 <div id="toasts"></div>
 
 <script>
+// ── ÍCONES ────────────────────────────────────────────────────────────────────
+// Lucide é o set substituto do DS enquanto não houver o da casa. Trocar o set
+// depois é mexer só nesta constante.
+const LUCIDE = 'https://unpkg.com/lucide-static@0.544.0/icons/';
+function ic(nome, cls) { return `<i class="ic${cls ? ' ' + cls : ''}" data-ic="${nome}"></i>`; }
+function _pintaIcone(el) {
+  if (el.dataset.icOn) return;
+  el.style.setProperty('--ic', `url(${LUCIDE}${el.dataset.ic}.svg)`);
+  el.dataset.icOn = '1';
+}
+function hydrateIcons(raiz) { (raiz || document).querySelectorAll('i.ic[data-ic]').forEach(_pintaIcone); }
+// As telas são montadas com innerHTML em dezenas de pontos; o observer evita ter
+// que lembrar de hidratar em cada um deles.
+new MutationObserver(muts => {
+  for (const m of muts) for (const nd of m.addedNodes) {
+    if (nd.nodeType !== 1) continue;
+    if (nd.matches('i.ic[data-ic]')) _pintaIcone(nd);
+    else if (nd.firstElementChild) hydrateIcons(nd);
+  }
+}).observe(document.documentElement, { childList: true, subtree: true });
+// O observer só pega nó ADICIONADO. Os ícones que já vieram no HTML estático
+// (sidebar, topbar) precisam desta primeira passada.
+hydrateIcons();
+
 const SB   = 'https://vishxwdxqiygbxmtpfoy.supabase.co';
 const KEY  = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZpc2h4d2R4cWl5Z2J4bXRwZm95Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI0Njg2MjIsImV4cCI6MjA4ODA0NDYyMn0.J647m3ieDHahNQYBWMRESl0aPFXsT_zt_7ZcDvyB-SA';
 const EDGE = SB+'/functions/v1';
@@ -352,7 +473,7 @@ const D=d=>{if(!d)return'—';const s=String(d).slice(0,10).split('-');return s.
 const DT=d=>d?new Date(d).toLocaleString('pt-BR'):'—';
 function toast(msg,t='info'){
   const e=document.createElement('div');e.className=`toast ${t}`;
-  e.innerHTML=`<span>${{success:'✅',error:'❌',info:'ℹ️'}[t]||'ℹ️'}</span>${msg}`;
+  e.innerHTML=`<span class="toast-ic">${{success:ic('circle-check'),error:ic('circle-x'),info:ic('info')}[t]||ic('info')}</span>${msg}`;
   document.getElementById('toasts').appendChild(e);setTimeout(()=>e.remove(),4000);
 }
 // ── SISTEMA DE LOG BONONI ──────────────────────────────────────────────
@@ -413,8 +534,9 @@ function confirmar(msg){
 }
 
 // ── SIDEBAR ──
-function toggleSb(){document.getElementById('sidebar').classList.toggle('open');document.getElementById('overlay').classList.toggle('open')}
-function closeSb(){document.getElementById('sidebar').classList.remove('open');document.getElementById('overlay').classList.remove('open')}
+function _sbExpanded(v){document.getElementById('menu-btn')?.setAttribute('aria-expanded',String(v))}
+function toggleSb(){const s=document.getElementById('sidebar');s.classList.toggle('open');document.getElementById('overlay').classList.toggle('open');_sbExpanded(s.classList.contains('open'))}
+function closeSb(){document.getElementById('sidebar').classList.remove('open');document.getElementById('overlay').classList.remove('open');_sbExpanded(false)}
 
 // ── NAV ──
 const PAGES={
@@ -426,8 +548,9 @@ const PAGES={
   logs:{t:'Logs do Sistema',s:'Ações e erros em tempo real',fn:pgLogs},
 };
 function go(p){
-  document.querySelectorAll('.nav-item').forEach(e=>e.classList.remove('active'));
-  document.getElementById('nav-'+p)?.classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(e=>{e.classList.remove('active');e.removeAttribute('aria-current')});
+  const _navAtivo=document.getElementById('nav-'+p);
+  if(_navAtivo){_navAtivo.classList.add('active');_navAtivo.setAttribute('aria-current','page')}
   document.getElementById('pg-title').textContent=PAGES[p].t;
   document.getElementById('pg-sub').textContent=PAGES[p].s;
   // mostrar/ocultar filtro de mês global
@@ -459,42 +582,42 @@ async function pgCotar(){
   const c=document.getElementById('pg');
   c.innerHTML=`<div class="loading"><div class="spinner"></div>Carregando locais...</div>`;
   try{locais=await db('frt_locais_expedicao?select=id,nome,cidade,uf&ativo=eq.true&order=nome')}
-  catch(e){bononiLog('ERRO','ERRO_CARREGAR_LOCAIS',{modulo:'cotacao',erro:e});c.innerHTML=`<div class="empty"><div class="ei">⚠️</div><p>${e.message}</p></div>`;return}
+  catch(e){bononiLog('ERRO','ERRO_CARREGAR_LOCAIS',{modulo:'cotacao',erro:e});c.innerHTML=`<div class="empty"><i class="ic ic-xl ei" data-ic="triangle-alert"></i><p>${e.message}</p></div>`;return}
 
   c.innerHTML=`
   <div class="card">
-    <div class="card-title">📍 Embarque</div>
+    <div class="card-title"><i class="ic" data-ic="map-pin"></i> Embarque</div>
     <div class="grid g2">
       <div class="field full">
         <label>Local de Expedição</label>
         <select id="id_local">${locais.map(l=>`<option value="${l.id}">${l.nome} — ${l.cidade}/${l.uf}</option>`).join('')}</select>
       </div>
-      <div class="field"><label>CEP Destino</label><input id="cep" type="tel" placeholder="00000-000" maxlength="9" oninput="mCEP(this)" inputmode="numeric"/><span id="cep-cidade" style="font-size:11.5px;color:var(--muted);margin-top:3px;display:block"></span></div>
+      <div class="field"><label>CEP Destino</label><input id="cep" type="tel" placeholder="00000-000" maxlength="9" oninput="mCEP(this)" inputmode="numeric"/><span id="cep-cidade" style="font-size:var(--fs-12);color:var(--muted);margin-top:3px;display:block"></span></div>
       <div class="field"><label>Valor da NF (R$)</label><input id="vnf" type="number" placeholder="0,00" step="0.01" min="0" inputmode="decimal"/></div>
       <div class="field full">
         <label>CPF / CNPJ do Destinatário <span id="badge-pf-pj" style="margin-left:6px"></span></label>
         <div style="display:flex;gap:8px;align-items:center">
           <input id="cnpj" type="tel" placeholder="CPF ou CNPJ" maxlength="18" oninput="mDocDest(this)" inputmode="numeric" style="flex:1"/>
-          <button class="btn btn-ghost btn-sm" onclick="setPF()" title="Usar CPF padrão PF" style="flex-shrink:0;white-space:nowrap">👤 PF</button>
-          <button class="btn btn-ghost btn-sm" onclick="setPJ()" title="Usar CNPJ padrão PJ" style="flex-shrink:0;white-space:nowrap">🏢 PJ</button>
+          <button class="btn btn-ghost btn-sm" onclick="setPF()" title="Usar CPF padrão PF" style="flex-shrink:0;white-space:nowrap"><i class="ic ic-sm" data-ic="user"></i> PF</button>
+          <button class="btn btn-ghost btn-sm" onclick="setPJ()" title="Usar CNPJ padrão PJ" style="flex-shrink:0;white-space:nowrap"><i class="ic ic-sm" data-ic="building-2"></i> PJ</button>
         </div>
-        <span style="font-size:11px;color:var(--muted);margin-top:3px">Use os botões para preencher o padrão, ou digite o documento do destinatário</span>
+        <span style="font-size:var(--fs-11);color:var(--muted);margin-top:3px">Use os botões para preencher o padrão, ou digite o documento do destinatário</span>
       </div>
     </div>
   </div>
 
   <div class="card">
-    <div class="card-title">📦 Adicionar volume</div>
+    <div class="card-title"><i class="ic" data-ic="package"></i> Adicionar volume</div>
     <div class="tabs mb-3">
       <button class="tab active" id="tab-cat" onclick="trocarTab('cat')">Catálogo</button>
       <button class="tab" id="tab-man" onclick="trocarTab('man')">Manual</button>
     </div>
     <div id="pane-cat">
-      <input id="prod-busca" placeholder="🔍 Buscar por nome ou referência..." oninput="filtrarProdutos(this.value)" autocomplete="off" class="mb-2"/>
+      <input id="prod-busca" placeholder="Buscar por nome ou referência..." oninput="filtrarProdutos(this.value)" autocomplete="off" class="mb-2"/>
       <div class="prod-table-wrap" id="prod-tabela">
-        <div style="padding:16px;text-align:center;color:var(--muted);font-size:13px"><div class="spinner" style="margin:0 auto 8px"></div>Carregando produtos...</div>
+        <div style="padding:16px;text-align:center;color:var(--muted);font-size:var(--fs-13)"><div class="spinner" style="margin:0 auto 8px"></div>Carregando produtos...</div>
       </div>
-      <p class="text-muted mt-2" style="font-size:11.5px">Toque no produto para adicionar à cotação</p>
+      <p class="text-muted mt-2" style="font-size:var(--fs-12)">Toque no produto para adicionar à cotação</p>
       <div id="prod-ocultos" style="display:none"></div>
     </div>
     <div id="pane-man" style="display:none">
@@ -510,18 +633,17 @@ async function pgCotar(){
   </div>
 
   <div class="card" id="card-volumes" style="display:none">
-    <div class="card-title">📋 Volumes adicionados (<span id="vol-count">0</span>)</div>
+    <div class="card-title"><i class="ic" data-ic="clipboard-list"></i> Volumes adicionados (<span id="vol-count">0</span>)</div>
     <div style="overflow-x:auto"><table class="vol-table" id="vol-tabela"></table></div>
   </div>
 
-  <div id="result"></div>
-  <div style="height:90px"></div>`;
+  <div id="result"></div>`;
   // Barra fixa: Limpar e Cotar Frete
   document.getElementById('sticky-cotar')?.remove();
   const stickyBtn=document.createElement('div');stickyBtn.id='sticky-cotar';
   stickyBtn.innerHTML=`
-    <button class="btn btn-ghost" onclick="limparVolumes()" style="flex-shrink:0;background:var(--surface);box-shadow:0 -4px 16px rgba(15,29,53,.1);padding:14px 16px;font-size:14px">Limpar</button>
-    <button class="btn btn-primary" onclick="cotar()" style="flex:1;box-shadow:0 -4px 16px rgba(15,29,53,.15);font-size:15px;padding:14px">🔍 Cotar Frete</button>`;
+    <button class="btn btn-ghost" onclick="limparVolumes()" style="flex-shrink:0;background:var(--surface);padding:14px 16px;font-size:var(--fs-14)">Limpar</button>
+    <button class="btn btn-primary" onclick="cotar()" style="flex:1;padding:14px"><i class="ic" data-ic="calculator"></i> Cotar Frete</button>`;
   document.body.appendChild(stickyBtn);
   volumes=[];
   carregarProdutos().then(prods=>{
@@ -530,10 +652,10 @@ async function pgCotar(){
     if(av&&_prodOcultos>0){
       av.style.display='';
       av.innerHTML=`<div class="err-box" style="padding:10px 12px;border-left-color:var(--warn);margin-top:6px">
-        <div class="err-ic" style="font-size:16px">📏</div>
+        <div class="err-ic"><i class="ic" data-ic="ruler"></i></div>
         <div style="flex:1">
-          <div class="err-tit" style="color:var(--warn);font-size:12.5px">${_prodOcultos} produto(s) sem medidas ocultos</div>
-          <div class="err-det" style="font-size:11.5px">Faltam peso ou dimensões. Cadastre na aba <b>Dimensões</b> para poder cotar.</div>
+          <div class="err-tit" style="color:var(--warn);font-size:var(--fs-12)">${_prodOcultos} produto(s) sem medidas ocultos</div>
+          <div class="err-det" style="font-size:var(--fs-12)">Faltam peso ou dimensões. Cadastre na aba <b>Dimensões</b> para poder cotar.</div>
         </div>
       </div>`;
     }
@@ -587,16 +709,16 @@ function filtrarProdutos(q){
 function renderProdTable(lista){
   const wrap=document.getElementById('prod-tabela');
   if(!wrap)return;
-  if(!lista.length){wrap.innerHTML=`<div style="padding:16px;text-align:center;color:var(--muted);font-size:13px">Nenhum produto encontrado</div>`;return}
+  if(!lista.length){wrap.innerHTML=`<div style="padding:16px;text-align:center;color:var(--muted);font-size:var(--fs-13)">Nenhum produto encontrado</div>`;return}
   _prodLista=lista;
   wrap.innerHTML=`<table class="prod-table">
     <thead><tr><th>Produto</th><th>Peso</th><th>A×L×C</th></tr></thead>
     <tbody>${lista.map((p,idx)=>{
       const dims=p.altura_cm&&p.largura_cm&&p.comprimento_cm?`${p.altura_cm}×${p.largura_cm}×${p.comprimento_cm}`:'—';
       return`<tr onclick="addVolCatalogo(${idx})" style="cursor:pointer">
-        <td><div style="font-weight:600;font-size:12px;line-height:1.3">${p.nome||'—'}</div>${p.referencia?`<div style="font-size:10.5px;color:var(--muted)">Ref: ${p.referencia}</div>`:''}</td>
-        <td style="white-space:nowrap;font-size:11.5px">${p.peso_kg?Number(p.peso_kg)+'kg':'—'}</td>
-        <td style="white-space:nowrap;color:var(--blue);font-size:11px">${dims}</td>
+        <td><div style="font-weight:600;font-size:var(--fs-12);line-height:1.3">${p.nome||'—'}</div>${p.referencia?`<div style="font-size:var(--fs-11);color:var(--muted)">Ref: ${p.referencia}</div>`:''}</td>
+        <td style="white-space:nowrap;font-size:var(--fs-12)">${p.peso_kg?Number(p.peso_kg)+'kg':'—'}</td>
+        <td style="white-space:nowrap;color:var(--blue);font-size:var(--fs-11)">${dims}</td>
       </tr>`}).join('')}
     </tbody>
   </table>`;
@@ -662,13 +784,13 @@ function renderVolumes(){
     const m3=(v.altura_cm*v.largura_cm*v.comprimento_cm/1e6)*v.quantidade;
     pesoTotal+=pt;volTotal+=m3;
     return`<tr>
-      <td style="font-weight:600;font-size:12px">${v.nome}</td>
-      <td><input type="number" value="${v.quantidade}" min="1" onchange="setQtdVol(${i},this.value)" style="width:56px;padding:6px;text-align:center;font-size:13px" inputmode="numeric"/></td>
+      <td style="font-weight:600;font-size:var(--fs-12)">${v.nome}</td>
+      <td><input type="number" value="${v.quantidade}" min="1" onchange="setQtdVol(${i},this.value)" style="width:68px;padding:6px;text-align:center;font-size:var(--fs-16)" inputmode="numeric"/></td>
       <td style="white-space:nowrap">${N(v.peso_kg)}</td>
       <td style="white-space:nowrap;font-weight:600">${N(pt)}</td>
-      <td style="white-space:nowrap;color:var(--blue);font-size:11px">${v.altura_cm}×${v.largura_cm}×${v.comprimento_cm}</td>
-      <td style="white-space:nowrap;font-family:'DM Mono',monospace;font-size:11.5px">${m3.toFixed(4)}</td>
-      <td><button class="btn btn-danger btn-sm" onclick="removerVolume(${i})" style="padding:5px 9px">🗑️</button></td>
+      <td style="white-space:nowrap;color:var(--blue);font-size:var(--fs-11)">${v.altura_cm}×${v.largura_cm}×${v.comprimento_cm}</td>
+      <td style="white-space:nowrap;font-family:var(--font-mono);font-size:var(--fs-12)">${m3.toFixed(4)}</td>
+      <td><button class="btn btn-danger btn-sm" onclick="removerVolume(${i})" aria-label="Remover volume" title="Remover volume" style="padding:5px 9px"><i class="ic ic-sm" data-ic="trash-2"></i></button></td>
     </tr>`;
   }).join('');
   const cubado=volTotal*300; // fator rodoviário 300kg/m³
@@ -678,8 +800,8 @@ function renderVolumes(){
     <tfoot><tr style="border-top:2px solid var(--border)">
       <td colspan="3" style="font-weight:700">Totais</td>
       <td style="font-weight:700;white-space:nowrap">${N(pesoTotal)} kg</td>
-      <td style="color:var(--muted);font-size:11px;white-space:nowrap">Cubado: ${N(cubado)} kg</td>
-      <td style="font-weight:700;font-family:'DM Mono',monospace;font-size:11.5px">${volTotal.toFixed(4)}</td>
+      <td style="color:var(--muted);font-size:var(--fs-11);white-space:nowrap">Cubado: ${N(cubado)} kg</td>
+      <td style="font-weight:700;font-family:var(--font-mono);font-size:var(--fs-12)">${volTotal.toFixed(4)}</td>
       <td></td>
     </tr></tfoot>`;
 }
@@ -700,7 +822,7 @@ async function buscarCidadeCep(cep,lbl){
   try{
     const r=await fetch(`https://viacep.com.br/ws/${cep}/json/`);
     const d=await r.json();
-    if(d.erro){lbl.style.color='var(--red)';lbl.textContent='CEP não encontrado';return}
+    if(d.erro){lbl.style.color='var(--danger)';lbl.textContent='CEP não encontrado';return}
     const txt=`${d.localidade} / ${d.uf}`;
     _cepCidadeCache[cep]=txt;
     lbl.style.color='var(--muted)';lbl.textContent=txt;
@@ -721,7 +843,7 @@ function mDocDest(el){
     else if(v.length>3)  v=v.slice(0,3)+'.'+v.slice(3);
     el.maxLength=14; // 000.000.000-00
     if(badge){
-      if(digits===11) badge.innerHTML='<span class="badge b-purple">👤 Pessoa Física</span>';
+      if(digits===11) badge.innerHTML='<span class="badge b-purple"><i class="ic ic-sm" data-ic="user"></i> Pessoa Física</span>';
       else badge.innerHTML='';
     }
   }else{
@@ -732,7 +854,7 @@ function mDocDest(el){
     else if(v.length>2)  v=v.slice(0,2)+'.'+v.slice(2);
     el.maxLength=18; // 00.000.000/0000-00
     if(badge){
-      if(digits===14) badge.innerHTML='<span class="badge b-blue">🏢 Pessoa Jurídica</span>';
+      if(digits===14) badge.innerHTML='<span class="badge b-blue"><i class="ic ic-sm" data-ic="building-2"></i> Pessoa Jurídica</span>';
       else badge.innerHTML='';
     }
   }
@@ -838,7 +960,7 @@ async function cotar(){
     bononiLog('ERRO','ERRO_COTACAO',{modulo:'cotacao',erro:e,contexto:{cep}});
     const em=msgErroFrete(e.message);
     rd.innerHTML=`<div class="card err-box">
-      <div class="err-ic">⚠️</div>
+      <div class="err-ic"><i class="ic ic-lg" data-ic="triangle-alert"></i></div>
       <div style="flex:1">
         <div class="err-tit">${em.titulo}</div>
         <div class="err-det">${em.detalhe}</div>
@@ -890,15 +1012,15 @@ async function salvarCotacao({id_local,cep,cnpj,tipo_dest,valor_nf,pacotes,data}
 
 function renderResult(data,c,tipo_dest){
   const res=data?.resultados||[];
-  if(!res.length){c.innerHTML=`<div class="card"><div class="empty"><div class="ei">🔍</div><p>Nenhuma cotação retornada.<br>Verifique o CEP e local de expedição.</p></div></div>`;return}
+  if(!res.length){c.innerHTML=`<div class="card"><div class="empty"><i class="ic ic-xl ei" data-ic="search"></i><p>Nenhuma cotação retornada.<br>Verifique o CEP e local de expedição.</p></div></div>`;return}
   // valor_total pode não vir no stream NDJSON — fallback pro valor_frete
   const vTot=r=>Number(r.valor_total??r.valor_frete)||0;
   const ok=res.filter(r=>!r.erro).sort((a,b)=>vTot(a)-vTot(b));
   const er=res.filter(r=>r.erro);
-  let html=`<div class="card"><div class="flex jb ac mb-2" style="flex-wrap:wrap;gap:8px"><div class="card-title" style="margin:0">🏆 Cotações</div>${data.codigo?`<span class="tag">🔖 ${data.codigo}${data.id_cotacao?' · ID '+data.id_cotacao:''}</span>`:''}</div>`;
+  let html=`<div class="card"><div class="flex jb ac mb-2" style="flex-wrap:wrap;gap:8px"><div class="card-title" style="margin:0"><i class="ic" data-ic="trophy"></i> Cotações</div>${data.codigo?`<span class="tag"><i class="ic ic-sm" data-ic="bookmark"></i> ${data.codigo}${data.id_cotacao?' · ID '+data.id_cotacao:''}</span>`:''}</div>`;
   const _cid=data.cidade||data.cidade_destino, _uf=data.uf||data.uf_destino, _pt=data.peso_taxado??data.peso_total_kg;
   if(_cid||_uf)
-    html+=`<div class="mb-3"><span class="tag">📍 ${_cid||''}${_uf?' / '+_uf:''}</span>${_pt?`<span class="tag">⚖️ ${N(_pt)} kg</span>`:''}${tipo_dest?`<span class="tag">👤 ${tipo_dest==='PF'?'Pessoa Física':'Pessoa Jurídica'}</span>`:''}</div>`;
+    html+=`<div class="mb-3"><span class="tag"><i class="ic ic-sm" data-ic="map-pin"></i> ${_cid||''}${_uf?' / '+_uf:''}</span>${_pt?`<span class="tag"><i class="ic ic-sm" data-ic="scale"></i> ${N(_pt)} kg</span>`:''}${tipo_dest?`<span class="tag"><i class="ic ic-sm" data-ic="user"></i> ${tipo_dest==='PF'?'Pessoa Física':'Pessoa Jurídica'}</span>`:''}</div>`;
   html+=`<div class="result-grid">`;
   [...ok,...er].forEach((r,i)=>{
     if(r.erro){
@@ -911,14 +1033,14 @@ function renderResult(data,c,tipo_dest){
       </div>`;return}
     const w=i===0;
     html+=`<div class="r-card${w?' winner':''}">
-      ${w?'<span class="r-winner-badge">✅ Menor Preço</span>':''}
+      ${w?'<span class="r-winner-badge"><i class="ic ic-sm" data-ic="check"></i> Menor Preço</span>':''}
       <div class="r-transp">${r.transportadora}</div>
-      <div class="r-prazo">⏱️ ${r.prazo_dias??'?'} dia(s) úteis</div>
+      <div class="r-prazo"><i class="ic ic-sm" data-ic="timer"></i> ${r.prazo_dias??'?'} dia(s) úteis</div>
       <div class="r-preco">${R(vTot(r))}</div>
       ${r.valor_total&&r.valor_frete&&Number(r.valor_total)!==Number(r.valor_frete)?`<div class="r-detail">Frete: ${R(r.valor_frete)}</div>`:''}
       ${r.valor_pedagio?`<div class="r-detail">Pedágio: ${R(r.valor_pedagio)}</div>`:''}
       ${r.valor_gris?`<div class="r-detail">GRIS: ${R(r.valor_gris)}</div>`:''}
-      ${r.id_cotacao?`<div class="r-detail" style="font-size:10.5px;color:var(--muted)">Protocolo: ${r.id_cotacao}</div>`:''}
+      ${r.id_cotacao?`<div class="r-detail" style="font-size:var(--fs-11);color:var(--muted)">Protocolo: ${r.id_cotacao}</div>`:''}
     </div>`;
   });
   html+=`</div></div>`;c.innerHTML=html;
@@ -952,7 +1074,7 @@ async function pgAuditoria(){
       </div>
       <div class="card">
         <div class="flex jb ac mb-3" style="flex-wrap:wrap;gap:8px">
-          <div class="card-title" style="margin:0">🧾 Auditoria CTe</div>
+          <div class="card-title" style="margin:0"><i class="ic" data-ic="receipt-text"></i> Auditoria CTe</div>
           <div class="filters" style="margin:0">
             <select class="fi" id="fst" onchange="filtCTE()" style="flex:0 0 auto;min-width:120px">
               <option value="">Todos status</option>
@@ -965,11 +1087,12 @@ async function pgAuditoria(){
             <input class="fi" id="ftr" placeholder="Transportadora, dest..." oninput="filtCTE()"/>
           </div>
         </div>
-        <div class="table-wrap">
+        <div class="mobile-only" id="cte-mob">${renderCTEmob(filtrarCtesDados(ctes,mesGlobal,'',''))}</div>
+        <div class="desktop-only table-wrap">
           <table id="audit-table">
             <thead><tr>
               <th class="th-sort" onclick="sortCTE('num_cte')">CTe <span id="sh-num_cte"></span></th>
-              <th class="th-sort" onclick="sortCTE('data_emissao')">Data <span id="sh-data_emissao">↓</span></th>
+              <th class="th-sort" onclick="sortCTE('data_emissao')">Data <span id="sh-data_emissao"><i class="ic ic-sm" data-ic="arrow-down"></i></span></th>
               <th class="th-sort" onclick="sortCTE('nome_transportadora')">Transportadora <span id="sh-nome_transportadora"></span></th>
               <th class="th-sort" onclick="sortCTE('nome_destinatario')">Destinatário <span id="sh-nome_destinatario"></span></th>
               <th class="th-sort" onclick="sortCTE('uf_destino')">UF <span id="sh-uf_destino"></span></th>
@@ -989,7 +1112,7 @@ async function pgAuditoria(){
     document.querySelectorAll('.th-sort').forEach(th=>{th.style.cursor='pointer';th.style.userSelect='none';th.style.whiteSpace='nowrap'});
   }catch(e){
     bononiLog('ERRO','ERRO_AUDITORIA',{modulo:'auditoria',erro:e});
-    c.innerHTML=`<div class="empty"><div class="ei">❌</div><p>${e.message}</p></div>`;
+    c.innerHTML=`<div class="empty"><i class="ic ic-xl ei" data-ic="circle-x"></i><p>${e.message}</p></div>`;
     toast('Erro: '+e.message,'error');
   }
 }
@@ -1011,7 +1134,7 @@ function sortCTE(col){
   // atualiza ícones
   document.querySelectorAll('[id^="sh-"]').forEach(el=>el.textContent='');
   const sh=document.getElementById(`sh-${col}`);
-  if(sh)sh.textContent=auditSort.dir==='asc'?'↑':'↓';
+  if(sh)sh.innerHTML=auditSort.dir==='asc'?ic('arrow-up','ic-sm'):ic('arrow-down','ic-sm');
   filtCTE();
 }
 
@@ -1031,11 +1154,57 @@ function filtCTE(){
   });
   const tb=document.getElementById('cte-tb');
   if(tb)tb.innerHTML=renderCTEdesk(f);
+  const mb=document.getElementById('cte-mob');
+  if(mb)mb.innerHTML=renderCTEmob(f);
+}
+
+// Escapa texto que vai para dentro de elemento (textarea) ou atributo.
+function escHtml(v){
+  return String(v??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 
 function stBadge(s){
   const m={pendente:'b-warn',ok:'b-ok',divergencia:'b-red',contestado:'b-blue',sem_vinculo:'b-gray'};
   return`<span class="badge ${m[s]||'b-gray'}">${s||'—'}</span>`;
+}
+
+// No celular a tabela de 11 colunas tinha 1243px numa janela de ~309px: só duas
+// colunas visíveis, e Status/Observação — as únicas em que se trabalha — ficavam
+// a quatro telas de rolagem. Aqui cada CTe é um cartão com os dois campos à mão.
+// Os ids são 'stm-'/'obsm-' (e não 'st-'/'obs-') porque as duas versões coexistem
+// no DOM: id repetido faria o botão salvar ler o campo escondido do desktop.
+function renderCTEmob(ctes){
+  if(!ctes.length)return`<div class="empty"><i class="ic ic-xl ei" data-ic="inbox"></i><p>Nenhum CTe encontrado para este período</p></div>`;
+  const opts=['pendente','ok','divergencia','contestado','sem_vinculo'];
+  return ctes.map(r=>{
+    const div=Number(r.divergencia||0);
+    const divCls=div>0?'div-pos':div<0?'div-neg':'';
+    return`<div class="cte-card" id="ctem-${r.id}">
+      <div class="cte-hdr">
+        <div style="min-width:0">
+          <div class="cte-num">${r.num_cte||'—'}${r.serie_cte?` <span class="cte-sub">s.${r.serie_cte}</span>`:''}</div>
+          <div class="cte-sub">${D(r.data_emissao)} · ${r.nome_transportadora||'—'}</div>
+        </div>
+        ${stBadge(r.status_auditoria)}
+      </div>
+      <div class="cte-row"><span class="cte-lbl">Destinatário</span><span class="cte-val">${r.nome_destinatario||'—'}${r.uf_destino?' / '+r.uf_destino:''}</span></div>
+      <div class="cte-row"><span class="cte-lbl">Vendedor</span><span class="cte-val">${r.nome_vendedor||'—'}</span></div>
+      <div class="cte-row"><span class="cte-lbl">Vl. CTe</span><span class="cte-val">${R(r.valor_frete_cte)}</span></div>
+      <div class="cte-row"><span class="cte-lbl">Vl. NF</span><span class="cte-val">${R(r.valor_frete_nf)}</span></div>
+      <div class="cte-row"><span class="cte-lbl">Divergência</span><span class="cte-val ${divCls}">${div!==0?R(div):'—'}</span></div>
+      <label class="cte-lbl cte-campo" for="stm-${r.id}">Status</label>
+      <select class="audit-select" id="stm-${r.id}" style="margin-top:0" onchange="updCTE(${r.id},this.value,'status')">
+        ${opts.map(o=>`<option value="${o}"${r.status_auditoria===o?' selected':''}>${o}</option>`).join('')}
+      </select>
+      <div class="cte-obs">
+        <label class="cte-lbl cte-campo" for="obsm-${r.id}" style="margin-top:0">Observação</label>
+        <textarea id="obsm-${r.id}" placeholder="Observação...">${escHtml(r.observacao_auditoria)}</textarea>
+      </div>
+      <div class="cte-actions">
+        <button class="btn btn-primary btn-sm" onclick="updCTE(${r.id},document.getElementById('obsm-${r.id}').value,'obs')">${ic('save','ic-sm')} Salvar observação</button>
+      </div>
+    </div>`;
+  }).join('');
 }
 
 function renderCTEdesk(ctes){
@@ -1045,7 +1214,7 @@ function renderCTEdesk(ctes){
     const divCls=div>0?'text-red':div<0?'text-green':'';
     const opts=['pendente','ok','divergencia','contestado','sem_vinculo'];
     return`<tr id="cte-${r.id}">
-      <td style="white-space:nowrap"><strong>${r.num_cte||'—'}</strong>${r.serie_cte?`<br><span style="font-size:10px;color:var(--muted)">s.${r.serie_cte}</span>`:''}</td>
+      <td style="white-space:nowrap"><strong>${r.num_cte||'—'}</strong>${r.serie_cte?`<br><span style="font-size:var(--fs-11);color:var(--muted)">s.${r.serie_cte}</span>`:''}</td>
       <td style="white-space:nowrap">${D(r.data_emissao)}</td>
       <td style="max-width:130px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${r.nome_transportadora||''}">${r.nome_transportadora||'—'}</td>
       <td style="max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${r.nome_destinatario||''}">${r.nome_destinatario||'—'}</td>
@@ -1055,19 +1224,19 @@ function renderCTEdesk(ctes){
       <td style="text-align:right;white-space:nowrap">${R(r.valor_frete_nf)}</td>
       <td style="text-align:right;white-space:nowrap;font-weight:${div!==0?700:400}" class="${divCls}">${div!==0?R(div):'—'}</td>
       <td>
-        <select style="background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:4px 8px;font-size:12px;color:var(--text);cursor:pointer;width:100px"
+        <select aria-label="Status da auditoria do CTe ${r.num_cte}" style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-md);padding:4px 8px;font-size:var(--fs-16);color:var(--text);cursor:pointer;width:124px"
           onchange="updCTE(${r.id},this.value,'status')">
           ${opts.map(o=>`<option value="${o}"${r.status_auditoria===o?' selected':''}>${o}</option>`).join('')}
         </select>
       </td>
       <td>
         <div style="display:flex;gap:4px;align-items:center;min-width:160px">
-          <input type="text" id="obs-${r.id}" value="${(r.observacao_auditoria||'').replace(/"/g,'&quot;')}" 
-            placeholder="Observação..." 
-            style="flex:1;padding:4px 7px;font-size:12px;border-radius:5px;min-width:0"
+          <input type="text" id="obs-${r.id}" value="${(r.observacao_auditoria||'').replace(/"/g,'&quot;')}"
+            placeholder="Observação..." aria-label="Observação do CTe ${r.num_cte}"
+            style="flex:1;padding:4px 7px;font-size:var(--fs-16);border-radius:var(--radius-md);min-width:0"
             onkeydown="if(event.key==='Enter')updCTE(${r.id},this.value,'obs')"/>
-          <button class="btn btn-ghost btn-sm" style="padding:4px 7px;font-size:12px;flex-shrink:0" 
-            onclick="updCTE(${r.id},document.getElementById('obs-${r.id}').value,'obs')" title="Salvar">💾</button>
+          <button class="btn btn-ghost btn-sm" style="padding:4px 7px;font-size:var(--fs-12);flex-shrink:0" 
+            onclick="updCTE(${r.id},document.getElementById('obs-${r.id}').value,'obs')" title="Salvar" aria-label="Salvar observação"><i class="ic ic-sm" data-ic="save"></i></button>
         </div>
       </td>
     </tr>`;
@@ -1111,7 +1280,7 @@ async function pgConferencia(){
 
     c.innerHTML=`
       <div class="card" style="border-left:3px solid var(--blue-light)">
-        <div style="font-size:12.5px;color:var(--muted)">💸 Cada <b>CTe</b> é um frete que vira <b>conta a pagar</b> amarrada na venda. Confira aqui, lance no ERP e marque como <b>lançado</b> — o que já foi lançado sai da lista de pendentes. A NF e o vendedor te levam direto à venda.</div>
+        <div style="font-size:var(--fs-12);color:var(--muted)"><i class="ic ic-sm" data-ic="wallet"></i> Cada <b>CTe</b> é um frete que vira <b>conta a pagar</b> amarrada na venda. Confira aqui, lance no ERP e marque como <b>lançado</b> — o que já foi lançado sai da lista de pendentes. A NF e o vendedor te levam direto à venda.</div>
       </div>
       <div class="stats-grid" id="conf-stats"></div>
       <div id="conf-faturas"></div>
@@ -1137,7 +1306,7 @@ async function pgConferencia(){
     pintarFaturas();
   }catch(e){
     bononiLog('ERRO','ERRO_CONFERENCIA',{modulo:'conferencia',erro:e});
-    c.innerHTML=`<div class="empty"><div class="ei">❌</div><p>${e.message}</p></div>`;
+    c.innerHTML=`<div class="empty"><i class="ic ic-xl ei" data-ic="circle-x"></i><p>${e.message}</p></div>`;
     toast('Erro: '+e.message,'error');
   }
 }
@@ -1178,8 +1347,8 @@ function renderFaturasPanel(faturas,ctes){
     const sm=(f.transportadora||'').toUpperCase().includes('MIGUEL');
     const n=vinc[f.num_fatura]||0;
     const acao=sm
-      ?`<button class="btn btn-ghost btn-sm" onclick="abrirVincular('${(f.num_fatura||'').replace(/'/g,'')}')">${n?('✓ '+n+' CTe'+(n>1?'s':'')):'Vincular CTes'}</button>`
-      :`<span class="faint" style="font-size:11px">manual</span>`;
+      ?`<button class="btn btn-ghost btn-sm" onclick="abrirVincular('${(f.num_fatura||'').replace(/'/g,'')}')">${n?(ic('check','ic-sm')+' '+n+' CTe'+(n>1?'s':'')):'Vincular CTes'}</button>`
+      :`<span class="faint" style="font-size:var(--fs-11)">manual</span>`;
     return `<tr>
      <td>${transpCurto(f.transportadora)}</td>
      <td>${f.empresa||'—'}</td>
@@ -1190,10 +1359,10 @@ function renderFaturasPanel(faturas,ctes){
    </tr>`;}).join('');
   return `<div class="card">
     <div class="flex jb ac mb-3" style="flex-wrap:wrap;gap:8px">
-      <div class="card-title" style="margin:0">📅 Faturas de frete — vencimentos <span class="badge b-blue">${faturas.length}</span></div>
-      <div class="faint" style="font-size:12px">Captadas do e-mail · total ${R(soma)} · ${aVencer} a vencer</div>
+      <div class="card-title" style="margin:0"><i class="ic" data-ic="calendar"></i> Faturas de frete — vencimentos <span class="badge b-blue">${faturas.length}</span></div>
+      <div class="faint" style="font-size:var(--fs-12)">Captadas do e-mail · total ${R(soma)} · ${aVencer} a vencer</div>
     </div>
-    <div class="faint" style="font-size:12px;margin-bottom:8px">Só o <b>São Miguel</b> traz o vencimento por e-mail. Clique em <b>Vincular CTes</b> pra amarrar a fatura aos CTes — o vencimento cola em cada um.</div>
+    <div class="faint" style="font-size:var(--fs-12);margin-bottom:8px">Só o <b>São Miguel</b> traz o vencimento por e-mail. Clique em <b>Vincular CTes</b> pra amarrar a fatura aos CTes — o vencimento cola em cada um.</div>
     <div class="table-wrap" style="max-height:300px;overflow-y:auto">
       <table>
         <thead><tr><th>Transp.</th><th>Empresa</th><th>Fatura</th><th>Vencimento</th><th style="text-align:right">Valor</th><th></th></tr></thead>
@@ -1244,19 +1413,19 @@ function pintarModal(){
   m.innerHTML=`<div class="card" style="max-width:760px;width:100%;max-height:88vh;overflow:auto;margin:0">
     <div class="flex jb ac mb-3" style="gap:8px">
       <div class="card-title" style="margin:0">Vincular fatura ${f.num_fatura} <span class="faint" style="font-weight:400">${f.empresa||''} · vence ${fmtVenc(f.vencimento)}</span></div>
-      <button class="btn btn-ghost btn-sm" onclick="fecharModal()">✕</button>
+      <button class="btn btn-ghost btn-sm" onclick="fecharModal()" aria-label="Fechar"><i class="ic ic-sm" data-ic="x"></i></button>
     </div>
-    <div class="faint" style="font-size:12px;margin-bottom:8px">Marque os CTes desta fatura. O total é <b>referência</b> (a fatura inclui impostos/ajustes — pode não bater exato). Ao vincular, o vencimento <b>${fmtVenc(f.vencimento)}</b> cola em cada CTe.${f.link_fatura?` · <a href="${f.link_fatura}" target="_blank" rel="noopener" style="color:var(--accent)">abrir fatura no portal ↗</a> (confere a lista oficial de CTes)`:''}</div>
+    <div class="faint" style="font-size:var(--fs-12);margin-bottom:8px">Marque os CTes desta fatura. O total é <b>referência</b> (a fatura inclui impostos/ajustes — pode não bater exato). Ao vincular, o vencimento <b>${fmtVenc(f.vencimento)}</b> cola em cada CTe.${f.link_fatura?` · <a href="${f.link_fatura}" target="_blank" rel="noopener">abrir fatura no portal <i class="ic ic-sm" data-ic="arrow-up-right"></i></a> (confere a lista oficial de CTes)`:''}</div>
     <div class="table-wrap" style="max-height:46vh;overflow:auto">
       <table><thead><tr><th style="width:34px"></th><th>CTe</th><th>Data</th><th>NF</th><th>Cliente</th><th style="text-align:right">Valor</th></tr></thead>
       <tbody>${linhas}</tbody></table>
     </div>
     <div class="flex jb ac" style="gap:10px;flex-wrap:wrap;margin-top:12px">
-      <div style="font-size:13px">Selecionado <b class="mono">${R(somaSel)}</b> / total <b class="mono">${R(total)}</b>
-        <span class="badge ${bate?'b-ok':'b-warn'}" style="margin-left:6px">${bate?'bate ✓':'dif. '+R(Math.abs(somaSel-total))}</span></div>
+      <div style="font-size:var(--fs-13)">Selecionado <b class="mono">${R(somaSel)}</b> / total <b class="mono">${R(total)}</b>
+        <span class="badge ${bate?'b-ok':'b-warn'}" style="margin-left:6px">${bate?('bate '+ic('check','ic-sm')):'dif. '+R(Math.abs(somaSel-total))}</span></div>
       <div style="display:flex;gap:8px">
         <button class="btn btn-ghost btn-sm" onclick="vincSugerir()">Sugerir seleção</button>
-        <button class="btn btn-sm" style="background:var(--accent);color:#fff;border:none" onclick="vincSalvar()">Vincular ${sel.size} CTe(s)</button>
+        <button class="btn btn-primary btn-sm" onclick="vincSalvar()">Vincular ${sel.size} CTe(s)</button>
       </div>
     </div>
   </div>`;
@@ -1317,14 +1486,14 @@ function aplicarConf(){
     <div class="stat c-blue"><div class="stat-lbl">CTes no mês</div><div class="stat-val">${f.length}</div></div>
     <div class="stat c-warn"><div class="stat-lbl">A lançar</div><div class="stat-val">${aLancar.length}</div></div>
     <div class="stat c-green"><div class="stat-lbl">Lançados</div><div class="stat-val">${lancados.length}</div></div>
-    <div class="stat c-red"><div class="stat-lbl">R$ a lançar</div><div class="stat-val" style="font-size:18px">${R(vlAlancar)}</div></div>`;
+    <div class="stat c-red"><div class="stat-lbl">R$ a lançar</div><div class="stat-val" style="font-size:var(--fs-18)">${R(vlAlancar)}</div></div>`;
   // agrupa por transportadora
   const g={};
   f.forEach(r=>{const k=r.nome_transportadora||'(sem transportadora)';(g[k]=g[k]||[]).push(r);});
   const box=document.getElementById('conf-groups');
   if(!box)return;
   const chaves=Object.keys(g).sort();
-  if(!chaves.length){box.innerHTML=`<div class="empty"><div class="ei">✅</div><p>Nada a conferir neste filtro.</p></div>`;return;}
+  if(!chaves.length){box.innerHTML=`<div class="empty"><i class="ic ic-xl ei" data-ic="circle-check"></i><p>Nada a conferir neste filtro.</p></div>`;return;}
   box.innerHTML=chaves.map(k=>{
     const rows=g[k];
     const pend=rows.filter(x=>!x.frete_lancado);
@@ -1332,13 +1501,14 @@ function aplicarConf(){
     return`
     <div style="margin-bottom:18px">
       <div class="flex jb ac" style="flex-wrap:wrap;gap:8px;margin-bottom:6px">
-        <div style="font-weight:700;font-size:13.5px">${k}
+        <div style="font-weight:700;font-size:var(--fs-13)">${k}
           <span class="badge ${pend.length?'b-warn':'b-ok'}" style="margin-left:6px">${pend.length} a lançar</span>
           <span class="badge b-gray" style="margin-left:2px">${R(somaP)}</span>
         </div>
-        ${pend.length?`<button class="btn btn-ghost btn-sm" onclick="confMarcarGrupo('${k.replace(/'/g,"\\'")}')">✓ Marcar grupo como lançado</button>`:''}
+        ${pend.length?`<button class="btn btn-ghost btn-sm" onclick="confMarcarGrupo('${k.replace(/'/g,"\\'")}')"><i class="ic ic-sm" data-ic="check"></i> Marcar grupo como lançado</button>`:''}
       </div>
-      <div class="table-wrap">
+      <div class="mobile-only">${renderConfMob(rows)}</div>
+      <div class="desktop-only table-wrap">
         <table>
           <thead><tr>
             <th style="width:44px;text-align:center">Lançado</th>
@@ -1363,6 +1533,33 @@ function aplicarConf(){
           </tbody>
         </table>
       </div>
+    </div>`;
+  }).join('');
+}
+
+// Conferência no celular: o que se faz aqui é marcar "lançado". No cartão o alvo
+// é a linha inteira (44px), não um checkbox de 17px perdido numa tabela de 9
+// colunas. O id do cartão é 'confm-' para não colidir com o 'conf-' da tabela.
+function renderConfMob(rows){
+  if(!rows.length)return`<div class="empty"><i class="ic ic-xl ei" data-ic="inbox"></i><p>Nada a conferir</p></div>`;
+  return rows.map(r=>{
+    const done=!!r.frete_lancado;
+    return`<div class="cte-card" id="confm-${r.id}" style="${done?'opacity:.55':''}">
+      <div class="cte-hdr">
+        <div style="min-width:0">
+          <div class="cte-num">${r.num_cte||'—'}</div>
+          <div class="cte-sub">${(r.data_emissao||r.criado_em||'').slice(0,10).split('-').reverse().join('/')||'—'} · NF ${confNFs(r)}</div>
+        </div>
+        ${r.frete_vencimento?`<span class="badge ${vencCls(r.frete_vencimento)}">${fmtVenc(r.frete_vencimento)}</span>`:''}
+      </div>
+      <div class="cte-row"><span class="cte-lbl">Cliente</span><span class="cte-val">${r.nome_destinatario||'—'}${r.uf_destino?' / '+r.uf_destino:''}</span></div>
+      <div class="cte-row"><span class="cte-lbl">Vendedor</span><span class="cte-val">${r.nome_vendedor||`<span class="badge b-gray">sem vínculo</span>`}</span></div>
+      <div class="cte-row"><span class="cte-lbl">Vl. Frete</span><span class="cte-val" style="font-family:var(--font-mono);font-variant-numeric:tabular-nums">${R(r.valor_total_cte||r.valor_frete_cte)}</span></div>
+      <label class="cte-row" for="confm-ck-${r.id}" style="cursor:pointer;border-bottom:none;padding-top:10px;min-height:var(--control-h-lg)">
+        <span class="cte-lbl">${done?'Lançado '+DT(r.frete_lancado_em):'Marcar como lançado'}</span>
+        <input type="checkbox" id="confm-ck-${r.id}" ${done?'checked':''} onchange="confToggle('${r.id}',this.checked)"
+          style="width:22px;height:22px;min-height:0;flex:0 0 auto;cursor:pointer"/>
+      </label>
     </div>`;
   }).join('');
 }
@@ -1424,7 +1621,7 @@ async function pgHistorico(){
     c.innerHTML=`
       <div class="card">
         <div class="flex jb ac mb-3" style="flex-wrap:wrap;gap:8px">
-          <div class="card-title" style="margin:0">📋 Cotações (${filtrados.length} de ${rows.length})</div>
+          <div class="card-title" style="margin:0"><i class="ic" data-ic="clipboard-list"></i> Cotações (${filtrados.length} de ${rows.length})</div>
           <input class="fi" id="fh" placeholder="CEP, cidade ou usuário..." oninput="filtHist()" style="max-width:220px"/>
         </div>
         <div class="mobile-only" id="hist-mob">${renderHistMob(filtrados,lm,rm)}</div>
@@ -1433,13 +1630,13 @@ async function pgHistorico(){
             <thead><tr>
               <th>Código</th><th>Data/Hora</th><th>Origem</th><th>Destino</th><th>Valor NF</th>
               ${transp.map(t=>`<th style="text-align:center">${t}</th>`).join('')}
-              <th>✅ Menor</th><th>Usuário</th>
+              <th><i class="ic ic-sm" data-ic="check"></i> Menor</th><th>Usuário</th>
             </tr></thead>
             <tbody id="hist-tb">${renderHistDesk(filtrados,lm,rm,transp)}</tbody>
           </table>
         </div>
       </div>`;
-  }catch(e){c.innerHTML=`<div class="empty"><div class="ei">❌</div><p>${e.message}</p></div>`}
+  }catch(e){c.innerHTML=`<div class="empty"><i class="ic ic-xl ei" data-ic="circle-x"></i><p>${e.message}</p></div>`}
 }
 
 function filtrarPorMes(rows,campo,mes){
@@ -1448,33 +1645,33 @@ function filtrarPorMes(rows,campo,mes){
 }
 
 function renderHistMob(rows,lm,rm){
-  if(!rows.length)return`<div class="empty"><div class="ei">📭</div><p>Sem cotações</p></div>`;
+  if(!rows.length)return`<div class="empty"><i class="ic ic-xl ei" data-ic="inbox"></i><p>Sem cotações</p></div>`;
   return rows.map(r=>{
     const res=(rm[r.id]||[]).filter(x=>x.valor_frete);
     const menor=res.sort((a,b)=>(a.valor_frete||0)-(b.valor_frete||0))[0];
     return`<div class="hist-card">
-      <div class="hist-row"><span class="hist-lbl">Código</span><strong style="font-family:'DM Mono',monospace">${r.codigo||'—'}${r.id?` · ID ${r.id}`:''}</strong></div>
+      <div class="hist-row"><span class="hist-lbl">Código</span><strong style="font-family:var(--font-mono)">${r.codigo||'—'}${r.id?` · ID ${r.id}`:''}</strong></div>
       <div class="hist-row"><span class="hist-lbl">Data</span><strong>${DT(r.criado_em)}</strong></div>
       <div class="hist-row"><span class="hist-lbl">Origem</span><span>${lm[r.id_local]||'—'}</span></div>
       <div class="hist-row"><span class="hist-lbl">Destino</span><span>${r.cidade_destino||r.cep_destino||'—'}${r.uf_destino?' / '+r.uf_destino:''}</span></div>
       <div class="hist-row"><span class="hist-lbl">Valor NF</span><span>${R(r.valor_nf)}</span></div>
       ${res.map(x=>{const v=x.valor_frete;const isMin=menor?.transportadora===x.transportadora;return`<div class="hist-row"><span class="hist-lbl">${x.transportadora}</span><span style="font-weight:${isMin?700:400};color:${isMin?'var(--green)':'inherit'}">${R(v)}${x.prazo_dias?' · '+x.prazo_dias+'d':''}${x.id_cotacao_ext?' · #'+x.id_cotacao_ext:''}</span></div>`}).join('')}
-      ${(rm[r.id]||[]).filter(x=>x.erro&&!x.valor_frete).map(x=>`<div class="hist-row"><span class="hist-lbl">${x.transportadora}</span><span class="text-muted" style="font-size:11px">Indisp.</span></div>`).join('')}
-      ${menor?`<div class="hist-row" style="border-top:1px solid var(--border);padding-top:6px;margin-top:4px"><span class="hist-lbl">✅ Menor</span><span style="color:var(--green);font-weight:700">${menor.transportadora} — ${R(menor.valor_frete)}</span></div>`:''}
+      ${(rm[r.id]||[]).filter(x=>x.erro&&!x.valor_frete).map(x=>`<div class="hist-row"><span class="hist-lbl">${x.transportadora}</span><span class="text-muted" style="font-size:var(--fs-11)">Indisp.</span></div>`).join('')}
+      ${menor?`<div class="hist-row" style="border-top:1px solid var(--border);padding-top:6px;margin-top:4px"><span class="hist-lbl"><i class="ic ic-sm" data-ic="check"></i> Menor</span><span style="color:var(--green);font-weight:700">${menor.transportadora} — ${R(menor.valor_frete)}</span></div>`:''}
       <div class="hist-row"><span class="hist-lbl">Usuário</span><span class="text-muted">${r.criado_por||'—'}</span></div>
     </div>`;
   }).join('');
 }
 
 function renderHistDesk(rows,lm,rm,transp){
-  if(!rows.length)return`<tr><td colspan="${5+transp.length+2}"><div class="empty"><div class="ei">📭</div><p>Sem cotações</p></div></td></tr>`;
+  if(!rows.length)return`<tr><td colspan="${5+transp.length+2}"><div class="empty"><i class="ic ic-xl ei" data-ic="inbox"></i><p>Sem cotações</p></div></td></tr>`;
   return rows.map(r=>{
     const res=rm[r.id]||[];
     const byT={};res.forEach(x=>{byT[x.transportadora]=x});
     const ok=res.filter(x=>x.valor_frete).sort((a,b)=>(a.valor_frete||0)-(b.valor_frete||0));
     const menor=ok[0];
     return`<tr>
-      <td style="white-space:nowrap;font-family:'DM Mono',monospace;font-size:12px">${r.codigo||'—'}${r.id?`<br><span style="font-size:10px;color:var(--muted)">ID ${r.id}</span>`:''}</td>
+      <td style="white-space:nowrap;font-family:var(--font-mono);font-size:var(--fs-12)">${r.codigo||'—'}${r.id?`<br><span style="font-size:var(--fs-11);color:var(--muted)">ID ${r.id}</span>`:''}</td>
       <td style="white-space:nowrap">${DT(r.criado_em)}</td>
       <td>${lm[r.id_local]||'—'}</td>
       <td style="white-space:nowrap">${r.cidade_destino||r.cep_destino||'—'}${r.uf_destino?' / '+r.uf_destino:''}</td>
@@ -1483,13 +1680,13 @@ function renderHistDesk(rows,lm,rm,transp){
         const x=byT[t];
         if(!x)return`<td style="text-align:center;color:var(--muted)">—</td>`;
         const v=x.valor_frete;
-        if(!v)return`<td style="text-align:center;font-size:11px;color:var(--muted)">Indisp.</td>`;
+        if(!v)return`<td style="text-align:center;font-size:var(--fs-11);color:var(--muted)">Indisp.</td>`;
         const isMin=menor?.transportadora===t;
         return`<td style="text-align:center;font-weight:${isMin?700:400};color:${isMin?'var(--green)':'inherit'}">
-          ${R(v)}<br><span style="font-size:10px;color:var(--muted)">${x.prazo_dias?x.prazo_dias+'d':''}${x.id_cotacao_ext?'<br>#'+x.id_cotacao_ext:''}</span>
+          ${R(v)}<br><span style="font-size:var(--fs-11);color:var(--muted)">${x.prazo_dias?x.prazo_dias+'d':''}${x.id_cotacao_ext?'<br>#'+x.id_cotacao_ext:''}</span>
         </td>`;
       }).join('')}
-      <td style="white-space:nowrap">${menor?`<span class="badge b-ok" style="font-size:11px">${menor.transportadora}</span>`:'—'}</td>
+      <td style="white-space:nowrap">${menor?`<span class="badge b-ok" style="font-size:var(--fs-11)">${menor.transportadora}</span>`:'—'}</td>
       <td class="text-muted" style="white-space:nowrap">${r.criado_por||'—'}</td>
     </tr>`;
   }).join('');
@@ -1519,8 +1716,8 @@ function editDim(id){
   const set=(el,v)=>{const e=document.getElementById(el);if(e)e.value=v??''};
   set('nd',p.descricao);set('nr',p.referencia);set('np',p.peso_kg);
   set('na',p.altura_cm);set('nl',p.largura_cm);set('nc',p.comprimento_cm);
-  const t=document.getElementById('dim-form-title');if(t)t.textContent='✏️ Editando: '+(p.descricao||'');
-  const b=document.getElementById('btn-salvar-dim');if(b)b.textContent='💾 Salvar alterações';
+  const t=document.getElementById('dim-form-title');if(t)t.textContent='Editando: '+(p.descricao||'');
+  const b=document.getElementById('btn-salvar-dim');if(b)b.textContent='Salvar alterações';
   const x=document.getElementById('btn-cancel-dim');if(x)x.style.display='';
   document.getElementById('card-dim-form')?.scrollIntoView({behavior:'smooth',block:'center'});
 }
@@ -1528,8 +1725,8 @@ function editDim(id){
 function cancelarEditDim(){
   _editDimId=null;
   ['nd','nr','np','na','nl','nc'].forEach(id=>{const el=document.getElementById(id);if(el)el.value=''});
-  const t=document.getElementById('dim-form-title');if(t)t.textContent='➕ Novo Cadastro Manual';
-  const b=document.getElementById('btn-salvar-dim');if(b)b.textContent='💾 Salvar Dimensão';
+  const t=document.getElementById('dim-form-title');if(t)t.textContent='Novo Cadastro Manual';
+  const b=document.getElementById('btn-salvar-dim');if(b)b.textContent='Salvar Dimensão';
   const x=document.getElementById('btn-cancel-dim');if(x)x.style.display='none';
 }
 
@@ -1551,7 +1748,7 @@ async function pgDimensoes(){
       </div>
 
       <div class="card" id="card-dim-form">
-        <div class="card-title" id="dim-form-title">➕ Novo Cadastro Manual</div>
+        <div class="card-title" id="dim-form-title"><i class="ic" data-ic="plus"></i> Novo Cadastro Manual</div>
         <div class="grid g2">
           <div class="field full"><label>Descrição / Nome do produto</label><input id="nd" placeholder="Ex: Volante Esportivo 14 pol"/></div>
           <div class="field"><label>Referência</label><input id="nr" placeholder="Ex: VE-14"/></div>
@@ -1562,13 +1759,13 @@ async function pgDimensoes(){
         </div>
         <div style="display:flex;gap:8px">
           <button class="btn btn-ghost" id="btn-cancel-dim" onclick="cancelarEditDim()" style="display:none;flex-shrink:0">Cancelar</button>
-          <button class="btn btn-primary" id="btn-salvar-dim" onclick="salvarDim()" style="flex:1">💾 Salvar Dimensão</button>
+          <button class="btn btn-primary" id="btn-salvar-dim" onclick="salvarDim()" style="flex:1"><i class="ic" data-ic="save"></i> Salvar Dimensão</button>
         </div>
       </div>
 
       <div class="card">
         <div class="flex jb ac mb-3" style="flex-wrap:wrap;gap:8px">
-          <div class="card-title" style="margin:0">📦 Dimensões Cadastradas</div>
+          <div class="card-title" style="margin:0"><i class="ic" data-ic="package"></i> Dimensões Cadastradas</div>
           <div class="filters" style="margin:0">
             <select class="fi" id="dfonte" onchange="filtDim()" style="flex:0 0 auto;min-width:140px">
               <option value="">Todas as fontes</option>
@@ -1580,7 +1777,7 @@ async function pgDimensoes(){
         </div>
         <div id="dims-list">${renderDims(dims,cat)}</div>
       </div>`;
-  }catch(e){c.innerHTML=`<div class="empty"><div class="ei">❌</div><p>${e.message}</p></div>`}
+  }catch(e){c.innerHTML=`<div class="empty"><i class="ic ic-xl ei" data-ic="circle-x"></i><p>${e.message}</p></div>`}
 }
 
 function renderDims(dims,cat){
@@ -1588,8 +1785,9 @@ function renderDims(dims,cat){
     ...cat.map(p=>({...p,_src:'catalogo',descricao:p.nome})),
     ...dims.map(p=>({...p,_src:'manual'}))
   ];
-  if(!all.length)return`<div class="empty"><div class="ei">📭</div><p>Nenhum produto cadastrado</p></div>`;
-  return`<div class="table-wrap">
+  if(!all.length)return`<div class="empty"><i class="ic ic-xl ei" data-ic="inbox"></i><p>Nenhum produto cadastrado</p></div>`;
+  return`<div class="mobile-only">${renderDimsMob(all)}</div>
+  <div class="desktop-only table-wrap">
     <table>
       <thead><tr><th>Fonte</th><th>Produto</th><th>Ref.</th><th>Peso</th><th>A×L×C (cm)</th><th>Vol. m³</th><th></th></tr></thead>
       <tbody>
@@ -1597,18 +1795,44 @@ function renderDims(dims,cat){
           const vol=p.volume_m3||(p.altura_cm&&p.largura_cm&&p.comprimento_cm?(p.altura_cm/100*p.largura_cm/100*p.comprimento_cm/100).toFixed(6):null);
           const inc=!medidasCompletas(p);
           return`<tr${inc?' style="background:var(--warning-bg)"':''}>
-            <td><span class="badge ${p._src==='catalogo'?'b-blue':'b-purple'}">${p._src==='catalogo'?'Portal':'Manual'}</span>${inc?'<div style="font-size:9.5px;color:var(--warn);font-weight:700;margin-top:3px">SEM MEDIDA</div>':''}</td>
+            <td><span class="badge ${p._src==='catalogo'?'b-blue':'b-purple'}">${p._src==='catalogo'?'Portal':'Manual'}</span>${inc?'<div style="font-size:var(--fs-11);color:var(--warn);font-weight:700;margin-top:3px">SEM MEDIDA</div>':''}</td>
             <td style="max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:600">${p.descricao||p.nome||'—'}</td>
             <td class="text-muted">${p.referencia||'—'}</td>
             <td>${p.peso_kg?N(p.peso_kg)+' kg':'—'}</td>
             <td>${p.altura_cm&&p.largura_cm&&p.comprimento_cm?`${p.altura_cm}×${p.largura_cm}×${p.comprimento_cm}`:'—'}</td>
             <td>${vol?Number(vol).toFixed(4):'—'}</td>
-            <td style="white-space:nowrap">${p._src==='manual'?`<button class="btn btn-ghost btn-sm" onclick="editDim(${p.id})" style="padding:5px 9px;margin-right:4px">✏️</button><button class="btn btn-danger btn-sm" onclick="delDim(${p.id})" style="padding:5px 9px">🗑️</button>`:'—'}</td>
+            <td style="white-space:nowrap">${p._src==='manual'?`<button class="btn btn-ghost btn-sm" onclick="editDim(${p.id})" aria-label="Editar" title="Editar" style="padding:5px 9px;margin-right:4px"><i class="ic ic-sm" data-ic="pencil"></i></button><button class="btn btn-danger btn-sm" onclick="delDim(${p.id})" aria-label="Excluir" title="Excluir" style="padding:5px 9px"><i class="ic ic-sm" data-ic="trash-2"></i></button>`:'—'}</td>
           </tr>`;
         }).join('')}
       </tbody>
     </table>
   </div>`;
+}
+
+// Dimensões no celular. "Sem medida" era uma linha de tabela com fundo âmbar —
+// no cartão vira etiqueta, que não depende de enxergar a cor da linha inteira.
+function renderDimsMob(all){
+  return all.map(p=>{
+    const vol=p.volume_m3||(p.altura_cm&&p.largura_cm&&p.comprimento_cm?(p.altura_cm/100*p.largura_cm/100*p.comprimento_cm/100).toFixed(6):null);
+    const inc=!medidasCompletas(p);
+    return`<div class="cte-card"${inc?' style="background:var(--warning-bg)"':''}>
+      <div class="cte-hdr">
+        <div style="min-width:0">
+          <div style="font:var(--type-body-strong);overflow-wrap:anywhere">${p.descricao||p.nome||'—'}</div>
+          <div class="cte-sub">Ref: ${p.referencia||'—'}</div>
+        </div>
+        <span class="badge ${p._src==='catalogo'?'b-blue':'b-purple'}">${p._src==='catalogo'?'Portal':'Manual'}</span>
+      </div>
+      ${inc?`<div class="cte-row"><span class="cte-lbl">Medidas</span><span class="cte-val"><span class="badge b-warn">sem medida</span></span></div>`:''}
+      <div class="cte-row"><span class="cte-lbl">Peso</span><span class="cte-val">${p.peso_kg?N(p.peso_kg)+' kg':'—'}</span></div>
+      <div class="cte-row"><span class="cte-lbl">A×L×C (cm)</span><span class="cte-val">${p.altura_cm&&p.largura_cm&&p.comprimento_cm?`${p.altura_cm}×${p.largura_cm}×${p.comprimento_cm}`:'—'}</span></div>
+      <div class="cte-row"><span class="cte-lbl">Vol. m³</span><span class="cte-val" style="font-family:var(--font-mono);font-variant-numeric:tabular-nums">${vol?Number(vol).toFixed(4):'—'}</span></div>
+      ${p._src==='manual'?`<div class="cte-actions">
+        <button class="btn btn-ghost btn-sm" onclick="editDim(${p.id})">${ic('pencil','ic-sm')} Editar</button>
+        <button class="btn btn-danger btn-sm" onclick="delDim(${p.id})">${ic('trash-2','ic-sm')} Excluir</button>
+      </div>`:''}
+    </div>`;
+  }).join('');
 }
 
 function filtDim(){
@@ -1691,7 +1915,7 @@ async function pgLogs(){
       </div>
       <div class="card">
         <div class="flex jb ac mb-3" style="flex-wrap:wrap;gap:8px">
-          <div class="card-title" style="margin:0">🔍 Logs</div>
+          <div class="card-title" style="margin:0"><i class="ic" data-ic="scroll-text"></i> Logs</div>
           <div class="filters" style="margin:0">
             <select class="fi" id="lt" onchange="filtLog()" style="flex:0 0 auto"><option value="">Todos</option><option value="ERRO">Erros</option><option value="ACAO">Ações</option><option value="INFO">Info</option></select>
             <select class="fi" id="lc" onchange="filtLog()" style="flex:0 0 auto"><option value="">Todos módulos</option><option value="cotacao">Cotação</option><option value="auditoria">Auditoria</option><option value="dimensoes">Dimensões</option><option value="banco">Banco</option><option value="sistema">Sistema</option></select>
@@ -1699,31 +1923,31 @@ async function pgLogs(){
           </div>
         </div>
         <div class="flex gap-2 mb-3" style="flex-wrap:wrap">
-          <button class="btn btn-ghost btn-sm" onclick="pgLogs()">↺ Atualizar</button>
-          <button class="btn btn-danger btn-sm" onclick="limparLogs()">🗑️ Limpar &gt;30 dias</button>
+          <button class="btn btn-ghost btn-sm" onclick="pgLogs()"><i class="ic ic-sm" data-ic="rotate-ccw"></i> Atualizar</button>
+          <button class="btn btn-danger btn-sm" onclick="limparLogs()"><i class="ic ic-sm" data-ic="trash-2"></i> Limpar &gt;30 dias</button>
         </div>
         <div id="logs-list">${renderLogs(filtrados)}</div>
       </div>`;
-  }catch(e){c.innerHTML=`<div class="empty"><div class="ei">✅</div><p>Nenhum log ou tabela não encontrada.<br><small>${e.message}</small></p></div>`}
+  }catch(e){c.innerHTML=`<div class="empty"><i class="ic ic-xl ei" data-ic="circle-check"></i><p>Nenhum log ou tabela não encontrada.<br><small>${e.message}</small></p></div>`}
 }
 function renderLogs(logs){
-  if(!logs.length)return`<div class="empty"><div class="ei">✅</div><p>Sem eventos</p></div>`;
-  const ic={ERRO:'❌',ACAO:'✅',INFO:'ℹ️'};
+  if(!logs.length)return`<div class="empty"><i class="ic ic-xl ei" data-ic="circle-check"></i><p>Sem eventos</p></div>`;
+  const ICONE_LOG={ERRO:'circle-x',ACAO:'circle-check',INFO:'info'};
   const bc={ERRO:'b-red',ACAO:'b-ok',INFO:'b-warn'};
   return logs.map((l,i)=>{
     const det=l.erro_msg||l.erro_stack||l.contexto;
     const desc=l.acao||l.descricao||'—';
     return`<div class="log-item log-${l.tipo}" onclick="document.getElementById('ld-${i}')?.classList.toggle('open')">
-    <div class="log-icon">${ic[l.tipo]||'ℹ️'}</div>
+    <div class="log-icon">${ic(ICONE_LOG[l.tipo]||'info')}</div>
     <div class="log-body">
       <div class="log-desc">${desc}${l.nome_entidade?` — ${l.nome_entidade}`:l.id_entidade?` #${l.id_entidade}`:''}</div>
       <div class="log-meta">
-        <span>⏰ ${DT(l.criado_em)}</span>
-        ${l.modulo?`<span>📁 ${l.modulo}</span>`:''}
-        ${l.usuario_nome?`<span>👤 ${l.usuario_nome}</span>`:''}
+        <span><i class="ic ic-sm" data-ic="clock"></i> ${DT(l.criado_em)}</span>
+        ${l.modulo?`<span><i class="ic ic-sm" data-ic="folder"></i> ${l.modulo}</span>`:''}
+        ${l.usuario_nome?`<span><i class="ic ic-sm" data-ic="user"></i> ${l.usuario_nome}</span>`:''}
         <span class="badge ${bc[l.tipo]||'b-ok'}">${l.nivel||l.tipo}</span>
       </div>
-      ${l.erro_msg?`<div style="color:var(--danger);font-size:12px;margin-top:4px">${l.erro_msg}</div>`:''}
+      ${l.erro_msg?`<div style="color:var(--danger);font-size:var(--fs-12);margin-top:4px">${l.erro_msg}</div>`:''}
       ${det?`<div class="log-detail" id="ld-${i}">${l.erro_stack?l.erro_stack+'\n':''}${l.contexto?JSON.stringify(l.contexto,null,2):''}</div>`:''}
     </div>
   </div>`}).join('');
