@@ -1,6 +1,6 @@
 # STATUS — Frete (cotação + auditoria de CTe)
 
-> Atualizado: 2026-09-15
+> Atualizado: 2026-09-16
 
 ## O que é
 Subsistema de frete: **cotação** de 4 transportadoras em paralelo + **auditoria de CTe** (casar conhecimento de transporte com a NF/vendedor) + rastreio.
