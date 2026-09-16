@@ -438,11 +438,23 @@ const PAGES_COM_MES=['auditoria','conferencia','historico','logs'];
 
 // ── UTILS ──
 function hdrs(){return{'apikey':KEY,'Authorization':'Bearer '+KEY,'Content-Type':'application/json'}}
-async function db(path,opts={}){
-  const url=`${SB}/rest/v1/${path}${path.includes('?')?'&':'?'}limit=9999`;
+// Linhas por requisição. Medido em 16/09/2026 contra os 21.727 leads de 6 meses do
+// e-commerce: 1.000 → 22 req / 14.450 ms · 2.000 → 11 req / 8.966 ms · 5.000 → 5 req /
+// 5.462 ms. Paginar re-executa a consulta inteira a cada página (o PostgREST vira
+// LIMIT/OFFSET), então página pequena é cara. 5.000 tem folga de 2x sobre o teto de
+// 10.000 do servidor — e a paginação continua correta se esse teto mudar.
+const PAGINA_BUSCA=5000;
+// Teto de sanidade: 50 requisições (250 mil linhas). Se bater aqui, o filtro está errado —
+// melhor estourar alto e visível do que devolver meio resultado calado.
+const MAX_REQUISICOES_BUSCA=50;
+
+// uma requisição só — é aqui que mora o tratamento de erro/log
+async function _dbReq(path,opts,de,ate){
+  const cab=hdrs();
+  if(de!=null)Object.assign(cab,{'Range-Unit':'items','Range':`${de}-${ate}`});
   let r;
   try{
-    r=await fetch(url,{headers:hdrs(),...opts});
+    r=await fetch(`${SB}/rest/v1/${path}`,{headers:cab,...opts});
   }catch(netErr){
     // erro de rede — sem resposta do servidor
     const msg=`Erro de rede: ${netErr.message}`;
@@ -454,7 +466,7 @@ async function db(path,opts={}){
     const msg=`[${r.status}] ${body.slice(0,300)}`;
     // loga automaticamente todo erro de banco com query e status
     bononiLog('ERRO','ERRO_QUERY',{modulo:'banco',
-      
+
       contexto:{
         tabela: path.split('?')[0],
         status: r.status,
@@ -465,6 +477,55 @@ async function db(path,opts={}){
     throw new Error(msg);
   }
   return r.json();
+}
+
+/**
+ * Lê do PostgREST trazendo TODAS as linhas, em páginas.
+ *
+ * Até 16/09/2026 esta função grudava `limit=9999` em toda consulta. Aquilo **não era
+ * paginação, era um teto**: passando de 10.000 linhas o PostgREST corta e responde 200,
+ * sem erro e sem aviso. E já cortava: `frt_cotacoes_respostas` tem 12.928 linhas e a tela
+ * de cotações recebia 9.999 — faltava resposta de transportadora no comparativo, sempre
+ * para menos e sem nada na tela dizendo isso.
+ *
+ * Duas propriedades que fazem isto funcionar:
+ *
+ * 1. **Ordem estável.** Sem ordenação garantida o Postgres pode repetir uma linha numa
+ *    página e pular outra na seguinte — erro pior que o truncamento, porque não aparece na
+ *    contagem. Vários chamadores daqui ordenam por campo que repete (`order=nome`), então
+ *    a função acrescenta `id` como critério de desempate. Para view sem `id` (há 7 em
+ *    `frt_*`, como `frt_nf_sem_cte`), passe a chave em `opts.chave`; `opts.chave=null`
+ *    desliga a paginação e faz uma requisição só.
+ * 2. **Avança pelo que a resposta trouxe**, não por `página × tamanho` — então continua
+ *    correta se o servidor tiver teto por requisição menor que PAGINA_BUSCA.
+ *
+ * Escrita (POST/PATCH/DELETE) e consulta com `limit=` explícito passam direto, sem paginar.
+ */
+async function db(path,opts={}){
+  const {chave,...req}=opts;
+  const metodo=(req.method||'GET').toUpperCase();
+  // escrita, ou o chamador já limitou de propósito, ou pediu para não paginar
+  if(metodo!=='GET'||/[?&]limit=/.test(path)||chave===null)return _dbReq(path,req,null,null);
+
+  // ordem estável: acrescenta a chave como último critério de desempate
+  const k=chave||'id';
+  let alvo;
+  if(/[?&]order=/.test(path)) alvo=path.replace(/([?&]order=)([^&]*)/,(m,p,v)=>`${p}${v},${k}`);
+  else                        alvo=`${path}${path.includes('?')?'&':'?'}order=${k}`;
+
+  const tudo=[];let de=0,maiorLote=0;
+  for(let i=0;i<MAX_REQUISICOES_BUSCA;i++){
+    const lote=await _dbReq(alvo,req,de,de+PAGINA_BUSCA-1);
+    if(!Array.isArray(lote))return lote;   // resposta que não é lista: devolve como veio
+    tudo.push(...lote);
+    if(!lote.length)return tudo;
+    // veio menos do que o servidor já provou que entrega → acabaram os dados
+    // (na primeira volta maiorLote ainda é 0, então não corta cedo por engano)
+    if(lote.length<maiorLote)return tudo;
+    maiorLote=Math.max(maiorLote,lote.length);
+    de+=lote.length;
+  }
+  throw new Error(`db: passou de ${MAX_REQUISICOES_BUSCA} requisições (${tudo.length} linhas) em ${path.split('?')[0]}. O filtro provavelmente está amplo demais.`);
 }
 const R=v=>v==null?'—':Number(v).toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
 const N=v=>v==null?'—':Number(v).toLocaleString('pt-BR',{minimumFractionDigits:2});
