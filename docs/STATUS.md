@@ -1,6 +1,6 @@
 # STATUS — Frete (cotação + auditoria de CTe)
 
-> Atualizado: 2026-09-16
+> Atualizado: 2026-09-17
 
 ## O que é
 Subsistema de frete: **cotação** de 4 transportadoras em paralelo + **auditoria de CTe** (casar conhecimento de transporte com a NF/vendedor) + rastreio.
@@ -33,6 +33,10 @@ Subsistema de frete: **cotação** de 4 transportadoras em paralelo + **auditori
 - PDF São Miguel WS JAVA (cotação) está preso no projeto claude.ai "Dash Fretes", fora do alcance da sessão CLI.
 
 ## Dev-log
+- 2026-09-17 — **A marca passou a aparecer na aba do navegador.** Não tinha favicon nenhum.
+  Adicionado `assets/favicon-32.png` e `assets/favicon-64.png`, gerados do símbolo isolado
+  (`mark-bononi.png`), na aba junto com o logo que já existia na sidebar. Conferido: as duas tags
+  resolvem com 200.
 - 2026-09-16 — **O `limit=9999` que o `db()` grudava em toda consulta cortava o comparativo de cotações.** Não era limite de segurança, era teto: `frt_cotacoes_respostas` tem **12.928 linhas** (medido em produção) e a tela de cotações recebia **9.999** — faltava resposta de transportadora no comparativo, sempre para menos, com **HTTP 200** e nada na tela dizendo isso. Como o `limit` morava no helper, o teto valia para as 13 consultas do app de uma vez; e como valia para todas, arrumar o helper arrumou todas.
   - **O `db()` agora pagina.** Página de **5.000** (medido contra os 21.727 leads do e-commerce: 1.000 → 14.450 ms, 5.000 → 5.462 ms; paginar re-executa a consulta a cada página, então página pequena é cara), paginação por cabeçalho `Range` — não por query string —, e **avanço pelo que a resposta trouxe**, não por `página × tamanho`, então continua correta se o servidor tiver teto por requisição menor que a página.
   - **A parte que não era óbvia: a ordem.** Sem ordenação garantida o Postgres pode repetir uma linha numa página e pular outra na seguinte — erro pior que o truncamento, porque a contagem fecha e nada denuncia. Vários chamadores daqui ordenavam por campo que repete (`order=nome`, `order=descricao`), e um (`frt_locais_expedicao`) não ordenava nada. O `db()` passou a **acrescentar `id` como último critério de desempate** na `order=` que já existir, ou a criar `order=id` quando não houver. Assim nenhum dos 13 chamadores precisou mudar.
