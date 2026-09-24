@@ -1,6 +1,6 @@
 # STATUS — Frete (cotação + auditoria de CTe)
 
-> Atualizado: 2026-09-22
+> Atualizado: 2026-09-24
 
 ## O que é
 Subsistema de frete: **cotação** de 4 transportadoras em paralelo + **auditoria de CTe** (casar conhecimento de transporte com a NF/vendedor) + rastreio.
@@ -68,6 +68,11 @@ Subsistema de frete: **cotação** de 4 transportadoras em paralelo + **auditori
 - PDF São Miguel WS JAVA (cotação) está preso no projeto claude.ai "Dash Fretes", fora do alcance da sessão CLI.
 
 ## Dev-log
+- 2026-09-24 — **Auditoria/Conferência não mente mais sucesso.** `updCTE`, `confToggle` e
+  `confMarcarGrupo` usavam `return=minimal` e só olhavam `r.ok` — PATCH que não casa linha
+  (RLS, id sumido) responde 200 igual, e a tela marcava "lançado" sem nada no banco. Agora usam
+  `return=representation` e exigem linha devolvida; no lote, só marca na tela o CTe confirmado
+  e avisa quantos falharam (antes o lote nem conferia `r.ok`). Achado do pente fino de 24/09.
 - 2026-09-22 — **Investigação da auditoria de frete (a pedido: cruzar quanto cobramos do
   cliente vs. quanto a transportadora cobra, a partir de 4 documentos reais recebidos por
   e-mail — AGEX, Rodonaves, Braspress, Expresso São Miguel).** A feature já existia (telas

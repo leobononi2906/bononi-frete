@@ -1310,8 +1310,10 @@ function renderCTEdesk(ctes){
 async function updCTE(id,val,campo){
   try{
     const body=campo==='status'?{status_auditoria:val,atualizado_em:new Date().toISOString()}:{observacao_auditoria:val,atualizado_em:new Date().toISOString()};
-    const r=await fetch(`${SB}/rest/v1/frt_conhecimentos?id=eq.${id}`,{method:'PATCH',headers:{...hdrs(),'Prefer':'return=minimal'},body:JSON.stringify(body)});
+    const r=await fetch(`${SB}/rest/v1/frt_conhecimentos?id=eq.${id}`,{method:'PATCH',headers:{...hdrs(),'Prefer':'return=representation'},body:JSON.stringify(body)});
     if(!r.ok)throw new Error(`[${r.status}] ${(await r.text()).slice(0,200)}`);
+    // PATCH que não casa nenhuma linha (RLS, id sumiu) também responde 200 — conferir a linha devolvida
+    if(!(await r.json()).length)throw new Error('nenhum CTe foi alterado no banco');
     bononiLog('ACAO',campo==='status'?'ALTERAR_STATUS':'ALTERAR_OBS',{modulo:'auditoria',entidade:'cte',id_entidade:id,depois:{[campo]:val}});
     toast(campo==='status'?`Status: ${val}`:'Observação salva','success');
     const c=document.getElementById('pg');if(c.__ctes){const x=c.__ctes.find(x=>x.id===id);if(x){if(campo==='status')x.status_auditoria=val;else x.observacao_auditoria=val;}}
@@ -1631,8 +1633,9 @@ async function confToggle(id,checked){
   const c=document.getElementById('pg'),item=(c.__conf||[]).find(x=>x.id==id);
   const body={frete_lancado:checked,frete_lancado_em:checked?new Date().toISOString():null,frete_lancado_por:checked?user:null};
   try{
-    const r=await fetch(`${SB}/rest/v1/frt_conhecimentos?id=eq.${id}`,{method:'PATCH',headers:{...hdrs(),'Prefer':'return=minimal'},body:JSON.stringify(body)});
+    const r=await fetch(`${SB}/rest/v1/frt_conhecimentos?id=eq.${id}`,{method:'PATCH',headers:{...hdrs(),'Prefer':'return=representation'},body:JSON.stringify(body)});
     if(!r.ok)throw new Error('HTTP '+r.status);
+    if(!(await r.json()).length)throw new Error('nenhum CTe foi alterado no banco');
     if(item)Object.assign(item,body);
     aplicarConf();
     toast(checked?'CTe marcado como lançado':'Desmarcado','success');
@@ -1650,10 +1653,17 @@ async function confMarcarGrupo(transp){
   if(!confirm(`Marcar ${alvo.length} CTe(s) de ${transp} como lançados?`))return;
   const agora=new Date().toISOString();
   try{
-    await Promise.all(alvo.map(x=>fetch(`${SB}/rest/v1/frt_conhecimentos?id=eq.${x.id}`,{method:'PATCH',headers:{...hdrs(),'Prefer':'return=minimal'},body:JSON.stringify({frete_lancado:true,frete_lancado_em:agora,frete_lancado_por:user})})));
-    alvo.forEach(x=>{x.frete_lancado=true;x.frete_lancado_em=agora;x.frete_lancado_por=user;});
+    // Só marca na tela o CTe cuja linha o banco devolveu alterada; o resto vira aviso
+    const res=await Promise.all(alvo.map(x=>fetch(`${SB}/rest/v1/frt_conhecimentos?id=eq.${x.id}`,{method:'PATCH',headers:{...hdrs(),'Prefer':'return=representation'},body:JSON.stringify({frete_lancado:true,frete_lancado_em:agora,frete_lancado_por:user})})
+      .then(async r=>r.ok&&(await r.json()).length>0).catch(()=>false)));
+    const ok=alvo.filter((x,i)=>res[i]);
+    ok.forEach(x=>{x.frete_lancado=true;x.frete_lancado_em=agora;x.frete_lancado_por=user;});
     aplicarConf();
-    toast(`${alvo.length} CTe(s) marcados como lançados`,'success');
+    const falhas=alvo.length-ok.length;
+    if(falhas){
+      bononiLog('ERRO','ERRO_CONF_GRUPO',{modulo:'conferencia',contexto:{transp,falhas,ids:alvo.filter((x,i)=>!res[i]).map(x=>x.id)}});
+      toast(`${ok.length} marcado(s); ${falhas} NÃO foram salvos no banco — confira e tente de novo`,'error');
+    }else toast(`${alvo.length} CTe(s) marcados como lançados`,'success');
   }catch(e){
     bononiLog('ERRO','ERRO_CONF_GRUPO',{modulo:'conferencia',erro:e,contexto:{transp}});
     toast('Erro: '+e.message,'error');
