@@ -1,6 +1,6 @@
 # STATUS — Frete (cotação + auditoria de CTe)
 
-> Atualizado: 2026-09-24
+> Atualizado: 2026-09-25
 
 ## O que é
 Subsistema de frete: **cotação** de 4 transportadoras em paralelo + **auditoria de CTe** (casar conhecimento de transporte com a NF/vendedor) + rastreio.
@@ -68,6 +68,14 @@ Subsistema de frete: **cotação** de 4 transportadoras em paralelo + **auditori
 - PDF São Miguel WS JAVA (cotação) está preso no projeto claude.ai "Dash Fretes", fora do alcance da sessão CLI.
 
 ## Dev-log
+- 2026-09-25 — **A Auditoria/Conferência que não mente sucesso só chegou ao ar hoje.** O push de
+  24/09 às 17:35 (`fee84a6`) foi para o GitHub, mas o deploy não saiu: a conta da Vercel (plano
+  Hobby) passou de 100 deploys em 24h, somando todos os apps, e o site continuou em `c45fe18`
+  (captura de CTe, 22/09) — sem erro em lugar nenhum. Sem commit novo para levar, o deploy saiu
+  com um commit vazio (`5fa2224`).
+  - Conferido no ar em 25/09, ~08:45: os arquivos servidos testados batem com `5fa2224`, que tem
+    o mesmo código de `fee84a6`.
+  - Daqui em diante o teto é controlado pela skill `controlar-deploys` (pasta `.claude`).
 - 2026-09-24 — **Auditoria/Conferência não mente mais sucesso.** `updCTE`, `confToggle` e
   `confMarcarGrupo` usavam `return=minimal` e só olhavam `r.ok` — PATCH que não casa linha
   (RLS, id sumido) responde 200 igual, e a tela marcava "lançado" sem nada no banco. Agora usam
