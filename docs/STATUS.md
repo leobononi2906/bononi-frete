@@ -68,6 +68,7 @@ Subsistema de frete: **cotação** de 4 transportadoras em paralelo + **auditori
 - PDF São Miguel WS JAVA (cotação) está preso no projeto claude.ai "Dash Fretes", fora do alcance da sessão CLI.
 
 ## Dev-log
+- 2026-09-28 — **Selo da Auditoria CTe e link do sino.** Botão "Auditoria CTe" ganhou selo com os CTe em divergência ou sem vínculo (contagem HEAD). `?abrir=auditoria` (sino do grupo no Hub) abre a Auditoria no filtro novo "Divergência + Sem vínculo (todos os meses)" — é a fila, então ignora o mês do topo. O `pendente` (1.111 CTe nunca auditados) ficou fora do sino para não virar ruído. App sem login: o sino em si só aparece no Hub.
 - 2026-09-28 — **F5 volta para a mesma tela.** O init chamava `go('cotar')` fixo. Agora `go()` grava `bononi-frete:ultima-tela` e o init restaura se a tela existir em `PAGES`. Aba Catálogo/Manual do "Adicionar volume" também é lembrada (`bononi-frete:vol-tab`). Testado local: Histórico, F5, voltou em Histórico. Valor inválido cai em Cotar. A cotação em andamento (`volumes`) continua zerando ao abrir Cotar, como antes. Skill `manter-tela-ao-atualizar`.
 - 2026-09-25 — **A Auditoria/Conferência que não mente sucesso só chegou ao ar hoje.** O push de
   24/09 às 17:35 (`fee84a6`) foi para o GitHub, mas o deploy não saiu: a conta da Vercel (plano

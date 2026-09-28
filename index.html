@@ -291,6 +291,9 @@ td select{padding:5px 8px;font-size:var(--fs-16);border-radius:var(--radius-md)}
 .b-gray{background:var(--surface2);--badge-dot:var(--bnn-gray-400)}
 .b-blue{background:var(--status-info-bg);--badge-dot:var(--status-info-text)}
 .b-purple{background:var(--bnn-gray-200);--badge-dot:var(--bnn-ink-900)}
+/* selo de contagem no item de navegação (fila de divergência+sem vínculo da Auditoria) */
+.nav-selo{margin-left:auto;flex-shrink:0}
+.nav-selo::before{display:none}
 .tag{display:inline-block;padding:2px 8px;border-radius:var(--radius-sm);font-size:var(--fs-11);background:var(--surface2);border:1px solid var(--border);color:var(--muted);margin:2px}
 
 /* MISC */
@@ -358,7 +361,7 @@ td select{padding:5px 8px;font-size:var(--fs-16);border-radius:var(--radius-md)}
     </div>
     <nav aria-label="Módulos do Frete">
       <button type="button" class="nav-item active" id="nav-cotar" aria-current="page" onclick="go('cotar')"><span class="nav-icon" aria-hidden="true"><i class="ic" data-ic="calculator"></i></span>Cotar Frete</button>
-      <button type="button" class="nav-item" id="nav-auditoria" onclick="go('auditoria')"><span class="nav-icon" aria-hidden="true"><i class="ic" data-ic="receipt-text"></i></span>Auditoria CTe</button>
+      <button type="button" class="nav-item" id="nav-auditoria" onclick="go('auditoria')"><span class="nav-icon" aria-hidden="true"><i class="ic" data-ic="receipt-text"></i></span>Auditoria CTe<span class="badge b-red nav-selo hidden" id="selo-auditoria"></span></button>
       <button type="button" class="nav-item" id="nav-conferencia" onclick="go('conferencia')"><span class="nav-icon" aria-hidden="true"><i class="ic" data-ic="wallet"></i></span>Conferência</button>
       <button type="button" class="nav-item" id="nav-historico" onclick="go('historico')"><span class="nav-icon" aria-hidden="true"><i class="ic" data-ic="clipboard-list"></i></span>Histórico</button>
       <button type="button" class="nav-item" id="nav-dimensoes" onclick="go('dimensoes')"><span class="nav-icon" aria-hidden="true"><i class="ic" data-ic="package"></i></span>Dimensões</button>
@@ -636,11 +639,31 @@ function go(p){
   try{localStorage.setItem('bononi-frete:ultima-tela',p);}catch(e){}
 }
 
+// Filtro de status pendente de aplicar na próxima vez que a tela de Auditoria abrir
+// (usado pelo link do sino de pendências: ?abrir=auditoria). Declarada antes do INIT
+// de propósito — o INIT logo abaixo já atribui aqui, e um `let` mais abaixo no
+// arquivo estouraria "Cannot access before initialization" (TDZ) nessa atribuição.
+let _auditFiltroInicial=null;
+
 // ── INIT (sem login — acesso direto) ──
 user='Usuário';
 let _telaSalva=null;try{_telaSalva=localStorage.getItem('bononi-frete:ultima-tela');}catch(e){}
-go((_telaSalva && PAGES[_telaSalva])?_telaSalva:'cotar');
+// Link do sino de pendências do Hub: ?abrir=auditoria abre direto na Auditoria CTe,
+// já filtrada na fila que o sino contou (divergência + sem vínculo).
+let _abrirParam=null;try{_abrirParam=new URLSearchParams(location.search).get('abrir');}catch(e){}
+if(_abrirParam==='auditoria'){
+  _auditFiltroInicial='divergencia,sem_vinculo';
+  go('auditoria');
+  try{
+    const _u=new URL(location.href);
+    _u.searchParams.delete('abrir');
+    history.replaceState(null,'',_u.pathname+(_u.search||'')+_u.hash);
+  }catch(e){}
+}else{
+  go((_telaSalva && PAGES[_telaSalva])?_telaSalva:'cotar');
+}
 bononiLog('INFO','SESSAO_INICIADA',{modulo:'sistema'});
+atualizarSeloAuditoria();
 
 // ────────────────────────────────────────────
 // PAGE: COTAR FRETE
@@ -1121,6 +1144,29 @@ function renderResult(data,c,tipo_dest){
 // ────────────────────────────────────────────
 let auditSort={col:'data_emissao',dir:'desc'};
 
+// Selo de contagem no menu: quantos CTes estão em divergência ou sem vínculo (a mesma
+// fila que o sino de pendências do Hub conta). Contagem leve — HEAD + Prefer count=exact,
+// sem baixar linha nenhuma — e silenciosa em erro (selo não some a tela por falha de rede).
+async function contarSeloAuditoria(){
+  try{
+    const r=await fetch(`${SB}/rest/v1/frt_conhecimentos?select=id&status_auditoria=in.(divergencia,sem_vinculo)`,{
+      method:'HEAD',
+      headers:{...hdrs(),'Prefer':'count=exact','Range-Unit':'items','Range':'0-0'}
+    });
+    const cr=r.headers.get('content-range')||'';
+    const total=parseInt(cr.split('/')[1],10);
+    return isNaN(total)?null:total;
+  }catch(e){return null}
+}
+async function atualizarSeloAuditoria(){
+  const el=document.getElementById('selo-auditoria');
+  if(!el)return;
+  const n=await contarSeloAuditoria();
+  if(n==null||n<=0){el.classList.add('hidden');el.textContent='';return}
+  el.textContent=n>99?'99+':String(n);
+  el.classList.remove('hidden');
+}
+
 async function pgAuditoria(){
   const c=document.getElementById('pg');
   c.innerHTML=`<div class="loading"><div class="spinner"></div>Carregando CTes...</div>`;
@@ -1153,6 +1199,7 @@ async function pgAuditoria(){
               <option value="divergencia">Divergência</option>
               <option value="contestado">Contestado</option>
               <option value="sem_vinculo">Sem vínculo</option>
+              <option value="divergencia,sem_vinculo">Divergência + Sem vínculo (todos os meses)</option>
             </select>
             <input class="fi" id="ftr" placeholder="Transportadora, dest..." oninput="filtCTE()"/>
           </div>
@@ -1180,6 +1227,13 @@ async function pgAuditoria(){
 
     // estilo th-sort
     document.querySelectorAll('.th-sort').forEach(th=>{th.style.cursor='pointer';th.style.userSelect='none';th.style.whiteSpace='nowrap'});
+
+    // filtro pendente de aplicar (veio do link ?abrir=auditoria no init)
+    if(_auditFiltroInicial){
+      const sel=document.getElementById('fst');
+      if(sel){sel.value=_auditFiltroInicial;filtCTE();}
+      _auditFiltroInicial=null;
+    }
   }catch(e){
     bononiLog('ERRO','ERRO_AUDITORIA',{modulo:'auditoria',erro:e});
     c.innerHTML=`<div class="empty"><i class="ic ic-xl ei" data-ic="circle-x"></i><p>${e.message}</p></div>`;
@@ -1188,10 +1242,13 @@ async function pgAuditoria(){
 }
 
 function filtrarCtesDados(ctes,mes,st,q){
+  // `st` aceita uma lista separada por vírgula (ex.: 'divergencia,sem_vinculo'), usada
+  // pelo link do sino de pendências — o <select> ganhou uma opção combinada para isso.
+  const _stLista=st?st.split(','):null;
   return ctes.filter(r=>{
     const dataCte=r.data_emissao||r.criado_em||'';
     const matchMes=!mes||dataCte.startsWith(mes);
-    const matchSt=!st||r.status_auditoria===st;
+    const matchSt=!_stLista||_stLista.includes(r.status_auditoria);
     const qq=q.toLowerCase();
     const matchQ=!qq||(r.nome_transportadora||'').toLowerCase().includes(qq)||(r.nome_destinatario||'').toLowerCase().includes(qq)||(r.num_cte||'').includes(qq);
     return matchMes&&matchSt&&matchQ;
@@ -1212,7 +1269,9 @@ function filtCTE(){
   const c=document.getElementById('pg'),ctes=c.__ctes||[];
   const st=document.getElementById('fst')?.value||'';
   const q=document.getElementById('ftr')?.value||'';
-  let f=filtrarCtesDados(ctes,mesGlobal,st,q);
+  // "Divergência + sem vínculo" é a FILA do sino (todas, de qualquer mês) — o
+  // mês do topo esconderia CTe antigo que o contador conta.
+  let f=filtrarCtesDados(ctes,st==='divergencia,sem_vinculo'?'':mesGlobal,st,q);
   const{col,dir}=auditSort;
   f=[...f].sort((a,b)=>{
     let va=a[col]??'',vb=b[col]??'';
@@ -1324,6 +1383,7 @@ async function updCTE(id,val,campo){
     bononiLog('ACAO',campo==='status'?'ALTERAR_STATUS':'ALTERAR_OBS',{modulo:'auditoria',entidade:'cte',id_entidade:id,depois:{[campo]:val}});
     toast(campo==='status'?`Status: ${val}`:'Observação salva','success');
     const c=document.getElementById('pg');if(c.__ctes){const x=c.__ctes.find(x=>x.id===id);if(x){if(campo==='status')x.status_auditoria=val;else x.observacao_auditoria=val;}}
+    if(campo==='status')atualizarSeloAuditoria();
   }catch(e){
     bononiLog('ERRO','ERRO_ATUALIZAR_CTE',{modulo:'auditoria',entidade:'cte',id_entidade:id,erro:e,contexto:{campo,val}});
     toast('Erro: '+e.message,'error');
