@@ -633,11 +633,13 @@ function go(p){
   closeSb();
   if(p!=='cotar')document.getElementById('sticky-cotar')?.remove();
   PAGES[p].fn();
+  try{localStorage.setItem('bononi-frete:ultima-tela',p);}catch(e){}
 }
 
 // ── INIT (sem login — acesso direto) ──
 user='Usuário';
-go('cotar');
+let _telaSalva=null;try{_telaSalva=localStorage.getItem('bononi-frete:ultima-tela');}catch(e){}
+go((_telaSalva && PAGES[_telaSalva])?_telaSalva:'cotar');
 bononiLog('INFO','SESSAO_INICIADA',{modulo:'sistema'});
 
 // ────────────────────────────────────────────
@@ -711,6 +713,8 @@ async function pgCotar(){
     <button class="btn btn-primary" onclick="cotar()" style="flex:1;padding:14px"><i class="ic" data-ic="calculator"></i> Cotar Frete</button>`;
   document.body.appendChild(stickyBtn);
   volumes=[];
+  let _volTab=null;try{_volTab=localStorage.getItem('bononi-frete:vol-tab');}catch(e){}
+  if(_volTab==='man')trocarTab('man');
   carregarProdutos().then(prods=>{
     renderProdTable(prods);
     const av=document.getElementById('prod-ocultos');
@@ -732,6 +736,7 @@ function trocarTab(t){
   document.getElementById('tab-man').classList.toggle('active',t==='man');
   document.getElementById('pane-cat').style.display=t==='cat'?'':'none';
   document.getElementById('pane-man').style.display=t==='man'?'':'none';
+  try{localStorage.setItem('bononi-frete:vol-tab',t);}catch(e){}
 }
 
 // Produto só pode ser cotado se tiver peso + as 3 medidas
