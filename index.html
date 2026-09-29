@@ -1013,6 +1013,7 @@ async function cotar(){
   const cep=(document.getElementById('cep')?.value||'').replace(/\D/g,'');
   const cnpj=(document.getElementById('cnpj')?.value||'').replace(/\D/g,'');
   const valor_nf=parseFloat(document.getElementById('vnf')?.value)||0;
+  if(!id_local){toast('Selecione o local de origem','error');return}
   if(!cep||cep.length<8){toast('Informe o CEP destino','error');return}
   // valida tamanho do documento se informado
   if(cnpj&&cnpj.length!==11&&cnpj.length!==14){toast('CPF deve ter 11 dígitos ou CNPJ 14 dígitos','error');return}
@@ -1022,7 +1023,8 @@ async function cotar(){
     altura_cm:v.altura_cm,largura_cm:v.largura_cm,comprimento_cm:v.comprimento_cm
   }));
   if(!pacotes.length){toast('Adicione ao menos um volume','error');return}
-  if(pacotes.some(p=>p.peso_kg<=0)){toast('Há volume sem peso informado','error');return}
+  if(pacotes.some(p=>!(p.peso_kg>0))){toast('Há volume sem peso informado','error');return}
+  if(pacotes.some(p=>!(p.quantidade>0&&p.altura_cm>0&&p.largura_cm>0&&p.comprimento_cm>0))){toast('Há volume sem quantidade ou medidas (A×L×C)','error');return}
   const rd=document.getElementById('result');
   rd.innerHTML=`<div class="loading"><div class="spinner"></div>Consultando transportadoras...</div>`;
   rd.scrollIntoView({behavior:'smooth',block:'nearest'});
@@ -1846,7 +1848,7 @@ function filtHist(){
 // ────────────────────────────────────────────
 // PAGE: DIMENSÕES DE PRODUTOS
 // ────────────────────────────────────────────
-let _editDimId=null;
+var _editDimId=null; // var: a tela pode abrir (F5 na rota) antes desta linha rodar — let dava TDZ
 
 function editDim(id){
   const c=document.getElementById('pg');
