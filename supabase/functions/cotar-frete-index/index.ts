@@ -129,10 +129,7 @@ async function cotarSaoMiguel(input: any, ibgeDestino: number, cidadeDestino: st
     pesoMercadoria: pesoTotal,
     cubagemMercadoria: volumeTotal,
     valorMercadoria: input.valor_nf,
-    // CNPJ com zero à esquerda vai como texto: parseInt apagava o zero e a São Miguel
-    // respondia "Documento inválido: 8827440000106" (20 de 20 com o CNPJ da Truckprest).
-    // O resto continua número, que é o formato com que ela já cota hoje.
-    clienteDestino: (cnpjDest.length === 14 && cnpjDest.startsWith("0")) ? cnpjDest : parseInt(cnpjDest),
+    clienteDestino: parseInt(cnpjDest),
     dataEmbarque: hojeFormatado(),
     tipoPessoaDestino: cnpjDest.length === 11 ? "F" : "J"
   };
