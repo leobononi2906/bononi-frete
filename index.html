@@ -1008,15 +1008,22 @@ function msgErroFrete(raw){
   return R('Não foi possível cotar',txt||'Erro desconhecido.');
 }
 
+// Trava contra clique/toque duplo: duas chamadas juntas pediam o mesmo código
+// de cotação e a segunda caía em duplicate key (frt_cotacoes_codigo_key, 30/09).
+let _cotando=false;
 async function cotar(){
+  if(_cotando)return;
   const id_local=parseInt(document.getElementById('id_local')?.value);
   const cep=(document.getElementById('cep')?.value||'').replace(/\D/g,'');
   const cnpj=(document.getElementById('cnpj')?.value||'').replace(/\D/g,'');
   const valor_nf=parseFloat(document.getElementById('vnf')?.value)||0;
   if(!id_local){toast('Selecione o local de origem','error');return}
   if(!cep||cep.length<8){toast('Informe o CEP destino','error');return}
-  // valida tamanho do documento se informado
-  if(cnpj&&cnpj.length!==11&&cnpj.length!==14){toast('CPF deve ter 11 dígitos ou CNPJ 14 dígitos','error');return}
+  // a Edge Function cotar-frete-index recusa (400 "Campos obrigatorios faltando")
+  // sem documento do destinatário ou com valor da NF zerado
+  if(!(valor_nf>0)){toast('Informe o valor da NF','error');return}
+  if(!cnpj){toast('Informe o CPF/CNPJ do destinatário (ou use PF/PJ padrão)','error');return}
+  if(cnpj.length!==11&&cnpj.length!==14){toast('CPF deve ter 11 dígitos ou CNPJ 14 dígitos','error');return}
   const tipo_dest=cnpj.length===11?'PF':cnpj.length===14?'PJ':null;
   const pacotes=volumes.map(v=>({
     quantidade:v.quantidade,peso_kg:v.peso_kg,
@@ -1028,6 +1035,8 @@ async function cotar(){
   const rd=document.getElementById('result');
   rd.innerHTML=`<div class="loading"><div class="spinner"></div>Consultando transportadoras...</div>`;
   rd.scrollIntoView({behavior:'smooth',block:'nearest'});
+  const btnCotar=document.querySelector('button[onclick="cotar()"]');
+  _cotando=true;if(btnCotar)btnCotar.disabled=true;
   try{
     const r=await fetch(`${EDGE}/cotar-frete-index`,{method:'POST',
       headers:{'Content-Type':'application/json','apikey':KEY,'Authorization':`Bearer ${KEY}`},
@@ -1052,7 +1061,7 @@ async function cotar(){
     // A Edge Function cotar-frete-index já grava a cotação (frt_cotacoes + pacotes + respostas).
     // NÃO gravar de novo aqui — o salvarCotacao antigo criava uma cotação duplicada e vazia.
   }catch(e){
-    bononiLog('ERRO','ERRO_COTACAO',{modulo:'cotacao',erro:e,contexto:{cep}});
+    bononiLog('ERRO','ERRO_COTACAO',{modulo:'cotacao',erro:e,contexto:{cep,id_local,valor_nf,tipo_dest,pacotes}});
     const em=msgErroFrete(e.message);
     rd.innerHTML=`<div class="card err-box">
       <div class="err-ic"><i class="ic ic-lg" data-ic="triangle-alert"></i></div>
@@ -1063,6 +1072,8 @@ async function cotar(){
       </div>
     </div>`;
     toast(em.titulo,'error');
+  }finally{
+    _cotando=false;if(btnCotar)btnCotar.disabled=false;
   }
 }
 async function salvarCotacao({id_local,cep,cnpj,tipo_dest,valor_nf,pacotes,data}){
