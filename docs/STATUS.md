@@ -74,6 +74,7 @@ Subsistema de frete: **cotação** de 4 transportadoras em paralelo + **auditori
 - PDF São Miguel WS JAVA (cotação) está preso no projeto claude.ai "Dash Fretes", fora do alcance da sessão CLI.
 
 ## Dev-log
+- 2026-10-05 (3) — **`cotar-frete-index`: credenciais da AGEX saíram do código.** `cotarAgex` tinha valores reserva fixos (`?? "..."`) para `AGEX_LOGIN`, `AGEX_SENHA`, `AGEX_DOMINIO` e `AGEX_CNPJ_PAGADOR`, commitados em `ded0e40`. Agora lê só os secrets e, se faltar algum, devolve `erro: "Credenciais AGEX nao configuradas"`, igual à São Miguel. Os 4 secrets existem no projeto (conferido pelo nome). **Publicada como v127** (Verify JWT desligado): download da produção idêntico ao repo; POST `{}` responde "Campos obrigatorios faltando". O repo é **público** no GitHub, então a senha antiga continua visível no histórico; decisão dele em 05/10: não trocar a senha nem mudar a visibilidade por ora.
 - 2026-10-05 (2) — **Cotação confere o dígito verificador do CPF/CNPJ; PJ padrão trocado; por que Rodonaves e São Miguel falham.**
   - **Validação:** `docValido()` confere o DV de CPF e CNPJ. O campo mostra o selo vermelho "CPF inválido"/"CNPJ inválido" ao completar os dígitos, e `cotar()` barra antes de chamar a função. Os 12 documentos que a São Miguel recusou como "Documento inválido" desde agosto tinham DV errado (12 de 12).
   - **PJ padrão:** era `08827440000106`, com DV errado (a São Miguel recusou 20 de 20). Agora é `57129987000166`, o CNPJ da Truckprest no cadastro do ERP (`vw_fb_contatos`).

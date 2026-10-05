@@ -170,10 +170,11 @@ async function cotarSaoMiguel(input: any, ibgeDestino: number, cidadeDestino: st
 async function cotarAgex(input: any, idLocal: number, cepDestino: string) {
   try {
     if (!AGEX_LOCAIS[idLocal]) return { transportadora: "AGEX", prazo_dias: null, valor_frete: null, erro: "Sem contrato AGEX para este local" };
-    const dominio = Deno.env.get("AGEX_DOMINIO") ?? "age";
-    const login = Deno.env.get("AGEX_LOGIN") ?? "mlbaces";
-    const senha = Deno.env.get("AGEX_SENHA") ?? "Mlbace77";
-    const cnpjPagador = Deno.env.get("AGEX_CNPJ_PAGADOR") ?? "05864790000177";
+    const dominio = Deno.env.get("AGEX_DOMINIO");
+    const login = Deno.env.get("AGEX_LOGIN");
+    const senha = Deno.env.get("AGEX_SENHA");
+    const cnpjPagador = Deno.env.get("AGEX_CNPJ_PAGADOR");
+    if (!dominio || !login || !senha || !cnpjPagador) return { transportadora: "AGEX", prazo_dias: null, valor_frete: null, erro: "Credenciais AGEX nao configuradas" };
     const cepOrigem = LOCAIS[idLocal].cep;
 
     const pesoReal    = input.pacotes.reduce((s: number, p: any) => s + p.peso_kg * p.quantidade, 0);
