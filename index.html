@@ -921,6 +921,32 @@ async function buscarCidadeCep(cep,lbl){
     lbl.style.color='var(--muted)';lbl.textContent=txt;
   }catch{lbl.textContent=''}
 }
+// Dígito verificador de CPF (11) e CNPJ (14). Documento com dígito errado
+// é recusado pelas transportadoras ("Documento inválido" na São Miguel,
+// 12 de 12 conferidos em 05/10/2026) e gastava uma cotação à toa.
+function docValido(d){
+  d=String(d||'').replace(/\D/g,'');
+  if(d.length===11){
+    if(/^(\d)\1{10}$/.test(d))return false;
+    for(let n=9;n<11;n++){
+      let s=0;for(let i=0;i<n;i++)s+=+d[i]*(n+1-i);
+      if(((s*10)%11)%10!==+d[n])return false;
+    }
+    return true;
+  }
+  if(d.length===14){
+    if(/^(\d)\1{13}$/.test(d))return false;
+    const pesos=[6,5,4,3,2,9,8,7,6,5,4,3,2];
+    for(let n=12;n<14;n++){
+      let s=0;const p=pesos.slice(14-n-1);
+      for(let i=0;i<n;i++)s+=+d[i]*p[i];
+      const r=s%11, dv=r<2?0:11-r;
+      if(dv!==+d[n])return false;
+    }
+    return true;
+  }
+  return false;
+}
 // Máscara unificada CPF (PF) ou CNPJ (PJ) — detecta pelo tamanho
 function mDocDest(el){
   let v=el.value.replace(/\D/g,'').slice(0,14);
@@ -936,7 +962,8 @@ function mDocDest(el){
     else if(v.length>3)  v=v.slice(0,3)+'.'+v.slice(3);
     el.maxLength=14; // 000.000.000-00
     if(badge){
-      if(digits===11) badge.innerHTML='<span class="badge b-purple"><i class="ic ic-sm" data-ic="user"></i> Pessoa Física</span>';
+      if(digits===11&&!docValido(v)) badge.innerHTML='<span class="badge b-red"><i class="ic ic-sm" data-ic="circle-x"></i> CPF inválido</span>';
+      else if(digits===11) badge.innerHTML='<span class="badge b-purple"><i class="ic ic-sm" data-ic="user"></i> Pessoa Física</span>';
       else badge.innerHTML='';
     }
   }else{
@@ -947,7 +974,8 @@ function mDocDest(el){
     else if(v.length>2)  v=v.slice(0,2)+'.'+v.slice(2);
     el.maxLength=18; // 00.000.000/0000-00
     if(badge){
-      if(digits===14) badge.innerHTML='<span class="badge b-blue"><i class="ic ic-sm" data-ic="building-2"></i> Pessoa Jurídica</span>';
+      if(digits===14&&!docValido(v)) badge.innerHTML='<span class="badge b-red"><i class="ic ic-sm" data-ic="circle-x"></i> CNPJ inválido</span>';
+      else if(digits===14) badge.innerHTML='<span class="badge b-blue"><i class="ic ic-sm" data-ic="building-2"></i> Pessoa Jurídica</span>';
       else badge.innerHTML='';
     }
   }
@@ -956,7 +984,7 @@ function mDocDest(el){
 
 // Padrões rápidos PF / PJ
 const DOC_PF_PADRAO  = '05646688930';        // CPF padrão PF
-const DOC_PJ_PADRAO  = '08827440000106';     // CNPJ Truckprest (PJ padrão)
+const DOC_PJ_PADRAO  = '57129987000166';     // CNPJ Truckprest (PJ padrão), como no cadastro do ERP. O anterior, 08827440000106, tinha dígito verificador errado (05/10/2026)
 
 function setPF(){
   const el=document.getElementById('cnpj');
@@ -1024,6 +1052,7 @@ async function cotar(){
   if(!(valor_nf>0)){toast('Informe o valor da NF','error');return}
   if(!cnpj){toast('Informe o CPF/CNPJ do destinatário (ou use PF/PJ padrão)','error');return}
   if(cnpj.length!==11&&cnpj.length!==14){toast('CPF deve ter 11 dígitos ou CNPJ 14 dígitos','error');return}
+  if(!docValido(cnpj)){toast(`${cnpj.length===11?'CPF':'CNPJ'} inválido: confira os dígitos do documento do destinatário`,'error');return}
   const tipo_dest=cnpj.length===11?'PF':cnpj.length===14?'PJ':null;
   const pacotes=volumes.map(v=>({
     quantidade:v.quantidade,peso_kg:v.peso_kg,
