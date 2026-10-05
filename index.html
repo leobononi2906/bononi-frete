@@ -2009,23 +2009,43 @@ async function salvarDim(){
   const com=parseFloat(document.getElementById('nc')?.value)||null;
   if(!desc){toast('Informe a descrição do produto','error');return}
   if(!peso){toast('Informe o peso','error');return}
-  const editando=_editDimId!=null;
+  // id_produto (NOT NULL, único) é o código do produto no SGA = a referência sem
+  // zeros à esquerda ("011488" → 11488), como nas 8 linhas carregadas. Sem ele o
+  // POST caía em 23502 e criar dimensão nunca funcionou (3 tentativas em 11/09).
+  const idProduto=/^\d+$/.test(ref)?parseInt(ref,10):null;
+  let editando=_editDimId!=null;
+  if(!editando&&!idProduto){toast('Informe a referência do produto (só números, código do SGA)','error');return}
   const corpo={descricao:desc,referencia:ref||null,peso_kg:peso,altura_cm:alt,largura_cm:lar,comprimento_cm:com,ativo:true,atualizado_em:new Date().toISOString()};
+  if(idProduto)corpo.id_produto=idProduto;
+  let idAlvo=_editDimId;
   try{
-    const url=editando?`${SB}/rest/v1/frt_produtos_dimensoes?id=eq.${_editDimId}`:`${SB}/rest/v1/frt_produtos_dimensoes`;
+    if(!editando){
+      // excluir é só ativo=false: o produto pode já ter linha, ativa ou não
+      const rx=await fetch(`${SB}/rest/v1/frt_produtos_dimensoes?id_produto=eq.${idProduto}&select=id,ativo`,{headers:hdrs()});
+      const exist=rx.ok?await rx.json():[];
+      if(exist.length&&exist[0].ativo!==false){toast('Esse produto já tem dimensão cadastrada — edite a existente na lista','error');return}
+      if(exist.length){editando=true;idAlvo=exist[0].id;}   // reativa a excluída
+    }
+    const url=editando?`${SB}/rest/v1/frt_produtos_dimensoes?id=eq.${idAlvo}`:`${SB}/rest/v1/frt_produtos_dimensoes`;
     const r=await fetch(url,{
       method:editando?'PATCH':'POST',
       headers:{...hdrs(),'Prefer':'return=representation'},
       body:JSON.stringify(corpo)
     });
-    if(!r.ok)throw new Error(`HTTP ${r.status}: ${(await r.text()).slice(0,200)}`);
-    bononiLog('ACAO',editando?'EDITAR_DIMENSAO':'CRIAR_DIMENSAO',{modulo:'dimensoes',entidade:'dimensao',id_entidade:_editDimId||null,nome_entidade:desc});
+    if(!r.ok){
+      const txt=await r.text();
+      if(r.status===409||/23505/.test(txt)){toast('Já existe dimensão para essa referência — edite a existente na lista','error');return}
+      throw new Error(`HTTP ${r.status}: ${txt.slice(0,200)}`);
+    }
+    const gravou=await r.json().catch(()=>null);
+    if(Array.isArray(gravou)&&!gravou.length)throw new Error('Nenhuma linha gravada (permissão do banco)');
+    bononiLog('ACAO',editando?'EDITAR_DIMENSAO':'CRIAR_DIMENSAO',{modulo:'dimensoes',entidade:'dimensao',id_entidade:idAlvo||null,nome_entidade:desc});
     toast(editando?'Produto atualizado!':'Dimensão salva com sucesso!','success');
     _prodCache=null; // força recarregar o catálogo da cotação
     cancelarEditDim();
     pgDimensoes();
   }catch(e){
-    bononiLog('ERRO',editando?'ERRO_EDITAR_DIMENSAO':'ERRO_CRIAR_DIMENSAO',{modulo:'dimensoes',entidade:'dimensao',nome_entidade:desc,erro:e});
+    bononiLog('ERRO',editando?'ERRO_EDITAR_DIMENSAO':'ERRO_CRIAR_DIMENSAO',{modulo:'dimensoes',entidade:'dimensao',nome_entidade:desc,contexto:{referencia:ref,id_produto:idProduto},erro:e});
     const em=msgErroFrete(e.message);
     toast(em.titulo+' — '+em.detalhe,'error');
   }
