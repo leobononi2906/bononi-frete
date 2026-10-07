@@ -208,6 +208,11 @@ async function cotarAgex(input: any, idLocal: number, cepDestino: string) {
     const erro = gt("erro"), mensagem = gt("mensagem");
     if (erro === "-2") return { transportadora: "AGEX", prazo_dias: null, valor_frete: null, erro: `Login invalido: ${mensagem}` };
     if (erro === "-1") return { transportadora: "AGEX", prazo_dias: null, valor_frete: null, erro: mensagem || "CEP invalido" };
+    // Rota fora da cobertura: o SSW nao da erro, devolve preco pela tabela "Generica" com o
+    // aviso so na mensagem (HTML com entidades). 07/10/2026: 65 cotacoes sairam assim com preco.
+    const msgTexto = mensagem.replace(/&amp;/g, "&").replace(/&lt;br&gt;|<br>/gi, " ").replace(/&nbsp;/g, " ")
+      .replace(/&([A-Za-z])(acute|tilde|cedil|circ|grave);/g, "$1").toUpperCase();
+    if (/NAO (E )?ATENDID|NAO ATENDE/.test(msgTexto)) return { transportadora: "AGEX", prazo_dias: null, valor_frete: null, erro: "Rota nao atendida pela AGEX" };
     const totalFrete = parseFloat(gt("totalFrete")), prazo = parseInt(gt("prazo")) || 5, pesoCalculo = parseFloat(gt("pesoCalculo"));
     if (totalFrete <= 0) return { transportadora: "AGEX", prazo_dias: null, valor_frete: null, erro: "Frete zerado" };
     return { transportadora: "AGEX", prazo_dias: prazo, valor_frete: totalFrete, id_cotacao: gt("nroCotacao") !== "0" ? gt("nroCotacao") : null, detalhes: { peso_calculo: pesoCalculo, peso_real: pesoReal, volume_m3: volumeTotal, frete_peso: parseFloat(gt("fretePeso")), frete_valor: parseFloat(gt("freteValor")), gris: parseFloat(gt("gris")), pedagio: parseFloat(gt("pedagio")), pos: parseFloat(gt("pos")), adic_frete: parseFloat(gt("adicFrete")), impostos: parseFloat(gt("impostos")), tab_calculo: gt("tabCalculo"), alerta: mensagem || null } };
