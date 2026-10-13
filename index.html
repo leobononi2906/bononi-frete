@@ -1090,8 +1090,11 @@ async function cotar(){
     // A Edge Function cotar-frete-index já grava a cotação (frt_cotacoes + pacotes + respostas).
     // NÃO gravar de novo aqui — o salvarCotacao antigo criava uma cotação duplicada e vazia.
   }catch(e){
-    bononiLog('ERRO','ERRO_COTACAO',{modulo:'cotacao',erro:e,contexto:{cep,id_local,valor_nf,tipo_dest,pacotes}});
     const em=msgErroFrete(e.message);
+    // CEP que não existe é digitação de quem cota (a tela já avisa): grava como WARN, que o Saúde
+    // e o sino não contam (filtram nivel ilike 'err%'). `tipo` fica ERRO — o CHECK só aceita ERRO/ACAO/INFO.
+    const cepInexistente=em.titulo==='CEP não encontrado';
+    bononiLog('ERRO','ERRO_COTACAO',{modulo:'cotacao',erro:e,nivel:cepInexistente?'WARN':undefined,contexto:{cep,id_local,valor_nf,tipo_dest,pacotes}});
     rd.innerHTML=`<div class="card err-box">
       <div class="err-ic"><i class="ic ic-lg" data-ic="triangle-alert"></i></div>
       <div style="flex:1">
