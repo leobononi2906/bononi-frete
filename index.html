@@ -364,6 +364,7 @@ td select{padding:5px 8px;font-size:var(--fs-16);border-radius:var(--radius-md)}
       <button type="button" class="nav-item" id="nav-auditoria" onclick="go('auditoria')"><span class="nav-icon" aria-hidden="true"><i class="ic" data-ic="receipt-text"></i></span>Auditoria CTe<span class="badge b-red nav-selo hidden" id="selo-auditoria"></span></button>
       <button type="button" class="nav-item" id="nav-conferencia" onclick="go('conferencia')"><span class="nav-icon" aria-hidden="true"><i class="ic" data-ic="wallet"></i></span>Conferência</button>
       <button type="button" class="nav-item" id="nav-historico" onclick="go('historico')"><span class="nav-icon" aria-hidden="true"><i class="ic" data-ic="clipboard-list"></i></span>Histórico</button>
+      <button type="button" class="nav-item" id="nav-rastreio" onclick="go('rastreio')"><span class="nav-icon" aria-hidden="true"><i class="ic" data-ic="map-pin"></i></span>Rastrear Correios</button>
       <button type="button" class="nav-item" id="nav-dimensoes" onclick="go('dimensoes')"><span class="nav-icon" aria-hidden="true"><i class="ic" data-ic="package"></i></span>Dimensões</button>
       <button type="button" class="nav-item" id="nav-logs" onclick="go('logs')"><span class="nav-icon" aria-hidden="true"><i class="ic" data-ic="scroll-text"></i></span>Logs</button>
     </nav>
@@ -612,6 +613,7 @@ const PAGES={
   auditoria:{t:'Auditoria CTe',s:'Conferência de conhecimentos de transporte',fn:pgAuditoria},
   conferencia:{t:'Conferência de Frete',s:'CTes para lançar no contas a pagar (por transportadora)',fn:pgConferencia},
   historico:{t:'Histórico',s:'Cotações realizadas',fn:pgHistorico},
+  rastreio:{t:'Rastrear Correios',s:'Acompanhar objeto postado pelo contrato',fn:pgRastreio},
   dimensoes:{t:'Dimensões de Produtos',s:'Cadastro e consulta de medidas',fn:pgDimensoes},
   logs:{t:'Logs do Sistema',s:'Ações e erros em tempo real',fn:pgLogs},
 };
@@ -1062,14 +1064,14 @@ async function cotar(){
   if(pacotes.some(p=>!(p.peso_kg>0))){toast('Há volume sem peso informado','error');return}
   if(pacotes.some(p=>!(p.quantidade>0&&p.altura_cm>0&&p.largura_cm>0&&p.comprimento_cm>0))){toast('Há volume sem quantidade ou medidas (A×L×C)','error');return}
   const rd=document.getElementById('result');
-  rd.innerHTML=`<div class="loading"><div class="spinner"></div>Consultando transportadoras...</div>`;
+  rd.innerHTML=`<div class="loading"><div class="spinner"></div>Consultando transportadoras e Correios...</div>`;
   rd.scrollIntoView({behavior:'smooth',block:'nearest'});
   const btnCotar=document.querySelector('button[onclick="cotar()"]');
   _cotando=true;if(btnCotar)btnCotar.disabled=true;
   try{
     const r=await fetch(`${EDGE}/cotar-frete-index`,{method:'POST',
       headers:{'Content-Type':'application/json','apikey':KEY,'Authorization':`Bearer ${KEY}`},
-      body:JSON.stringify({id_local,cep_destino:cep,cnpj_destinatario:cnpj||undefined,tipo_destinatario:tipo_dest,valor_nf,pacotes})});
+      body:JSON.stringify({id_local,cep_destino:cep,cnpj_destinatario:cnpj||undefined,tipo_destinatario:tipo_dest,valor_nf,pacotes,incluir_correios:true})});
     if(!r.ok)throw new Error(`HTTP ${r.status}: ${(await r.text()).slice(0,300)}`);
     // Trata resposta NDJSON (streaming) ou JSON normal
     const txt=await r.text();
@@ -1500,7 +1502,7 @@ function vencCls(iso){
   if(dias<=5)return 'b-warn';      // vence já
   return 'b-ok';
 }
-function transpCurto(n){n=(n||'').toUpperCase();if(n.includes('MIGUEL'))return 'São Miguel';if(n.includes('RODONAVES')||n.includes('RTE'))return 'Rodonaves';if(n.includes('BRASPRESS'))return 'Braspress';return (n.split(' ')[0]||'—');}
+function transpCurto(n){n=(n||'').toUpperCase();if(n.includes('MIGUEL'))return 'São Miguel';if(n.includes('RODONAVES')||n.includes('RTE'))return 'Rodonaves';if(n.includes('BRASPRESS'))return 'Braspress';if(n.includes('CORREIOS'))return 'Correios';return (n.split(' ')[0]||'—');}
 const EMP_CNPJ={"57129987000166":1,"05864790000177":2,"05864790000258":3,"05864790000339":4,"73403826000175":5,"51054503000180":6,"15090647000200":8,"15090647000119":7,"15090647000129":7};
 function saoMiguel(r){return (r.nome_transportadora||'').toUpperCase().includes('MIGUEL');}
 function empresaCte(r){
@@ -1785,6 +1787,52 @@ async function confMarcarGrupo(transp){
 // ────────────────────────────────────────────
 // PAGE: HISTÓRICO com resultados por transportadora
 // ────────────────────────────────────────────
+// ────────────────────────────────────────────
+// PAGE: RASTREAR CORREIOS — consulta o rastro do objeto (Edge Function rastrear-correios, só leitura)
+// ────────────────────────────────────────────
+function pgRastreio(){
+  const c=document.getElementById('pg');
+  c.innerHTML=`<div class="card">
+    <div class="card-title"><i class="ic" data-ic="map-pin"></i> Rastrear objeto</div>
+    <div class="flex ac" style="flex-wrap:wrap;gap:8px">
+      <input class="fi" id="rast-cod" placeholder="Código de rastreio (ex.: AB123456789BR)" maxlength="13" style="max-width:320px;text-transform:uppercase" onkeydown="if(event.key==='Enter')rastrearObjeto()"/>
+      <button type="button" class="btn btn-primary" id="rast-btn" onclick="rastrearObjeto()">Rastrear</button>
+    </div>
+    <div id="rast-res" class="mt-3"></div>
+  </div>`;
+}
+async function rastrearObjeto(){
+  const codigo=(document.getElementById('rast-cod')?.value||'').trim().toUpperCase();
+  const out=document.getElementById('rast-res'),btn=document.getElementById('rast-btn');
+  if(!out)return;
+  if(!/^[A-Z]{2}\d{9}[A-Z]{2}$/.test(codigo)){toast('Código inválido — use o formato AB123456789BR','error');return}
+  out.innerHTML=`<div class="loading"><div class="spinner"></div>Consultando Correios...</div>`;
+  if(btn)btn.disabled=true;
+  try{
+    const r=await fetch(`${EDGE}/rastrear-correios`,{method:'POST',
+      headers:{'Content-Type':'application/json','apikey':KEY,'Authorization':`Bearer ${KEY}`},
+      body:JSON.stringify({codigo})});
+    const d=await r.json().catch(()=>({}));
+    if(!r.ok||d.erro)throw new Error(d.erro||`HTTP ${r.status}`);
+    bononiLog('ACAO','RASTREIO_CORREIOS',{modulo:'rastreio',contexto:{codigo,eventos:d.eventos?.length}});
+    if(!d.eventos?.length){out.innerHTML=`<div class="empty"><p>Sem eventos para ${escHtml(codigo)} ainda.</p></div>`;return}
+    out.innerHTML=`<div class="mb-2"><span class="tag"><i class="ic ic-sm" data-ic="bookmark"></i> ${escHtml(d.codigo)}</span></div>`+
+      d.eventos.map((e,i)=>{
+        const dt=e.data_hora?new Date(e.data_hora).toLocaleString('pt-BR'):'';
+        return `<div class="r-card${i===0?' winner':''}" style="margin-bottom:8px">
+          <div class="r-transp">${escHtml(e.descricao)}</div>
+          <div class="r-detail">${escHtml(dt)}${e.local?' · '+escHtml(e.local):''}</div>
+          ${e.destino?`<div class="r-detail">Destino: ${escHtml(e.destino)}</div>`:''}
+        </div>`;
+      }).join('');
+  }catch(e){
+    bononiLog('ERRO','ERRO_RASTREIO_CORREIOS',{modulo:'rastreio',erro:e,nivel:'WARN',contexto:{codigo}});
+    out.innerHTML=`<div class="card err-box"><div class="err-ic"><i class="ic ic-lg" data-ic="triangle-alert"></i></div><div style="flex:1"><div class="err-tit">Não foi possível rastrear</div><div class="err-det">${escHtml(e.message)}</div></div></div>`;
+  }finally{
+    if(btn)btn.disabled=false;
+  }
+}
+
 async function pgHistorico(){
   const c=document.getElementById('pg');
   c.innerHTML=`<div class="loading"><div class="spinner"></div>Carregando...</div>`;

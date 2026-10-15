@@ -6,7 +6,9 @@
 
 ## O que é
 
-Subsistema de frete: **cotação** de 4 transportadoras em paralelo, **auditoria de CTe** (casar o
+Subsistema de frete: **cotação** de 4 transportadoras em paralelo (+ Correios SEDEX/PAC, só quando o corpo traz
+`incluir_correios: true` — Vitrine e Stonni usam a mesma função e não mandam a flag),
+**auditoria de CTe** (casar o
 conhecimento de transporte com a NF e o vendedor) e rastreio.
 
 ## Onde está
