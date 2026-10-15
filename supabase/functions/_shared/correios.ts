@@ -30,7 +30,8 @@ async function tokenCorreios(): Promise<string> {
 }
 
 async function getJson(url: string, token: string): Promise<{ ok: boolean; status: number; data: any }> {
-  const r = await fetch(url, { headers: { Authorization: `Bearer ${token}`, Accept: "application/json" } });
+  // O rastro (SRO) valida o idioma: sem Accept-Language explícito recusou com SRO-018.
+  const r = await fetch(url, { headers: { Authorization: `Bearer ${token}`, Accept: "application/json", "Accept-Language": "pt-BR" } });
   let data: any = null;
   try { data = await r.json(); } catch { /* corpo vazio */ }
   return { ok: r.ok, status: r.status, data };
