@@ -22,6 +22,16 @@ const RTE = {
   urlDne:        "https://dne-api.rte.com.br",
 };
 
+// Acréscimo sobre o frete de TODAS as transportadoras (decisão de 15/10/2026: +5%, em todos os apps
+// que usam esta função — Frete, Vitrine e Comercial Stonni — e gravado em frt_cotacoes_respostas).
+// Para mudar o percentual, é só este número. Quem não cotou (valor_frete null) fica como está.
+const ACRESCIMO_FRETE = 0.05;
+
+function comAcrescimo(r: any) {
+  if (r.valor_frete === null || r.valor_frete === undefined) return r;
+  return { ...r, valor_frete: Math.round(r.valor_frete * (1 + ACRESCIMO_FRETE) * 100) / 100 };
+}
+
 function semAcento(str: string) {
   return str.normalize("NFD").replace(/[̀-ͯ]/g, "").toUpperCase().trim();
 }
@@ -332,7 +342,7 @@ serve(async (req) => {
     if (input.pacotes?.length) await supabase.from("frt_cotacoes_pacotes").insert(input.pacotes.map((p: any) => ({ id_cotacao: idCot, id_produto: p.id_produto ?? null, descricao: p.descricao ?? null, quantidade: p.quantidade, peso_kg: p.peso_kg, altura_cm: p.altura_cm, largura_cm: p.largura_cm, comprimento_cm: p.comprimento_cm })));
     // Correios só entram quando o app do Frete pede (incluir_correios); Vitrine e Stonni não mandam a flag.
     const [rBP, rSM, rAG, rRD, rCR] = await Promise.all([cotarBraspress(input, cepDest, local.cep), cotarSaoMiguel(input, ibge, cidadeDest, ufDest), cotarAgex(input, idLocal, cepDest), cotarRodonaves(supabase, input, cepDest, local.cep, local.cidade, local.uf, dadosCep, local.cnpj), input.incluir_correios === true ? cotarCorreios(input, local.cep, cepDest) : Promise.resolve([])]);
-    const resultados = [rBP, rSM, rAG, rRD, ...rCR].sort((a, b) => { if (a.valor_frete === null) return 1; if (b.valor_frete === null) return -1; return a.valor_frete - b.valor_frete; });
+    const resultados = [rBP, rSM, rAG, rRD, ...rCR].map(comAcrescimo).sort((a, b) => { if (a.valor_frete === null) return 1; if (b.valor_frete === null) return -1; return a.valor_frete - b.valor_frete; });
     await supabase.from("frt_cotacoes_respostas").insert(resultados.map((r: any) => ({ id_cotacao: idCot, transportadora: r.transportadora, valor_frete: r.valor_frete ?? null, prazo_dias: r.prazo_dias ?? null, id_cotacao_ext: r.id_cotacao ?? null, detalhes: r.detalhes ?? null, erro: r.erro ?? null })));
     const melhor = resultados.find((r: any) => r.valor_frete !== null);
     return new Response(JSON.stringify({ codigo, id_cotacao: idCot, cep_destino: cepDest, cidade: dadosCep.cidade, uf: ufDest, local, peso_taxado: pesoTaxado, mais_barata: melhor?.transportadora ?? null, resultados }), { status: 200, headers: { ...CORS, "Content-Type": "application/json" } });
