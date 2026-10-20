@@ -8,69 +8,62 @@
    ========================================================================= */
 :root{ --text-action:var(--bnn-ink-900); --border-crit:var(--bnn-red-100); }
 
-:root[data-theme="dark"]{
-  color-scheme:dark;
-
-  --text-strong:#f2f4f7;
-  --text-body:#d9dde4;
-  --text-muted:#98a0ae;
-  --text-faint:#7a8291;
-  --text-inverse:#ffffff;
-  --text-accent:#e8565c;
-  --text-link:#e8565c;
-  --text-link-hover:#ff7b80;
-  --text-action:#f2f4f7;
-  --border-crit:#5c2125;
-
-  --surface-page:#0f1115;
-  --surface-card:#181b21;
-  --surface-sunken:#1f232b;
-  --surface-hover:#262b34;
-  --surface-selected:#3a1519;
-  --surface-inverse:#2c313b;
-  --surface-nav:#0b0d10;
-
-  --border-subtle:#2a2f38;
-  --border-default:#3a414d;
-  --border-strong:#98a0ae;
-  --border-accent:#ed1d26;
-  --border-focus:#f2f4f7;
-
-  /* ação primária = grafite elevado (continua aceitando texto branco por cima) */
-  --action-primary:#3a414d;
-  --action-primary-hover:#4a5160;
-  --action-primary-active:#2c313b;
-  --action-accent:#c11f25;
-  --action-accent-hover:#ed1d26;
-  --action-accent-active:#9e171c;
-  --action-danger:#d6343b;
-  --action-disabled-bg:#262b34;
-  --action-disabled-text:#6b7382;
-
-  --status-ok-text:#4cc38a;
-  --status-ok-bg:#12301f;
-  --status-warn-text:#e0a84a;
-  --status-warn-bg:#3a2a0e;
-  --status-info-text:#6ea8e6;
-  --status-info-bg:#14263d;
-  --status-crit-text:#ff6b70;
-  --status-crit-bg:#3a1517;
-
-  --focus-ring:0 0 0 2px #0f1115,0 0 0 4px #f2f4f7;
-
-  --shadow-card:0 1px 2px rgba(0,0,0,.40),0 1px 1px rgba(0,0,0,.30);
-  --shadow-raised:0 2px 6px rgba(0,0,0,.45),0 1px 2px rgba(0,0,0,.35);
-  --shadow-overlay:0 12px 32px rgba(0,0,0,.60),0 2px 6px rgba(0,0,0,.40);
-  --shadow-sticky:0 1px 0 var(--border-subtle),0 4px 10px rgba(0,0,0,.35);
-  --scrim:rgba(0,0,0,.70);
-}
-
-/* Impressão sempre em claro (DANFE, etiquetas, A4) */
-@media print{
+/* Tema escuro só na TELA: no papel (DANFE, etiqueta, A4) tudo volta ao claro, sem lista de reset. */
+@media screen{
   :root[data-theme="dark"]{
-    color-scheme:light;
-    --text-strong:#14161a;--text-body:#1f232b;--text-muted:#6b7382;--text-faint:#98a0ae;
-    --surface-page:#fff;--surface-card:#fff;--surface-sunken:#eef1f5;--surface-hover:#eef1f5;
-    --border-subtle:#e0e4ea;--border-default:#c6ccd6;
+    color-scheme:dark;
+
+    --text-strong:#f2f4f7;
+    --text-body:#d9dde4;
+    --text-muted:#98a0ae;
+    --text-faint:#7a8291;
+    --text-inverse:#ffffff;
+    --text-accent:#e8565c;
+    --text-link:#e8565c;
+    --text-link-hover:#ff7b80;
+    --text-action:#f2f4f7;
+    --border-crit:#5c2125;
+
+    --surface-page:#0f1115;
+    --surface-card:#181b21;
+    --surface-sunken:#1f232b;
+    --surface-hover:#262b34;
+    --surface-selected:#3a1519;
+    --surface-inverse:#2c313b;
+    --surface-nav:#0b0d10;
+
+    --border-subtle:#2a2f38;
+    --border-default:#3a414d;
+    --border-strong:#98a0ae;
+    --border-accent:#ed1d26;
+    --border-focus:#f2f4f7;
+
+    /* ação primária = grafite elevado (continua aceitando texto branco por cima) */
+    --action-primary:#3a414d;
+    --action-primary-hover:#4a5160;
+    --action-primary-active:#2c313b;
+    --action-accent:#c11f25;
+    --action-accent-hover:#ed1d26;
+    --action-accent-active:#9e171c;
+    --action-danger:#d6343b;
+    --action-disabled-bg:#262b34;
+    --action-disabled-text:#6b7382;
+
+    --status-ok-text:#4cc38a;
+    --status-ok-bg:#12301f;
+    --status-warn-text:#e0a84a;
+    --status-warn-bg:#3a2a0e;
+    --status-info-text:#6ea8e6;
+    --status-info-bg:#14263d;
+    --status-crit-text:#ff6b70;
+    --status-crit-bg:#3a1517;
+
+    --focus-ring:0 0 0 2px #0f1115,0 0 0 4px #f2f4f7;
+
+    --shadow-card:0 1px 2px rgba(0,0,0,.40),0 1px 1px rgba(0,0,0,.30);
+    --shadow-raised:0 2px 6px rgba(0,0,0,.45),0 1px 2px rgba(0,0,0,.35);
+    --shadow-overlay:0 12px 32px rgba(0,0,0,.60),0 2px 6px rgba(0,0,0,.40);
+    --shadow-sticky:0 1px 0 var(--border-subtle),0 4px 10px rgba(0,0,0,.35);
+    --scrim:rgba(0,0,0,.70);
   }
 }
