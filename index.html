@@ -152,7 +152,7 @@ textarea{resize:vertical;min-height:72px}
 .stat{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:14px;box-shadow:var(--shadow-card)}
 .stat-lbl{font:var(--type-overline);letter-spacing:var(--ls-caps);color:var(--muted);text-transform:uppercase;margin-bottom:5px}
 .stat-val{font:var(--fw-bold) var(--fs-24)/var(--lh-tight) var(--font-mono);font-variant-numeric:tabular-nums}
-.c-green .stat-val{color:var(--green)}.c-warn .stat-val{color:var(--warn)}.c-red .stat-val{color:var(--danger)}.c-blue .stat-val{color:var(--blue)}
+.c-green .stat-val{color:var(--green)}.c-warn .stat-val{color:var(--warn)}.c-red .stat-val{color:var(--danger)}.c-blue .stat-val{color: var(--text-action)}
 
 /* FORM */
 .grid{display:grid;gap:12px;margin-bottom:14px}
@@ -209,7 +209,7 @@ textarea{resize:vertical;min-height:72px}
 .result-grid{display:grid;gap:12px}
 .r-card{background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:16px;position:relative}
 .r-card.winner{border-color:var(--green);background:var(--success-bg)}
-.r-winner-badge{position:absolute;top:-9px;right:12px;background:var(--green);color:var(--text-inverse);font:var(--type-overline);padding:2px 9px;border-radius:var(--radius-pill)}
+.r-winner-badge{position:absolute;top:-9px;right:12px;background:var(--bnn-green-500);color:var(--text-inverse);font:var(--type-overline);padding:2px 9px;border-radius:var(--radius-pill)}
 .r-transp{font:var(--type-h3);margin-bottom:3px}
 .r-prazo{font:var(--type-label);font-weight:var(--fw-regular);color:var(--muted);margin-bottom:10px}
 .r-preco{font:var(--fw-black) var(--fs-24)/var(--lh-tight) var(--font-mono);font-variant-numeric:tabular-nums}
@@ -270,7 +270,7 @@ td select{padding:5px 8px;font-size:var(--fs-16);border-radius:var(--radius-md)}
 .log-icon{flex-shrink:0;margin-top:1px}
 .log-item.log-ERRO .log-icon{color:var(--danger)}
 .log-item.log-ACAO .log-icon{color:var(--green)}
-.log-item.log-INFO .log-icon{color:var(--blue)}
+.log-item.log-INFO .log-icon{color: var(--text-action)}
 .log-body{flex:1;min-width:0}
 .log-desc{font:var(--type-small);margin-bottom:4px;word-break:break-word}
 .log-meta{font:var(--type-label);font-weight:var(--fw-regular);color:var(--muted);display:flex;gap:10px;flex-wrap:wrap;align-items:center}
@@ -305,7 +305,7 @@ td select{padding:5px 8px;font-size:var(--fs-16);border-radius:var(--radius-md)}
 #toasts{position:fixed;bottom:76px;right:12px;display:flex;flex-direction:column;gap:8px;z-index:200;max-width:calc(100vw - 24px)}
 .toast{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:11px 16px;font-size:var(--fs-13);display:flex;align-items:center;gap:9px;box-shadow:var(--shadow-overlay);animation:si var(--dur-base) var(--ease-standard)}
 .toast-ic{display:inline-flex;flex-shrink:0}
-.toast.success .toast-ic{color:var(--green)}.toast.error .toast-ic{color:var(--danger)}.toast.info .toast-ic{color:var(--blue)}
+.toast.success .toast-ic{color:var(--green)}.toast.error .toast-ic{color:var(--danger)}.toast.info .toast-ic{color: var(--text-action)}
 .toast.success{border-left:3px solid var(--green)}.toast.error{border-left:3px solid var(--danger)}.toast.info{border-left:3px solid var(--blue)}
 @keyframes si{from{opacity:0;transform:translateX(20px)}to{opacity:1;transform:translateX(0)}}
 /* o DS zera toda duração em prefers-reduced-motion; as animações próprias também */
@@ -816,7 +816,7 @@ function renderProdTable(lista){
       return`<tr onclick="addVolCatalogo(${idx})" style="cursor:pointer">
         <td><div style="font-weight:600;font-size:var(--fs-12);line-height:1.3">${p.nome||'—'}</div>${p.referencia?`<div style="font-size:var(--fs-11);color:var(--muted)">Ref: ${p.referencia}</div>`:''}</td>
         <td style="white-space:nowrap;font-size:var(--fs-12)">${p.peso_kg?Number(p.peso_kg)+'kg':'—'}</td>
-        <td style="white-space:nowrap;color:var(--blue);font-size:var(--fs-11)">${dims}</td>
+        <td style="white-space:nowrap;color: var(--text-action);font-size:var(--fs-11)">${dims}</td>
       </tr>`}).join('')}
     </tbody>
   </table>`;
@@ -886,7 +886,7 @@ function renderVolumes(){
       <td><input type="number" value="${v.quantidade}" min="1" onchange="setQtdVol(${i},this.value)" style="width:68px;padding:6px;text-align:center;font-size:var(--fs-16)" inputmode="numeric"/></td>
       <td style="white-space:nowrap">${N(v.peso_kg)}</td>
       <td style="white-space:nowrap;font-weight:600">${N(pt)}</td>
-      <td style="white-space:nowrap;color:var(--blue);font-size:var(--fs-11)">${v.altura_cm}×${v.largura_cm}×${v.comprimento_cm}</td>
+      <td style="white-space:nowrap;color: var(--text-action);font-size:var(--fs-11)">${v.altura_cm}×${v.largura_cm}×${v.comprimento_cm}</td>
       <td style="white-space:nowrap;font-family:var(--font-mono);font-size:var(--fs-12)">${m3.toFixed(4)}</td>
       <td><button class="btn btn-danger btn-sm" onclick="removerVolume(${i})" aria-label="Remover volume" title="Remover volume" style="padding:5px 9px"><i class="ic ic-sm" data-ic="trash-2"></i></button></td>
     </tr>`;
