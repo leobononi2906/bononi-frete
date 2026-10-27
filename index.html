@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
   <!-- Portão do Hub: quem digita o endereço sem sessão vai pro Hub. Tem que ser o 1º script. -->
-  <script src="ds/geral-portao.js?v=1"></script>
+  <script src="ds/geral-portao.js?v=1" data-sessao="frete_session"></script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="mobile-web-app-capable" content="yes">
@@ -311,6 +311,21 @@ td select{padding:5px 8px;font-size:var(--fs-16);border-radius:var(--radius-md)}
 /* o DS zera toda duração em prefers-reduced-motion; as animações próprias também */
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
 .hidden{display:none!important}
+/* LOGIN — mesma conta do Hub. Fundo na cor da sidebar; cartão na superfície do app. */
+#loginView{position:fixed;inset:0;z-index:300;overflow-y:auto;display:flex;flex-direction:column;justify-content:center;align-items:center;padding:24px;background:var(--surface-nav)}
+.login-card{width:100%;max-width:380px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:28px 24px;box-shadow:var(--shadow-overlay)}
+.login-logo{text-align:center;margin-bottom:22px}
+.login-logo img{height:34px;width:auto;display:block;margin:0 auto 6px}
+.login-logo p{font:var(--type-overline);letter-spacing:var(--ls-caps);text-transform:uppercase;color:var(--muted)}
+.login-card .field{margin-bottom:14px}
+.login-card .btn{width:100%;margin-top:6px}
+.login-card .btn:disabled{background:var(--action-disabled-bg);color:var(--action-disabled-text);cursor:not-allowed}
+.login-msg{font:var(--type-small);margin-top:14px;text-align:center;line-height:1.4;color:var(--muted)}
+.login-msg.err{color:var(--danger)}
+.login-msg a,.login-hub a{font-weight:600}
+.login-hub{font:var(--type-small);color:var(--muted);text-align:center;margin-top:14px}
+/* usuário logado + Sair (topo) */
+.topo-user{font:var(--type-label);color:var(--muted);max-width:180px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .flex{display:flex}.gap-2{gap:8px}.ac{align-items:center}.jb{justify-content:space-between}
 .mb-2{margin-bottom:8px}.mb-3{margin-bottom:12px}.mb-4{margin-bottom:16px}
 .empty{text-align:center;padding:40px 16px;color:var(--muted)}
@@ -351,11 +366,21 @@ td select{padding:5px 8px;font-size:var(--fs-16);border-radius:var(--radius-md)}
 </head>
 <body>
 
-<!-- Auth removido — acesso direto -->
+<!-- LOGIN — mesma conta do Hub; só entra quem tem o módulo `frete`. O app (#app) fica oculto até a sessão ser validada. -->
+<div id="loginView" class="hidden">
+  <form class="login-card" id="loginForm" onsubmit="fazerLogin();return false" novalidate>
+    <div class="login-logo"><img src="assets/logo-bononi.png" alt="Bononi Acessórios" width="351" height="119"><p>Frete</p></div>
+    <div class="field"><label for="email">E-mail</label><input id="email" type="email" autocomplete="username" inputmode="email" placeholder="voce@bononiacessorios.com.br"></div>
+    <div class="field"><label for="senha">Senha</label><input id="senha" type="password" autocomplete="current-password" placeholder="••••••••"></div>
+    <button type="submit" class="btn btn-primary" id="btnLogin">Entrar</button>
+    <div class="login-msg" id="loginMsg" role="alert" aria-live="polite"></div>
+    <p class="login-hub">Mesmo login do <a href="https://bononi-hub.vercel.app/" target="_blank" rel="noopener">Hub Bononi</a></p>
+  </form>
+</div>
 
 <div id="overlay" onclick="closeSb()"></div>
 
-<div id="app">
+<div id="app" class="hidden">
   <div id="sidebar">
     <div class="sb-logo">
       <img src="assets/logo-bononi-reverse.png?v=20260915a" alt="Bononi Acessórios">
@@ -370,7 +395,10 @@ td select{padding:5px 8px;font-size:var(--fs-16);border-radius:var(--radius-md)}
       <button type="button" class="nav-item" id="nav-dimensoes" onclick="go('dimensoes')"><span class="nav-icon" aria-hidden="true"><i class="ic" data-ic="package"></i></span>Dimensões</button>
       <button type="button" class="nav-item" id="nav-logs" onclick="go('logs')"><span class="nav-icon" aria-hidden="true"><i class="ic" data-ic="scroll-text"></i></span>Logs</button>
     </nav>
-    <!-- footer removido — sem login -->
+    <div class="sb-footer mobile-only">
+      <div id="sb-user"></div>
+      <button type="button" class="btn-sair" onclick="sair()" style="background:none;border:none;padding:0">Sair</button>
+    </div>
   </div>
 
   <div id="main">
@@ -387,6 +415,8 @@ td select{padding:5px 8px;font-size:var(--fs-16);border-radius:var(--radius-md)}
           style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:6px 10px;font-size:var(--fs-16);color:var(--text);cursor:pointer"
           onchange="aplicarMesGlobal()"/>
       </div>
+      <span class="topo-user desktop-only" id="topo-user" title=""></span>
+      <button type="button" class="btn btn-ghost btn-sm" id="btn-sair" onclick="sair()" title="Sair do Frete"><i class="ic ic-sm" data-ic="log-out"></i> Sair</button>
       <span class="tema-slot" style="display:inline-flex"></span><script>BnnTema.botao(document.currentScript.previousElementSibling)</script>
     </div>
     <div class="page" id="pg"></div>
@@ -423,6 +453,11 @@ hydrateIcons();
 const SB   = 'https://vishxwdxqiygbxmtpfoy.supabase.co';
 const KEY  = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZpc2h4d2R4cWl5Z2J4bXRwZm95Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI0Njg2MjIsImV4cCI6MjA4ODA0NDYyMn0.J647m3ieDHahNQYBWMRESl0aPFXsT_zt_7ZcDvyB-SA';
 const EDGE = SB+'/functions/v1';
+// Login pelo Hub: mesma conta, módulo `frete`. Sessão guardada em localStorage (SESS_KEY),
+// que é também a chave declarada em data-sessao no portão do Hub.
+const HUB_URL  = 'https://bononi-hub.vercel.app/';
+const MODULO   = 'frete';
+const SESS_KEY = 'frete_session';
 let user='', locais=[];
 
 // Mês global — compartilhado entre auditoria, histórico e logs
@@ -448,7 +483,8 @@ function aplicarMesGlobal(){
 const PAGES_COM_MES=['auditoria','conferencia','historico','logs'];
 
 // ── UTILS ──
-function hdrs(){return{'apikey':KEY,'Authorization':'Bearer '+KEY,'Content-Type':'application/json'}}
+// Token do usuário logado; só cai na chave anon sem sessão (o bononiLog de erro antes do login).
+function hdrs(){return{'apikey':KEY,'Authorization':'Bearer '+sessToken(),'Content-Type':'application/json'}}
 // Linhas por requisição. Medido em 16/09/2026 contra os 21.727 leads de 6 meses do
 // e-commerce: 1.000 → 22 req / 14.450 ms · 2.000 → 11 req / 8.966 ms · 5.000 → 5 req /
 // 5.462 ms. Paginar re-executa a consulta inteira a cada página (o PostgREST vira
@@ -461,6 +497,7 @@ const MAX_REQUISICOES_BUSCA=50;
 
 // uma requisição só — é aqui que mora o tratamento de erro/log
 async function _dbReq(path,opts,de,ate){
+  await garantirSessao();
   const cab=hdrs();
   if(de!=null)Object.assign(cab,{'Range-Unit':'items','Range':`${de}-${ate}`});
   let r;
@@ -475,6 +512,9 @@ async function _dbReq(path,opts,de,ate){
   if(!r.ok){
     const body=await r.text();
     const msg=`[${r.status}] ${body.slice(0,300)}`;
+    // 401 com sessão guardada = token vencido que a renovação não salvou (outro aparelho
+    // encerrou a sessão, refresh recusado): volta ao login em vez de deixar a tela só com erro.
+    if(r.status===401&&_lerSess()?.access_token&&/JWT|PGRST30/i.test(body))sair('Sua sessão expirou. Entre de novo.');
     // loga automaticamente todo erro de banco com query e status
     bononiLog('ERRO','ERRO_QUERY',{modulo:'banco',
 
@@ -553,6 +593,7 @@ const _LOG_TABLE = 'frt_logs';
 
 async function bononiLog(tipo, acao, dados = {}) {
   try {
+    await garantirSessao();
     await fetch(`${SB}/rest/v1/${_LOG_TABLE}`, {
       method: 'POST',
       headers: {...hdrs(), 'Prefer': 'return=minimal'},
@@ -590,6 +631,112 @@ window.onunhandledrejection = (e) =>
     erro: e.reason instanceof Error ? e.reason : { message: String(e.reason) }
   });
 // ─────────────────────────────────────────────────────────────────────────
+
+// ── AUTH (login pelo Hub — mesma conta, módulo `frete`) ──────────────────────
+// Sem supabase-js: GoTrue por fetch cru, como no Vendas. A sessão (access + refresh) fica
+// em localStorage[SESS_KEY]; hdrs() manda o access_token em toda chamada.
+function _lerSess(){try{return JSON.parse(localStorage.getItem(SESS_KEY)||'null')||null;}catch(_){return null;}}
+function sessToken(){return _lerSess()?.access_token||KEY;}
+function jwtExp(tok){try{return JSON.parse(atob(tok.split('.')[1].replace(/-/g,'+').replace(/_/g,'/')))?.exp||0;}catch(_){return 0;}}
+// Renova o token se faltar menos de 90 s. Várias chamadas ao mesmo tempo dividem uma renovação
+// só (refresh token é de uso único: duas renovações em paralelo derrubam a segunda).
+let _renovando=null;
+function garantirSessao(){
+  if(!_renovando)_renovando=_renovarSessao().finally(()=>{_renovando=null});
+  return _renovando;
+}
+async function _renovarSessao(){
+  const sess=_lerSess();
+  if(!sess?.access_token)return false;
+  const folga=Math.floor(Date.now()/1000)+90;
+  if(jwtExp(sess.access_token)>folga)return true;
+  if(!sess.refresh_token)return false;
+  try{
+    const r=await fetch(SB+'/auth/v1/token?grant_type=refresh_token',{method:'POST',headers:{'apikey':KEY,'Content-Type':'application/json'},body:JSON.stringify({refresh_token:sess.refresh_token})});
+    const d=await r.json().catch(()=>({}));
+    if(!r.ok||!d.access_token)return false;
+    localStorage.setItem(SESS_KEY,JSON.stringify({access_token:d.access_token,refresh_token:d.refresh_token||sess.refresh_token}));
+    return true;
+  }catch(_){return false;}
+}
+// Acesso ao módulo: a autoridade é app_metadata (só o servidor escreve). user_metadata só vale
+// para conta antiga em que o app_metadata ainda não tem nenhuma das três chaves.
+function temAcesso(u){
+  const app=u?.app_metadata||{},usr=u?.user_metadata||{};
+  const tem=o=>'admin' in o||'admin_modulos' in o||'modulos' in o;
+  const m=tem(app)?app:usr;
+  const lista=v=>Array.isArray(v)?v:[];
+  return m.admin===true||lista(m.admin_modulos).includes(MODULO)||lista(m.modulos).includes(MODULO);
+}
+const MSG_SEM_ACESSO='Seu login não tem acesso ao Frete. Peça a liberação no <a href="'+HUB_URL+'" target="_blank" rel="noopener">Hub → Usuários</a>.';
+function mostrarLogin(msgHtml,erro){
+  document.getElementById('app').classList.add('hidden');
+  document.getElementById('loginView').classList.remove('hidden');
+  const m=document.getElementById('loginMsg');
+  m.className='login-msg'+(erro?' err':'');
+  if(msgHtml)m.innerHTML=msgHtml;else m.textContent='';
+  document.getElementById('email')?.focus();
+}
+async function fazerLogin(){
+  const email=document.getElementById('email').value.trim();
+  const senha=document.getElementById('senha').value;
+  const msg=document.getElementById('loginMsg'),btn=document.getElementById('btnLogin');
+  msg.className='login-msg';msg.textContent='';
+  if(!email||!senha){msg.className='login-msg err';msg.textContent='Preencha e-mail e senha.';return;}
+  btn.disabled=true;btn.textContent='Entrando…';
+  try{
+    const resp=await fetch(SB+'/auth/v1/token?grant_type=password',{method:'POST',headers:{'apikey':KEY,'Content-Type':'application/json'},body:JSON.stringify({email,password:senha})});
+    // Num apagão do banco o Auth respondeu texto puro ("upstream request timeout"): resp.json()
+    // quebrava, e 5xx não é senha errada.
+    const txt=await resp.text();let data={};try{data=JSON.parse(txt);}catch(_){}
+    if(resp.status>=500||(!resp.ok&&!txt.trim().startsWith('{'))){msg.className='login-msg err';msg.textContent='Sistema instável no momento. Tente de novo em alguns minutos.';bononiLog('ERRO','LOGIN_INDISPONIVEL',{modulo:'sistema',erro_msg:'HTTP '+resp.status+': '+txt.slice(0,120)});return;}
+    if(!resp.ok){msg.className='login-msg err';msg.textContent=data.error_description||'E-mail ou senha incorretos.';return;}
+    if(!temAcesso(data.user)){msg.className='login-msg err';msg.innerHTML=MSG_SEM_ACESSO;return;}
+    localStorage.setItem(SESS_KEY,JSON.stringify({access_token:data.access_token,refresh_token:data.refresh_token}));
+    document.getElementById('senha').value='';
+    // Já houve um usuário nesta página (saiu e entrou de novo): recarrega para não herdar a tela
+    // e os caches dele. O boot restaura a sessão que acabou de ser gravada.
+    if(_appIniciado){location.reload();return;}
+    entrar(data.user);
+  }catch(e){msg.className='login-msg err';msg.textContent='Falha de conexão. Tente de novo.';bononiLog('ERRO','LOGIN_FALHA',{modulo:'sistema',erro:e});}
+  finally{btn.disabled=false;btn.textContent='Entrar';}
+}
+let _appIniciado=false,_timerSessao=null;
+function entrar(u){
+  const meta=u?.user_metadata||{};
+  user=meta.nome||u?.email||'Usuário';
+  const nomeEl=document.getElementById('topo-user');if(nomeEl){nomeEl.textContent=user;nomeEl.title=u?.email||user;}
+  const sbEl=document.getElementById('sb-user');if(sbEl)sbEl.textContent=user;
+  document.getElementById('loginView').classList.add('hidden');
+  document.getElementById('app').classList.remove('hidden');
+  if(!_timerSessao)_timerSessao=setInterval(()=>garantirSessao(),60000);
+  _appIniciado=true;
+  iniciarApp();
+}
+function sair(aviso){
+  try{localStorage.removeItem(SESS_KEY);}catch(_){}
+  clearInterval(_timerSessao);_timerSessao=null;
+  user='';
+  closeSb();
+  document.getElementById('sticky-cotar')?.remove();
+  const pg=document.getElementById('pg');if(pg)pg.innerHTML='';
+  document.getElementById('senha').value='';
+  mostrarLogin(typeof aviso==='string'?aviso:'',typeof aviso==='string');
+}
+// Devolve o usuário se a sessão guardada ainda vale (token renovado se preciso, validado no
+// servidor e com o módulo liberado); senão mostra o login e devolve null.
+async function restaurarSessao(){
+  if(!_lerSess()?.access_token)return null;
+  await garantirSessao();
+  try{
+    const r=await fetch(SB+'/auth/v1/user',{headers:{'apikey':KEY,'Authorization':'Bearer '+sessToken()}});
+    if(r.status===401||r.status===403){try{localStorage.removeItem(SESS_KEY);}catch(_){}return null;}
+    if(!r.ok)return null;   // Auth instável: mantém a sessão guardada, cai no login
+    const u=await r.json();
+    if(!temAcesso(u)){try{localStorage.removeItem(SESS_KEY);}catch(_){}mostrarLogin(MSG_SEM_ACESSO,true);return null;}
+    return u;
+  }catch(_){return null;}
+}
 
 // ── CONFIRM MODAL (substitui confirm() nativo — funciona no Safari iOS) ──
 function confirmar(msg){
@@ -650,25 +797,29 @@ function go(p){
 // arquivo estouraria "Cannot access before initialization" (TDZ) nessa atribuição.
 let _auditFiltroInicial=null;
 
-// ── INIT (sem login — acesso direto) ──
-user='Usuário';
-let _telaSalva=null;try{_telaSalva=localStorage.getItem('bononi-frete:ultima-tela');}catch(e){}
+// ── INIT (depois do login) ──
 // Link do sino de pendências do Hub: ?abrir=auditoria abre direto na Auditoria CTe,
-// já filtrada na fila que o sino contou (divergência + sem vínculo).
+// já filtrada na fila que o sino contou (divergência + sem vínculo). Lido já no carregamento,
+// antes do login, para o parâmetro sobreviver à tela de entrada; aplicado em iniciarApp().
 let _abrirParam=null;try{_abrirParam=new URLSearchParams(location.search).get('abrir');}catch(e){}
-if(_abrirParam==='auditoria'){
-  _auditFiltroInicial='divergencia,sem_vinculo';
-  go('auditoria');
-  try{
-    const _u=new URL(location.href);
-    _u.searchParams.delete('abrir');
-    history.replaceState(null,'',_u.pathname+(_u.search||'')+_u.hash);
-  }catch(e){}
-}else{
-  go((_telaSalva && PAGES[_telaSalva])?_telaSalva:'cotar');
+// iniciarApp() só roda pelo boot, no fim do script (depois de todos os `let` do arquivo,
+// que de outro modo estourariam TDZ), e depois de entrar().
+function iniciarApp(){
+  let _telaSalva=null;try{_telaSalva=localStorage.getItem('bononi-frete:ultima-tela');}catch(e){}
+  if(_abrirParam==='auditoria'){
+    _auditFiltroInicial='divergencia,sem_vinculo';
+    go('auditoria');
+    try{
+      const _u=new URL(location.href);
+      _u.searchParams.delete('abrir');
+      history.replaceState(null,'',_u.pathname+(_u.search||'')+_u.hash);
+    }catch(e){}
+  }else{
+    go((_telaSalva && PAGES[_telaSalva])?_telaSalva:'cotar');
+  }
+  bononiLog('INFO','SESSAO_INICIADA',{modulo:'sistema'});
+  atualizarSeloAuditoria();
 }
-bononiLog('INFO','SESSAO_INICIADA',{modulo:'sistema'});
-atualizarSeloAuditoria();
 
 // ────────────────────────────────────────────
 // PAGE: COTAR FRETE
@@ -1072,8 +1223,9 @@ async function cotar(){
   const btnCotar=document.querySelector('button[onclick="cotar()"]');
   _cotando=true;if(btnCotar)btnCotar.disabled=true;
   try{
+    await garantirSessao();
     const r=await fetch(`${EDGE}/cotar-frete-index`,{method:'POST',
-      headers:{'Content-Type':'application/json','apikey':KEY,'Authorization':`Bearer ${KEY}`},
+      headers:{'Content-Type':'application/json','apikey':KEY,'Authorization':'Bearer '+sessToken()},
       body:JSON.stringify({id_local,cep_destino:cep,cnpj_destinatario:cnpj||undefined,tipo_destinatario:tipo_dest,valor_nf,pacotes,incluir_correios:true})});
     if(!r.ok)throw new Error(`HTTP ${r.status}: ${(await r.text()).slice(0,300)}`);
     // Trata resposta NDJSON (streaming) ou JSON normal
@@ -1125,6 +1277,7 @@ async function salvarCotacao({id_local,cep,cnpj,tipo_dest,valor_nf,pacotes,data}
       peso_total_kg:data?.peso_total_kg||null,
       criado_por:user||'Usuário'
     };
+    await garantirSessao();
     const rCot=await fetch(`${SB}/rest/v1/frt_cotacoes`,{
       method:'POST',headers:{...hdrs(),'Prefer':'return=representation'},
       body:JSON.stringify(cotacao)
@@ -1143,6 +1296,7 @@ async function salvarCotacao({id_local,cep,cnpj,tipo_dest,valor_nf,pacotes,data}
       erro:r.erro||null
     }));
     if(respostas.length){
+      await garantirSessao();
       await fetch(`${SB}/rest/v1/frt_cotacoes_respostas`,{
         method:'POST',headers:{...hdrs(),'Prefer':'return=minimal'},
         body:JSON.stringify(respostas)
@@ -1199,6 +1353,7 @@ let auditSort={col:'data_emissao',dir:'desc'};
 // sem baixar linha nenhuma — e silenciosa em erro (selo não some a tela por falha de rede).
 async function contarSeloAuditoria(){
   try{
+    await garantirSessao();
     const r=await fetch(`${SB}/rest/v1/frt_conhecimentos?select=id&status_auditoria=in.(divergencia,sem_vinculo)`,{
       method:'HEAD',
       headers:{...hdrs(),'Prefer':'count=exact','Range-Unit':'items','Range':'0-0'}
@@ -1426,6 +1581,7 @@ function renderCTEdesk(ctes){
 async function updCTE(id,val,campo){
   try{
     const body=campo==='status'?{status_auditoria:val,atualizado_em:new Date().toISOString()}:{observacao_auditoria:val,atualizado_em:new Date().toISOString()};
+    await garantirSessao();
     const r=await fetch(`${SB}/rest/v1/frt_conhecimentos?id=eq.${id}`,{method:'PATCH',headers:{...hdrs(),'Prefer':'return=representation'},body:JSON.stringify(body)});
     if(!r.ok)throw new Error(`[${r.status}] ${(await r.text()).slice(0,200)}`);
     // PATCH que não casa nenhuma linha (RLS, id sumiu) também responde 200 — conferir a linha devolvida
@@ -1630,6 +1786,7 @@ async function vincSalvar(){
   }
   if(!upd.length){toast('Nada mudou','info');fecharModal();return;}
   try{
+    await garantirSessao();
     await Promise.all(upd.map(u=>fetch(`${SB}/rest/v1/frt_conhecimentos?id=eq.${u.r.id}`,{method:'PATCH',headers:{...hdrs(),'Prefer':'return=minimal'},body:JSON.stringify(u.body)})));
     upd.forEach(u=>Object.assign(u.r,u.body));
     if(f.id)await fetch(`${SB}/rest/v1/frt_faturas?id=eq.${f.id}`,{method:'PATCH',headers:{...hdrs(),'Prefer':'return=minimal'},body:JSON.stringify({status:'conferida'})}).catch(()=>{});
@@ -1750,6 +1907,7 @@ async function confToggle(id,checked){
   const c=document.getElementById('pg'),item=(c.__conf||[]).find(x=>x.id==id);
   const body={frete_lancado:checked,frete_lancado_em:checked?new Date().toISOString():null,frete_lancado_por:checked?user:null};
   try{
+    await garantirSessao();
     const r=await fetch(`${SB}/rest/v1/frt_conhecimentos?id=eq.${id}`,{method:'PATCH',headers:{...hdrs(),'Prefer':'return=representation'},body:JSON.stringify(body)});
     if(!r.ok)throw new Error('HTTP '+r.status);
     if(!(await r.json()).length)throw new Error('nenhum CTe foi alterado no banco');
@@ -1771,6 +1929,7 @@ async function confMarcarGrupo(transp){
   const agora=new Date().toISOString();
   try{
     // Só marca na tela o CTe cuja linha o banco devolveu alterada; o resto vira aviso
+    await garantirSessao();
     const res=await Promise.all(alvo.map(x=>fetch(`${SB}/rest/v1/frt_conhecimentos?id=eq.${x.id}`,{method:'PATCH',headers:{...hdrs(),'Prefer':'return=representation'},body:JSON.stringify({frete_lancado:true,frete_lancado_em:agora,frete_lancado_por:user})})
       .then(async r=>r.ok&&(await r.json()).length>0).catch(()=>false)));
     const ok=alvo.filter((x,i)=>res[i]);
@@ -1812,8 +1971,9 @@ async function rastrearObjeto(){
   out.innerHTML=`<div class="loading"><div class="spinner"></div>Consultando Correios...</div>`;
   if(btn)btn.disabled=true;
   try{
+    await garantirSessao();
     const r=await fetch(`${EDGE}/rastrear-correios`,{method:'POST',
-      headers:{'Content-Type':'application/json','apikey':KEY,'Authorization':`Bearer ${KEY}`},
+      headers:{'Content-Type':'application/json','apikey':KEY,'Authorization':'Bearer '+sessToken()},
       body:JSON.stringify({codigo})});
     const d=await r.json().catch(()=>({}));
     if(!r.ok||d.erro)throw new Error(d.erro||`HTTP ${r.status}`);
@@ -2102,6 +2262,7 @@ async function salvarDim(){
   if(idProduto)corpo.id_produto=idProduto;
   let idAlvo=_editDimId;
   try{
+    await garantirSessao();
     if(!editando){
       // excluir é só ativo=false: o produto pode já ter linha, ativa ou não
       const rx=await fetch(`${SB}/rest/v1/frt_produtos_dimensoes?id_produto=eq.${idProduto}&select=id,ativo`,{headers:hdrs()});
@@ -2137,6 +2298,7 @@ async function salvarDim(){
 async function delDim(id){
   if(!await confirmar('Excluir esta dimensão?'))return;
   try{
+    await garantirSessao();
     const rd=await fetch(`${SB}/rest/v1/frt_produtos_dimensoes?id=eq.${id}`,{
       method:'PATCH',headers:{...hdrs(),'Prefer':'return=minimal'},
       body:JSON.stringify({ativo:false})
@@ -2218,6 +2380,7 @@ async function limparLogs(){
   if(!await confirmar('Excluir logs com mais de 30 dias?'))return;
   try{
     const cut=new Date(Date.now()-30*86400000).toISOString();
+    await garantirSessao();
     const r=await fetch(`${SB}/rest/v1/frt_logs?criado_em=lt.${cut}`,{method:'DELETE',headers:hdrs()});
     if(!r.ok)throw new Error(`HTTP ${r.status}: ${(await r.text()).slice(0,200)}`);
     bononiLog('ACAO','LIMPAR_LOGS',{modulo:'sistema'});
@@ -2227,6 +2390,18 @@ async function limparLogs(){
     toast('Erro: '+e.message,'error');
   }
 }
+
+// ── BOOT ──────────────────────────────────────────────────────────────────────
+// Fica no FIM do script de propósito: iniciarApp() chama go(), que usa `let`s declarados
+// em todo o arquivo; rodar antes deles estoura "Cannot access before initialization".
+// Sessão válida e módulo liberado → entrar(); senão, tela de login.
+// onclick/onsubmit novos (fazerLogin, sair) também ficam explícitos em window.
+Object.assign(window,{fazerLogin,sair});
+(async function(){
+  const u=await restaurarSessao();
+  if(u)entrar(u);
+  else if(document.getElementById('loginView').classList.contains('hidden'))mostrarLogin();
+})();
 </script>
 </body>
 </html>

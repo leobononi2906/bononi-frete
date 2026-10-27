@@ -1,13 +1,13 @@
 # STATUS — Frete (cotação + auditoria de CTe)
 
-> Atualizado: 2026-10-20
+> Atualizado: 2026-10-27
 
 ## O que é
 Subsistema de frete: **cotação** de 4 transportadoras em paralelo + **auditoria de CTe** (casar conhecimento de transporte com a NF/vendedor) + rastreio.
 
 ## Onde está
-- **Front novo (git):** `C:\CLAUDE\Projetos GitHub\bononi-frete\bononi-frete` (remote `leobononi2906/bononi-frete`, branch `main`) — HTML/JS puro, `index.html` (~1417 linhas), já em produção no Vercel.
-  ⚠️ A pasta externa `bononi-frete\` é wrapper (só README) — editar no clone aninhado.
+- **Front novo (git):** `C:\Aplicações da bononi\bononi-frete` (remote `leobononi2906/bononi-frete`, branch `main`) — HTML/JS puro, `index.html` (~2300 linhas), já em produção no Vercel.
+  ⚠️ Na máquina do Leo o clone é aninhado (`bononi-frete\bononi-frete`) e a pasta externa é wrapper (só README) — editar no clone aninhado.
 - **Base de conhecimento (fora do git):** `C:\CLAUDE\frete-kb\` — README, `DIVERGENCIAS.md`, `AUDITORIA.md`, `MIGRACAO.md`, `TESTES-COTACAO.md`, `edge-functions/`, `tabelas/`, `referencias-api/`. É a documentação viva do subsistema.
 - **Front antigo:** `bononifrete` (TS, privado) — ambos chamam a MESMA edge.
 - **Supabase:** `vishxwdxqiygbxmtpfoy` (tabelas/views `frt_*`).
@@ -45,7 +45,7 @@ Subsistema de frete: **cotação** de 4 transportadoras em paralelo + **auditori
 - [ ] **Edge ler as tabelas de config** (`frt_locais_expedicao`, `frt_transportadoras`, `frt_catalogo_produtos` já populadas em 05/08) em vez do cálculo hardcoded (LOCAIS, fator 300, OriginCityId RTE) — **maior alavanca**.
 - [ ] **Trocar `DOC_PJ_PADRAO`** do front (08827440000106 tem DV inválido → quebra São Miguel).
 - [ ] **Achatar a resposta da edge + remover o `salvarCotacao()`** morto do front (Rota A do `MIGRACAO.md`): front lê `valor_total/pedagio/gris` no topo mas a edge só devolve em `detalhes{}` aninhado.
-- [ ] Implementar auth do módulo `frete` no front (README promete, não implementa).
+- [x] ~~Implementar auth do módulo `frete` no front~~ — feito em 27/10/2026 (login pelo Hub, ver dev-log). Falta publicar e provar com uma conta real.
 - [ ] Ampliar replicação Firebird p/ os 226 CTes sem vínculo (ou Leo apontar a tabela).
 
 ## Dívidas e armadilhas conhecidas
@@ -74,6 +74,7 @@ Subsistema de frete: **cotação** de 4 transportadoras em paralelo + **auditori
 - PDF São Miguel WS JAVA (cotação) está preso no projeto claude.ai "Dash Fretes", fora do alcance da sessão CLI.
 
 ## Dev-log
+- 2026-10-27 — **Login pelo Hub no Frete (módulo `frete`).** Até hoje o app abria direto e toda chamada ia com a chave anon fixa. Agora o `index.html` tem tela de login (mesma conta do Hub; e-mail e senha pelo GoTrue por `fetch`, sem supabase-js, igual ao Vendas) e só entra quem tem o módulo: `admin === true`, ou `frete` em `admin_modulos` ou em `modulos`, lidos de `app_metadata` (autoridade desde 27/10); `user_metadata` só vale como reserva quando o `app_metadata` não tem nenhuma das três chaves. Sem acesso: "Seu login não tem acesso ao Frete. Peça a liberação no Hub → Usuários." e a sessão não é guardada. A sessão fica em `localStorage.frete_session` (declarada em `data-sessao` no portão do Hub). `hdrs()` passou a mandar `Authorization: Bearer <token do usuário>` (anon só sem sessão, para o `bononiLog` de erro antes do login); `_dbReq`, `bononiLog` e os `fetch` diretos chamam `await garantirSessao()` antes de ir à rede, e há renovação a cada 60 s. As Edge Functions `cotar-frete-index` e `rastrear-correios` também vão com o token do usuário. Um 401 de JWT vencido devolve ao login ("Sua sessão expirou"). O boot virou `restaurarSessao()` → `entrar()`, rodando no fim do script (o INIT antigo ficou na função `iniciarApp()`, por causa do TDZ); `?abrir=auditoria` do sino é lido antes do login e aplicado depois. Botão "Sair" e nome do usuário na barra do topo (no celular, no rodapé do menu). `criado_por`/`usuario_nome` agora levam o nome real em vez de "Usuário". Conferido só até a tela de login (abre, sem erro no console, sem chamada ao banco antes de entrar) e `node --check` do JS; **não** foi feito login com conta real nem publicado. Pendente: push, e depois conferir no ar entrando com uma conta com e sem o módulo. A RLS das tabelas `frt_*` continua como estava — o login no front não a substitui.
 - 2026-10-20 — **Impressão sempre clara: o tema escuro vale só na tela.** Verificação de impressão (PDF real do Chrome, escuro × claro) mostrou que o bloco de impressão do kit devolvia ao claro só poucas variáveis: `--text-action`, `--text-accent`, as de status e as bordas saíam com o valor escuro, e Ctrl+P no modo escuro imprimia títulos e números em cinza-claro. O bloco escuro do CSS de tema (`ds/bononi-dark.css`) agora fica dentro de `@media screen`, sem lista de reset: no papel tudo é o claro. O cache-buster do CSS de tema subiu para `?v=20261020c`. Conferido com mídia de impressão emulada: nenhuma variável de texto ou borda difere entre escuro e claro, e a tela escura e a clara seguem como antes. PDF real nas 7 telas: idêntico nos dois temas (antes, 5 tinham texto mais claro). Telas que exigem login não foram impressas em PDF (só o teste de variáveis, que vale para o app inteiro).
 - 2026-10-20 — **Tema escuro (claro / escuro / automático) no Frete (28d90b0 + contraste no commit seguinte).** Pedido do dono: todas as aplicações com tema escuro, sem bugar. Botão de tema na barra do topo; o automático segue o aparelho e a escolha fica no navegador. Paleta em `ds/bononi-dark.css`, tema em `ds/bononi-tema.js`. O Frete não tem login, então vale para qualquer pessoa que abra o app.
   - Fundo sólido com texto branco (selo de transportadora vencedora) usava `--green`, que no escuro é um verde claro; passou a `--bnn-green-500` (igual no claro). Cinco usos de `--primary`/`--blue*` como texto viraram `--text-action`.
