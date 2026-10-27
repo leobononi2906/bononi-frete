@@ -7,6 +7,27 @@ const CORS = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+// ── Quem pode chamar (27/10/2026) ──────────────────────────────────────────────────────────
+// Antes: qualquer um com a chave anon (bundle) cotava nas 4 transportadoras e gravava
+// frt_cotacoes por aqui — Verify JWT não protege, a anon é um JWT válido. Agora passa: chave de
+// serviço (a Vitrine cota pelo servidor, bononi-vitrine-cliente) ou usuário logado com módulo
+// do Frete ou do Comercial Stonni (com_stonni/pedidos.js) em app_metadata, ou admin global.
+const MODULOS_PERMITIDOS = ["frete", "stonni", "atacado", "stonni_fotos"];
+async function quemChama(req: Request, modulos: string[]): Promise<{ ok: boolean; status: number; erro?: string }> {
+  const token = (req.headers.get("Authorization") ?? "").replace(/^Bearer\s+/i, "").trim();
+  if (!token) return { ok: false, status: 401, erro: "faça login" };
+  if (token === Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")) return { ok: true, status: 200 };
+  const r = await fetch(`${Deno.env.get("SUPABASE_URL")}/auth/v1/user`, {
+    headers: { apikey: Deno.env.get("SUPABASE_ANON_KEY") ?? "", Authorization: `Bearer ${token}` },
+  }).catch(() => null);
+  if (!r || !r.ok) return { ok: false, status: 401, erro: "faça login" };
+  const m = ((await r.json().catch(() => null)) as { app_metadata?: Record<string, unknown> } | null)?.app_metadata ?? {};
+  const lista = (v: unknown) => (Array.isArray(v) ? (v as string[]) : []);
+  const tem = [...lista(m.modulos), ...lista(m.admin_modulos)];
+  if (m.admin === true || modulos.some((x) => tem.includes(x))) return { ok: true, status: 200 };
+  return { ok: false, status: 403, erro: "sem acesso a este módulo" };
+}
+
 const LOCAIS: Record<number, { cep: string; cidade: string; uf: string; cnpj: string }> = {
   1: { cep: "87507015", cidade: "UMUARAMA", uf: "PR", cnpj: "05864790000177" },
   2: { cep: "89211710", cidade: "JOINVILLE", uf: "SC", cnpj: "05864790000258" },
@@ -318,6 +339,8 @@ async function cotarRodonaves(supabase: any, input: any, cepDest: string, cepOri
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: CORS });
   if (req.method !== "POST") return new Response(JSON.stringify({ erro: "Metodo nao permitido" }), { status: 405, headers: { ...CORS, "Content-Type": "application/json" } });
+  const acesso = await quemChama(req, MODULOS_PERMITIDOS);
+  if (!acesso.ok) return new Response(JSON.stringify({ erro: acesso.erro }), { status: acesso.status, headers: { ...CORS, "Content-Type": "application/json" } });
   try {
     const supabase = createClient(Deno.env.get("SUPABASE_URL") ?? "", Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "");
     const input = await req.json();
