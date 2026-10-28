@@ -3,6 +3,9 @@
 <head>
   <!-- Portão do Hub: quem digita o endereço sem sessão vai pro Hub. Tem que ser o 1º script. -->
   <script src="ds/geral-portao.js?v=1" data-sessao="frete_session"></script>
+  <!-- Botão Ajuda (assistente de IA + pedido de melhoria), sino, avisos e senha: cópia verbatim do Hub.
+       Carrega o ds/geral-ajuda.js sob demanda, da mesma pasta. -->
+  <script src="ds/geral-central.js?v=22"></script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="mobile-web-app-capable" content="yes">
@@ -110,6 +113,9 @@ body:has(#sticky-cotar) .page{padding-bottom:96px}
 #sticky-cotar{position:fixed;bottom:0;left:0;right:0;padding:10px 16px calc(10px + env(safe-area-inset-bottom));background:var(--surface-page);border-top:1px solid var(--border);z-index:40;display:flex;gap:8px}
 #sticky-cotar .btn:focus-visible{box-shadow:var(--focus-ring)}
 @media(min-width:769px){#sticky-cotar{left:var(--sidebar-w)}}
+/* botão Ajuda e sino do geral-central ficam acima da barra fixa de cotar (senão ela os cobre) */
+body:has(#sticky-cotar) .gc-fab-wrap{bottom:calc(80px + env(safe-area-inset-bottom)) !important}
+body:has(#sticky-cotar) #gc-sino-wrap{bottom:calc(132px + env(safe-area-inset-bottom)) !important}
 .confirm-box p{font:var(--type-body);margin-bottom:20px}
 .confirm-btns{display:flex;gap:10px;justify-content:center}
 
@@ -710,6 +716,15 @@ function entrar(u){
   document.getElementById('loginView').classList.add('hidden');
   document.getElementById('app').classList.remove('hidden');
   if(!_timerSessao)_timerSessao=setInterval(()=>garantirSessao(),60000);
+  if(window.GeralCentral&&!_appIniciado){
+    // Sem supabase-js (como no Vendas): sb é um adaptador mínimo com o que o geral-central usa,
+    // auth.getSession() devolvendo o access_token que já está em localStorage.
+    GeralCentral.iniciar({
+      appId: MODULO, url: SB, key: KEY,
+      sb: { auth: { getSession: async () => { await garantirSessao(); const t = sessToken(); return { data: { session: (t && t !== KEY) ? { access_token: t } : null } }; } } },
+      usuario: { email: u?.email || '', nome: meta.nome || '' },
+    });
+  }
   _appIniciado=true;
   iniciarApp();
 }
