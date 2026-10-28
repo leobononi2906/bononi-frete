@@ -1,5 +1,5 @@
 /* ============================================================
-   geral-ajuda.js — aba "Perguntar" do botão Ajuda  |  v22 — 28/10/2026
+   geral-ajuda.js — Bononinha, aba "Perguntar" do botão Ajuda  |  v23 — 28/10/2026
    ============================================================
    Assistente de IA dentro de todos os apps. Não se carrega sozinho:
    o geral-central.js (v22+) busca este arquivo NA MESMA PASTA, com o
@@ -37,6 +37,7 @@
     buscar_produto_bononi: 'Consultando o catálogo Bononi…',
     consultar_produto_stonni: 'Consultando a base técnica Stonni…',
     pedidos_parecidos: 'Vendo se alguém já pediu isso…',
+    consultar_nota_expedicao: 'Consultando a nota na Expedição…',
     rascunhar_pedido: 'Montando o rascunho do pedido…',
   };
 
@@ -136,7 +137,7 @@
       '<div class="gc-aj">' +
         '<div class="gc-aj-lista" id="gc-aj-lista"></div>' +
         '<div class="gc-aj-form">' +
-          '<textarea id="gc-aj-texto" rows="1" placeholder="Pergunte como usar o app, sobre um produto, ou conte um problema"></textarea>' +
+          '<textarea id="gc-aj-texto" rows="1" placeholder="Pergunte à Bononinha: como usar o app, um produto, ou conte um problema"></textarea>' +
           '<button type="button" class="gc-aj-btn" id="gc-aj-enviar">Enviar</button>' +
         '</div>' +
         '<div class="gc-aj-rodape"><span>Respostas de IA podem errar: confira antes de passar ao cliente.</span>' +
@@ -166,7 +167,7 @@
       if (!msgs.length) {
         var vazio = document.createElement('div');
         vazio.className = 'gc-aj-vazio';
-        vazio.innerHTML = 'Oi! Sou a assistente do <b>' + esc(ctx.appNome) + '</b>. Posso explicar como usar esta tela, tirar dúvida de produto Bononi ou Stonni, ou ajudar a escrever um pedido de melhoria.' +
+        vazio.innerHTML = 'Oi! Eu sou a <b>Bononinha</b>, a assistente interna das aplicações da Bononi e da Stonni. Aqui no <b>' + esc(ctx.appNome) + '</b> posso explicar como usar esta tela, tirar dúvida de produto Bononi ou Stonni, ou ajudar a escrever um pedido de melhoria.' +
           '<div class="gc-aj-chips">' + SUGESTOES.map(function (s, i) {
             return '<button type="button" class="gc-aj-chip" data-i="' + i + '">' + esc(s.rotulo) + '</button>';
           }).join('') + '</div>';
@@ -223,7 +224,7 @@
       bolha.className = 'gc-aj-msg gc-aj-ia';
       var status = document.createElement('div');
       status.className = 'gc-aj-status';
-      status.textContent = 'Pensando…';
+      status.textContent = 'A Bononinha está pensando…';
       lista.appendChild(status);
       rolar();
 
@@ -310,5 +311,5 @@
     setTimeout(function () { campo.focus(); }, 50);
   }
 
-  window.GeralAjuda = { versao: '22', montar: montar };
+  window.GeralAjuda = { versao: '23', montar: montar };
 })();

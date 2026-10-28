@@ -1,7 +1,11 @@
 /* ============================================================
    geral-central.js — Sugestão, avisos, atualização cadastral,
-   expiração de senha, sino de pendências e caminho  |  v22 — 28/10/2026
+   expiração de senha, sino de pendências e caminho  |  v23 — 28/10/2026
    ============================================================
+   v23: a assistente tem nome — BONONINHA, a assistente interna das
+   aplicações da Bononi e da Stonni (saudação, campo e "pensando" no
+   geral-ajuda.js). Só texto; o VERSAO sobe para o ?v= do geral-ajuda.js
+   mudar junto.
    v22: O BOTÃO VIRA "AJUDA", COM ASSISTENTE DE IA. O modal ganha a aba
    "Perguntar" (a primeira, aberta por padrão), antes de "Novo pedido" e
    "Meus pedidos". O chat mora em geral-ajuda.js, buscado SOB DEMANDA da
@@ -156,7 +160,7 @@
 (function () {
   'use strict';
 
-  var VERSAO = '22';
+  var VERSAO = '23';
   // v22: o geral-ajuda.js mora ao lado deste arquivo (ds/ ou public/ds/).
   var BASE_DS = (function () {
     try {
@@ -653,7 +657,7 @@
     var wrap = document.createElement('div');
     wrap.className = 'gc-fab-wrap';
     wrap.innerHTML =
-      '<span class="gc-fab-tooltip">Ajuda</span>' +
+      '<span class="gc-fab-tooltip">Ajuda · Bononinha</span>' +
       '<button id="gc-fab-sugestao" type="button" aria-label="Ajuda: perguntar ou sugerir melhoria">' + ICONE_FAB + '</button>';
     document.body.appendChild(wrap);
     wrap.querySelector('#gc-fab-sugestao').addEventListener('click', function () { abrirModalSugestao(o); });
