@@ -1084,9 +1084,14 @@ let _cepCidadeCache={};
 async function buscarCidadeCep(cep,lbl){
   if(_cepCidadeCache[cep]){lbl.style.color='var(--muted)';lbl.textContent=_cepCidadeCache[cep];return}
   try{
-    const r=await fetch(`https://viacep.com.br/ws/${cep}/json/`);
-    const d=await r.json();
-    if(d.erro){lbl.style.color='var(--danger)';lbl.textContent='CEP não encontrado';return}
+    // ViaCEP não tem todo CEP (40725-850 Salvador, 29/10/2026); a BrasilAPI é a
+    // mesma segunda fonte que a cotar-frete-index já usa.
+    let d=await fetch(`https://viacep.com.br/ws/${cep}/json/`).then(r=>r.json()).catch(()=>null);
+    if(!d||d.erro){
+      const b=await fetch(`https://brasilapi.com.br/api/cep/v1/${cep}`).then(r=>r.ok?r.json():null).catch(()=>null);
+      d=b&&b.city?{localidade:b.city,uf:b.state}:null;
+    }
+    if(!d){lbl.style.color='var(--danger)';lbl.textContent='CEP não encontrado';return}
     const txt=`${d.localidade} / ${d.uf}`;
     _cepCidadeCache[cep]=txt;
     lbl.style.color='var(--muted)';lbl.textContent=txt;
