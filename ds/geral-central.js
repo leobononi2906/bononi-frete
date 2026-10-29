@@ -1,7 +1,10 @@
 /* ============================================================
    geral-central.js — Sugestão, avisos, atualização cadastral,
-   expiração de senha, sino de pendências e caminho  |  v23 — 28/10/2026
+   expiração de senha, sino de pendências e caminho  |  v24 — 29/10/2026
    ============================================================
+   v24: a Bononinha LÊ A TELA — o geral-ajuda.js manda o texto visível
+   (dados pessoais mascarados) junto com cada pergunta. Só o VERSAO muda
+   aqui, para o ?v= do geral-ajuda.js mudar junto.
    v23: a assistente tem nome — BONONINHA, a assistente interna das
    aplicações da Bononi e da Stonni (saudação, campo e "pensando" no
    geral-ajuda.js). Só texto; o VERSAO sobe para o ?v= do geral-ajuda.js
@@ -160,7 +163,7 @@
 (function () {
   'use strict';
 
-  var VERSAO = '23';
+  var VERSAO = '24';
   // v22: o geral-ajuda.js mora ao lado deste arquivo (ds/ ou public/ds/).
   var BASE_DS = (function () {
     try {

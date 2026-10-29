@@ -1,5 +1,5 @@
 /* ============================================================
-   geral-ajuda.js — Bononinha, aba "Perguntar" do botão Ajuda  |  v23 — 28/10/2026
+   geral-ajuda.js — Bononinha, aba "Perguntar" do botão Ajuda  |  v24 — 29/10/2026
    ============================================================
    Assistente de IA dentro de todos os apps. Não se carrega sozinho:
    o geral-central.js (v22+) busca este arquivo NA MESMA PASTA, com o
@@ -8,12 +8,18 @@
    nenhuma linha nova no index.html além do ?v= do geral-central.
 
    Fala com a Edge Function geral-assistente (bononi-hub, migration 0081):
-   POST { app, appNome, tela, mensagens } → text/event-stream com
+   POST { app, appNome, tela, conteudo, mensagens } → text/event-stream com
    { t } texto, { ferramenta } consultando, { rascunho } pedido pronto
    para revisar, { fim }, { erro, codigo }.
 
    A IA nunca envia pedido: o rascunho vira o botão "Revisar e enviar
    como pedido", que abre a aba "Novo pedido" já preenchida (ctx.preencherPedido).
+
+   v24: manda junto o TEXTO VISÍVEL da tela (conteudo, até 8 mil caracteres),
+   lido a cada pergunta — é o que deixa a Bononinha responder "por que este
+   pedido foi cancelado?" olhando o status, o motivo e o histórico que a
+   pessoa já está vendo. Fica de fora a própria janela da Ajuda e o botão.
+   CPF, CNPJ, e-mail e celular saem mascarados daqui, antes de ir à IA.
 
    Conversa guardada em sessionStorage (some ao fechar a aba) — conveniência,
    dentro de try/catch; sem storage, funciona do mesmo jeito.
@@ -121,6 +127,30 @@
     try { sessionStorage.setItem(chave(o), JSON.stringify(msgs.slice(-40))); } catch (e) { /* conveniência */ }
   }
 
+  // Texto que a pessoa está vendo agora, sem a janela da Ajuda (que contém `cont`)
+  // nem o botão flutuante. innerText já ignora o que está escondido.
+  var MAX_CONTEUDO = 8000;
+  function mascarar(t) {
+    return t
+      .replace(/[\w.+-]+@[\w-]+(\.[\w-]+)+/g, '[e-mail]')
+      .replace(/\b\d{2}\.?\d{3}\.?\d{3}\/?\d{4}-?\d{2}\b/g, '[CNPJ]')
+      .replace(/\b\d{3}\.\d{3}\.\d{3}-\d{2}\b/g, '[CPF]')
+      .replace(/\(?\b\d{2}\)?\s?9\d{4}-?\d{4}\b/g, '[telefone]');
+  }
+  function lerTela(cont) {
+    try {
+      var partes = [];
+      Array.prototype.forEach.call(document.body.children, function (el) {
+        if (el.contains(cont) || el.classList.contains('gc-fab-wrap')) return;
+        if (/^(SCRIPT|STYLE|NOSCRIPT|TEMPLATE|LINK)$/.test(el.tagName)) return;
+        var t = el.innerText;
+        if (t && t.trim()) partes.push(t);
+      });
+      var texto = partes.join('\n').replace(/[ \t]+/g, ' ').replace(/\n\s*\n+/g, '\n').trim();
+      return mascarar(texto).slice(0, MAX_CONTEUDO);
+    } catch (e) { return ''; }
+  }
+
   async function tokenFresco(o) {
     try {
       var s = await o.sb.auth.getSession();
@@ -167,7 +197,7 @@
       if (!msgs.length) {
         var vazio = document.createElement('div');
         vazio.className = 'gc-aj-vazio';
-        vazio.innerHTML = 'Oi! Eu sou a <b>Bononinha</b>, a assistente interna das aplicações da Bononi e da Stonni. Aqui no <b>' + esc(ctx.appNome) + '</b> posso explicar como usar esta tela, tirar dúvida de produto Bononi ou Stonni, ou ajudar a escrever um pedido de melhoria.' +
+        vazio.innerHTML = 'Oi! Eu sou a <b>Bononinha</b>, a assistente interna das aplicações da Bononi e da Stonni. Aqui no <b>' + esc(ctx.appNome) + '</b> posso explicar como usar esta tela e o que aparece nela (por exemplo, por que um pedido foi cancelado), tirar dúvida de produto Bononi ou Stonni, ou ajudar a escrever um pedido de melhoria.' +
           '<div class="gc-aj-chips">' + SUGESTOES.map(function (s, i) {
             return '<button type="button" class="gc-aj-chip" data-i="' + i + '">' + esc(s.rotulo) + '</button>';
           }).join('') + '</div>';
@@ -234,7 +264,7 @@
         var resp = await fetch(o.url + '/functions/v1/geral-assistente', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json', apikey: o.key, Authorization: 'Bearer ' + tk },
-          body: JSON.stringify({ app: o.appId, appNome: ctx.appNome, tela: ctx.tela, mensagens: historico }),
+          body: JSON.stringify({ app: o.appId, appNome: ctx.appNome, tela: ctx.tela, conteudo: lerTela(cont), mensagens: historico }),
         });
         if (!resp.ok || !resp.body) {
           var corpoErro = {};
@@ -311,5 +341,5 @@
     setTimeout(function () { campo.focus(); }, 50);
   }
 
-  window.GeralAjuda = { versao: '23', montar: montar };
+  window.GeralAjuda = { versao: '24', montar: montar };
 })();
