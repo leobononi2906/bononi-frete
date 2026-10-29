@@ -1136,7 +1136,8 @@ function mDocDest(el){
     if(v.length>9)       v=v.slice(0,3)+'.'+v.slice(3,6)+'.'+v.slice(6,9)+'-'+v.slice(9,11);
     else if(v.length>6)  v=v.slice(0,3)+'.'+v.slice(3,6)+'.'+v.slice(6);
     else if(v.length>3)  v=v.slice(0,3)+'.'+v.slice(3);
-    el.maxLength=14; // 000.000.000-00
+    // maxLength fica 18 mesmo no CPF: com 14 o CPF mascarado (000.000.000-00) enchia o campo e o
+    // 12º dígito, que vira CNPJ, nunca entrava; CNPJ colado com máscara era cortado (29/10/2026)
     if(badge){
       if(digits===11&&!docValido(v)) badge.innerHTML='<span class="badge b-red"><i class="ic ic-sm" data-ic="circle-x"></i> CPF inválido</span>';
       else if(digits===11) badge.innerHTML='<span class="badge b-purple"><i class="ic ic-sm" data-ic="user"></i> Pessoa Física</span>';
@@ -1148,7 +1149,6 @@ function mDocDest(el){
     else if(v.length>8)  v=v.slice(0,2)+'.'+v.slice(2,5)+'.'+v.slice(5,8)+'/'+v.slice(8);
     else if(v.length>5)  v=v.slice(0,2)+'.'+v.slice(2,5)+'.'+v.slice(5);
     else if(v.length>2)  v=v.slice(0,2)+'.'+v.slice(2);
-    el.maxLength=18; // 00.000.000/0000-00
     if(badge){
       if(digits===14&&!docValido(v)) badge.innerHTML='<span class="badge b-red"><i class="ic ic-sm" data-ic="circle-x"></i> CNPJ inválido</span>';
       else if(digits===14) badge.innerHTML='<span class="badge b-blue"><i class="ic ic-sm" data-ic="building-2"></i> Pessoa Jurídica</span>';
@@ -1165,14 +1165,14 @@ const DOC_PJ_PADRAO  = '57129987000166';     // CNPJ Truckprest (PJ padrão), co
 function setPF(){
   const el=document.getElementById('cnpj');
   if(!el)return;
-  el.value='';el.maxLength=14;
+  el.value='';
   // simula digitação para aplicar máscara
   el.value=DOC_PF_PADRAO;mDocDest(el);
 }
 function setPJ(){
   const el=document.getElementById('cnpj');
   if(!el)return;
-  el.value='';el.maxLength=18;
+  el.value='';
   el.value=DOC_PJ_PADRAO;mDocDest(el);
 }
 // ── Tradução de erros técnicos para linguagem clara ──
